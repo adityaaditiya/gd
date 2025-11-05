@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
@@ -29,4 +30,18 @@ Route::middleware(['auth'])->group(function () {
             ),
         )
         ->name('two-factor.show');
+
+    Route::middleware(['admin'])->group(function () {
+        Route::view('admin', 'admin.dashboard')->name('admin.dashboard');
+    });
+
+    Route::get('welcome-user', function () {
+        $user = Auth::user();
+
+        if ($user?->role === 'admin') {
+            return redirect()->route('admin.dashboard');
+        }
+
+        return view('user.welcome', ['user' => $user]);
+    })->name('user.welcome');
 });

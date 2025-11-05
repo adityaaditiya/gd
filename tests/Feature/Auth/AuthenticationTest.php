@@ -23,13 +23,29 @@ class AuthenticationTest extends TestCase
         $user = User::factory()->withoutTwoFactor()->create();
 
         $response = $this->post(route('login.store'), [
-            'email' => $user->email,
+            'login' => $user->email,
             'password' => 'password',
         ]);
 
         $response
             ->assertSessionHasNoErrors()
-            ->assertRedirect(route('dashboard', absolute: false));
+            ->assertRedirect(route('user.welcome', absolute: false));
+
+        $this->assertAuthenticated();
+    }
+
+    public function test_users_can_authenticate_using_username(): void
+    {
+        $user = User::factory()->withoutTwoFactor()->create();
+
+        $response = $this->post(route('login.store'), [
+            'login' => $user->username,
+            'password' => 'password',
+        ]);
+
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('user.welcome', absolute: false));
 
         $this->assertAuthenticated();
     }
@@ -39,11 +55,11 @@ class AuthenticationTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->post(route('login.store'), [
-            'email' => $user->email,
+            'login' => $user->email,
             'password' => 'wrong-password',
         ]);
 
-        $response->assertSessionHasErrorsIn('email');
+        $response->assertSessionHasErrorsIn('login');
 
         $this->assertGuest();
     }
@@ -62,7 +78,7 @@ class AuthenticationTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->post(route('login.store'), [
-            'email' => $user->email,
+            'login' => $user->email,
             'password' => 'password',
         ]);
 
