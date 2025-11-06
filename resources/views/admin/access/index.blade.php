@@ -1,10 +1,4 @@
 <x-layouts.app :title="__('Hak Akses User')">
-    <style>
-        [x-cloak] {
-            display: none !important;
-        }
-    </style>
-
     <div
         x-data="accessManager({
             menuTree: @js($menuTree),
@@ -22,7 +16,6 @@
             },
             csrfToken: '{{ csrf_token() }}',
         })"
-        x-cloak
         class="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8"
     >
         <header class="space-y-2">
