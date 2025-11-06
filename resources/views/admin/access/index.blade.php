@@ -3,12 +3,14 @@
         id="access-manager"
         data-menu-tree='@json($menuTree)'
         data-defaults='@json($defaultPermissions)'
-        data-users='@json($users->map(fn ($user) => [
-            'id' => $user->id,
-            'username' => $user->username,
-            'name' => $user->name,
-            'role' => $user->role,
-        ])->values()->all())'
+        data-users='@json($users->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'username' => $user->username,
+                'name' => $user->name,
+                'role' => $user->role,
+            ];
+        })->values()->all())'
         data-routes='@json([
             'show' => route('admin.access.show', ['user' => '__USER__']),
             'update' => route('admin.access.update', ['user' => '__USER__']),
