@@ -15,6 +15,27 @@
                 <flux:navbar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                     {{ __('Dashboard') }}
                 </flux:navbar.item>
+                @if (auth()->user()?->role === 'admin')
+                    <flux:dropdown>
+                        <flux:navbar.item
+                            as="button"
+                            type="button"
+                            icon="squares-2x2"
+                            :current="request()->routeIs('admin.users.*') || request()->routeIs('admin.access.*')"
+                        >
+                            {{ __('Master') }}
+                        </flux:navbar.item>
+
+                        <flux:menu class="w-48">
+                            <flux:menu.item :href="route('admin.users.index')" icon="users" :current="request()->routeIs('admin.users.*')" wire:navigate>
+                                {{ __('Master User') }}
+                            </flux:menu.item>
+                            <flux:menu.item :href="route('admin.access.index')" icon="shield-check" :current="request()->routeIs('admin.access.*')" wire:navigate>
+                                {{ __('Hak Akses User') }}
+                            </flux:menu.item>
+                        </flux:menu>
+                    </flux:dropdown>
+                @endif
             </flux:navbar>
 
             <flux:spacer />
@@ -111,6 +132,14 @@
                             wire:navigate
                         >
                             {{ __('Master User') }}
+                        </flux:navlist.item>
+                        <flux:navlist.item
+                            icon="shield-check"
+                            :href="route('admin.access.index')"
+                            :current="request()->routeIs('admin.access.*')"
+                            wire:navigate
+                        >
+                            {{ __('Hak Akses User') }}
                         </flux:navlist.item>
                     </flux:navlist.group>
                 @endif

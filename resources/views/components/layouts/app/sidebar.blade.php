@@ -25,6 +25,14 @@
                         >
                             {{ __('Master User') }}
                         </flux:navlist.item>
+                        <flux:navlist.item
+                            icon="shield-check"
+                            :href="route('admin.access.index')"
+                            :current="request()->routeIs('admin.access.*')"
+                            wire:navigate
+                        >
+                            {{ __('Hak Akses User') }}
+                        </flux:navlist.item>
                     </flux:navlist.group>
                 @endif
             </flux:navlist>

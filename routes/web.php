@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\UserAccessController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -41,6 +42,16 @@ Route::middleware(['auth'])->group(function () {
             Route::get('users', [UserController::class, 'index'])->name('users.index');
             Route::post('users', [UserController::class, 'store'])->name('users.store');
             Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
+
+            Route::controller(UserAccessController::class)
+                ->prefix('access')
+                ->name('access.')
+                ->group(function () {
+                    Route::get('/', 'index')->name('index');
+                    Route::get('users/{user}', 'show')->name('show');
+                    Route::post('users/{user}', 'update')->name('update');
+                    Route::delete('users/{user}', 'reset')->name('reset');
+                });
         });
 
     Route::get('welcome-user', function () {
