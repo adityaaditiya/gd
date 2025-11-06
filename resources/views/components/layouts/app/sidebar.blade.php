@@ -261,10 +261,14 @@
         {{ $slot }}
 
         <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                const toggles = document.querySelectorAll('[data-accordion-toggle]');
+            const initializeAccordion = () => {
+                document.querySelectorAll('[data-accordion-toggle]').forEach((toggle) => {
+                    if (toggle.dataset.accordionInitialized === 'true') {
+                        return;
+                    }
 
-                toggles.forEach((toggle) => {
+                    toggle.dataset.accordionInitialized = 'true';
+
                     const targetId = toggle.getAttribute('data-accordion-target');
                     const target = document.getElementById(targetId);
 
@@ -275,14 +279,11 @@
                     const icon = toggle.querySelector('[data-accordion-icon]');
                     const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
 
-                    if (isExpanded) {
-                        target.style.maxHeight = `${target.scrollHeight}px`;
-                    } else {
-                        target.style.maxHeight = '0px';
-                    }
+                    target.style.maxHeight = isExpanded ? `${target.scrollHeight}px` : '0px';
 
                     toggle.addEventListener('click', () => {
                         const currentlyExpanded = toggle.getAttribute('aria-expanded') === 'true';
+
                         if (currentlyExpanded) {
                             target.style.maxHeight = '0px';
                             toggle.setAttribute('aria-expanded', 'false');
@@ -294,7 +295,10 @@
                         }
                     });
                 });
-            });
+            };
+
+            document.addEventListener('DOMContentLoaded', initializeAccordion);
+            document.addEventListener('livewire:navigated', initializeAccordion);
         </script>
 
         @fluxScripts
