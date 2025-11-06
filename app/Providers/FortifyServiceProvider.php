@@ -61,6 +61,10 @@ class FortifyServiceProvider extends ServiceProvider
 
             return null;
         });
+
+        Fortify::confirmPasswordsUsing(function (User $user, string $password) {
+            return Hash::check($password, $user->password);
+        });
     }
 
     /**
