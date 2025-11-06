@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
@@ -31,9 +32,16 @@ Route::middleware(['auth'])->group(function () {
         )
         ->name('two-factor.show');
 
-    Route::middleware(['admin'])->group(function () {
-        Route::view('admin', 'admin.dashboard')->name('admin.dashboard');
-    });
+    Route::middleware(['admin'])
+        ->prefix('admin')
+        ->as('admin.')
+        ->group(function () {
+            Route::view('/', 'admin.dashboard')->name('dashboard');
+
+            Route::get('users', [UserController::class, 'index'])->name('users.index');
+            Route::post('users', [UserController::class, 'store'])->name('users.store');
+            Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
+        });
 
     Route::get('welcome-user', function () {
         $user = Auth::user();
