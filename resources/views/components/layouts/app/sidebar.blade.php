@@ -24,11 +24,26 @@
                         href="{{ route('dashboard') }}"
                         wire:navigate
                         @class([
-                            'flex items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold transition-colors duration-200',
+                            'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-colors duration-200',
                             'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('dashboard'),
                             'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('dashboard'),
                         ])
                     >
+                        <svg
+                            class="size-5"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            aria-hidden="true"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="m2.25 12 9-9 9 9M4.5 9.75v10.125A1.125 1.125 0 0 0 5.625 21h12.75A1.125 1.125 0 0 0 19.5 19.875V9.75"
+                            />
+                        </svg>
                         <span>{{ __('Dashboard') }}</span>
                     </a>
                 </div>
@@ -41,7 +56,24 @@
                         data-accordion-target="gadai-menu"
                         aria-expanded="{{ $isGadaiActive ? 'true' : 'false' }}"
                     >
-                        <span>{{ __('Gadai') }}</span>
+                        <span class="flex items-center gap-2">
+                            <svg
+                                class="size-5"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M3 6.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v2.25C7.5 9.246 6.996 9.75 6.375 9.75h-2.25A1.125 1.125 0 0 1 3 8.625v-2.25Zm0 8.25c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125h-2.25A1.125 1.125 0 0 1 3 16.875v-2.25ZM9.75 6.375c0-.621.504-1.125 1.125-1.125h10.5c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125h-10.5A1.125 1.125 0 0 1 9.75 8.625v-2.25Zm0 8.25c0-.621.504-1.125 1.125-1.125h10.5c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125h-10.5a1.125 1.125 0 0 1-1.125-1.125v-2.25Z"
+                                />
+                            </svg>
+                            <span>{{ __('Gadai') }}</span>
+                        </span>
                         <svg
                             data-accordion-icon
                             class="size-4 transform transition-transform duration-300 {{ $isGadaiActive ? 'rotate-90' : '' }}"
@@ -104,7 +136,24 @@
                             data-accordion-target="master-menu"
                             aria-expanded="{{ $isMasterActive ? 'true' : 'false' }}"
                         >
-                            <span>{{ __('Master') }}</span>
+                            <span class="flex items-center gap-2">
+                                <svg
+                                    class="size-5"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    aria-hidden="true"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M3 3h7.5v7.5H3V3Zm10.5 0H21v7.5h-7.5V3ZM3 13.5h7.5V21H3v-7.5Zm10.5 0H21V21h-7.5v-7.5Z"
+                                    />
+                                </svg>
+                                <span>{{ __('Master') }}</span>
+                            </span>
                             <svg
                                 data-accordion-icon
                                 class="size-4 transform transition-transform duration-300 {{ $isMasterActive ? 'rotate-90' : '' }}"
