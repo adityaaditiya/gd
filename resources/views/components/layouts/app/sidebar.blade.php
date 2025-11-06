@@ -11,23 +11,192 @@
                 <x-app-logo />
             </a>
 
-            <flux:navlist variant="outline">
-                <flux:navlist.group :heading="__('Platform')" class="grid">
-                    <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
-                </flux:navlist.group>
-                @if (auth()->user()?->role === 'admin')
-                    <flux:navlist.group :heading="__('Master')" class="grid">
-                        <flux:navlist.item
-                            icon="users"
-                            :href="route('admin.users.index')"
-                            :current="request()->routeIs('admin.users.*')"
-                            wire:navigate
+            @php
+                $gadaiRoutes = ['gadai.pemberian-kredit', 'gadai.lihat-gadai', 'gadai.lihat-data-lelang'];
+                $isGadaiActive = request()->routeIs(...$gadaiRoutes);
+                $masterRoutes = ['admin.users.*', 'admin.pages.*'];
+                $isMasterActive = request()->routeIs(...$masterRoutes);
+            @endphp
+
+            <nav class="flex flex-col gap-3">
+                <div>
+                    <a
+                        href="{{ route('dashboard') }}"
+                        wire:navigate
+                        @class([
+                            'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-colors duration-200',
+                            'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('dashboard'),
+                            'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('dashboard'),
+                        ])
+                    >
+                        <svg
+                            class="size-5"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            aria-hidden="true"
                         >
-                            {{ __('Master User') }}
-                        </flux:navlist.item>
-                    </flux:navlist.group>
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="m2.25 12 9-9 9 9M4.5 9.75v10.125A1.125 1.125 0 0 0 5.625 21h12.75A1.125 1.125 0 0 0 19.5 19.875V9.75"
+                            />
+                        </svg>
+                        <span>{{ __('Dashboard') }}</span>
+                    </a>
+                </div>
+
+                <div>
+                    <button
+                        type="button"
+                        class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-neutral-700 transition-colors duration-200 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-700 dark:hover:text-white"
+                        data-accordion-toggle
+                        data-accordion-target="gadai-menu"
+                        aria-expanded="{{ $isGadaiActive ? 'true' : 'false' }}"
+                    >
+                        <span class="flex items-center gap-2">
+                            <svg
+                                class="size-5"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M3 6.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v2.25C7.5 9.246 6.996 9.75 6.375 9.75h-2.25A1.125 1.125 0 0 1 3 8.625v-2.25Zm0 8.25c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125h-2.25A1.125 1.125 0 0 1 3 16.875v-2.25ZM9.75 6.375c0-.621.504-1.125 1.125-1.125h10.5c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125h-10.5A1.125 1.125 0 0 1 9.75 8.625v-2.25Zm0 8.25c0-.621.504-1.125 1.125-1.125h10.5c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125h-10.5a1.125 1.125 0 0 1-1.125-1.125v-2.25Z"
+                                />
+                            </svg>
+                            <span>{{ __('Gadai') }}</span>
+                        </span>
+                        <svg
+                            data-accordion-icon
+                            class="size-4 transform transition-transform duration-300 {{ $isGadaiActive ? 'rotate-90' : '' }}"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                        >
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                        </svg>
+                    </button>
+                    <div
+                        id="gadai-menu"
+                        class="ms-3 mt-1 space-y-1 overflow-hidden text-sm transition-all duration-300"
+                        style="max-height: {{ $isGadaiActive ? '500px' : '0px' }};"
+                    >
+                        <a
+                            href="{{ route('gadai.pemberian-kredit') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('gadai.pemberian-kredit'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('gadai.pemberian-kredit'),
+                            ])
+                        >
+                            {{ __('Pemberian Kredit') }}
+                        </a>
+                        <a
+                            href="{{ route('gadai.lihat-gadai') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('gadai.lihat-gadai'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('gadai.lihat-gadai'),
+                            ])
+                        >
+                            {{ __('Lihat Gadai') }}
+                        </a>
+                        <a
+                            href="{{ route('gadai.lihat-data-lelang') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('gadai.lihat-data-lelang'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('gadai.lihat-data-lelang'),
+                            ])
+                        >
+                            {{ __('Lihat Data Lelang') }}
+                        </a>
+                    </div>
+                </div>
+
+                @if (auth()->user()?->role === 'admin')
+                    <div>
+                        <button
+                            type="button"
+                            class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-neutral-700 transition-colors duration-200 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-700 dark:hover:text-white"
+                            data-accordion-toggle
+                            data-accordion-target="master-menu"
+                            aria-expanded="{{ $isMasterActive ? 'true' : 'false' }}"
+                        >
+                            <span class="flex items-center gap-2">
+                                <svg
+                                    class="size-5"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    aria-hidden="true"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M3 3h7.5v7.5H3V3Zm10.5 0H21v7.5h-7.5V3ZM3 13.5h7.5V21H3v-7.5Zm10.5 0H21V21h-7.5v-7.5Z"
+                                    />
+                                </svg>
+                                <span>{{ __('Master') }}</span>
+                            </span>
+                            <svg
+                                data-accordion-icon
+                                class="size-4 transform transition-transform duration-300 {{ $isMasterActive ? 'rotate-90' : '' }}"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                            >
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                            </svg>
+                        </button>
+                        <div
+                            id="master-menu"
+                            class="ms-3 mt-1 space-y-1 overflow-hidden text-sm transition-all duration-300"
+                            style="max-height: {{ $isMasterActive ? '500px' : '0px' }};"
+                        >
+                            <a
+                                href="{{ route('admin.users.index') }}"
+                                wire:navigate
+                                @class([
+                                    'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                    'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('admin.users.*'),
+                                    'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('admin.users.*'),
+                                ])
+                            >
+                                {{ __('Master User') }}
+                            </a>
+                            <a
+                                href="{{ route('admin.pages.index') }}"
+                                wire:navigate
+                                @class([
+                                    'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                    'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('admin.pages.*'),
+                                    'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('admin.pages.*'),
+                                ])
+                            >
+                                {{ __('Halaman Baru') }}
+                            </a>
+                        </div>
+                    </div>
                 @endif
-            </flux:navlist>
+            </nav>
 
             <flux:spacer />
 
@@ -139,6 +308,47 @@
         </flux:header>
 
         {{ $slot }}
+
+        <script>
+            const initializeAccordion = () => {
+                document.querySelectorAll('[data-accordion-toggle]').forEach((toggle) => {
+                    if (toggle.dataset.accordionInitialized === 'true') {
+                        return;
+                    }
+
+                    toggle.dataset.accordionInitialized = 'true';
+
+                    const targetId = toggle.getAttribute('data-accordion-target');
+                    const target = document.getElementById(targetId);
+
+                    if (!target) {
+                        return;
+                    }
+
+                    const icon = toggle.querySelector('[data-accordion-icon]');
+                    const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
+
+                    target.style.maxHeight = isExpanded ? `${target.scrollHeight}px` : '0px';
+
+                    toggle.addEventListener('click', () => {
+                        const currentlyExpanded = toggle.getAttribute('aria-expanded') === 'true';
+
+                        if (currentlyExpanded) {
+                            target.style.maxHeight = '0px';
+                            toggle.setAttribute('aria-expanded', 'false');
+                            icon?.classList.remove('rotate-90');
+                        } else {
+                            target.style.maxHeight = `${target.scrollHeight}px`;
+                            toggle.setAttribute('aria-expanded', 'true');
+                            icon?.classList.add('rotate-90');
+                        }
+                    });
+                });
+            };
+
+            document.addEventListener('DOMContentLoaded', initializeAccordion);
+            document.addEventListener('livewire:navigated', initializeAccordion);
+        </script>
 
         @fluxScripts
     </body>
