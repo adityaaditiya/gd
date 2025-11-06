@@ -30,6 +30,13 @@ Route::middleware(['auth'])->group(function () {
             Route::view('lihat-data-lelang', 'gadai.lihat-data-lelang')->name('lihat-data-lelang');
         });
 
+    Route::prefix('cicil-emas')
+        ->as('cicil-emas.')
+        ->group(function () {
+            Route::view('transaksi-emas', 'cicil-emas.transaksi-emas')->name('transaksi-emas');
+            Route::view('daftar-cicilan', 'cicil-emas.daftar-cicilan')->name('daftar-cicilan');
+        });
+
     Volt::route('settings/two-factor', 'settings.two-factor')
         ->middleware(
             when(

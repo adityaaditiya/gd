@@ -14,6 +14,8 @@
             @php
                 $gadaiRoutes = ['gadai.pemberian-kredit', 'gadai.lihat-gadai', 'gadai.lihat-data-lelang'];
                 $isGadaiActive = request()->routeIs(...$gadaiRoutes);
+                $cicilEmasRoutes = ['cicil-emas.transaksi-emas', 'cicil-emas.daftar-cicilan'];
+                $isCicilEmasActive = request()->routeIs(...$cicilEmasRoutes);
                 $masterRoutes = ['admin.users.*', 'admin.pages.*'];
                 $isMasterActive = request()->routeIs(...$masterRoutes);
             @endphp
@@ -123,6 +125,74 @@
                             ])
                         >
                             {{ __('Lihat Data Lelang') }}
+                        </a>
+                    </div>
+                </div>
+
+                <div>
+                    <button
+                        type="button"
+                        class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-neutral-700 transition-colors duration-200 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-700 dark:hover:text-white"
+                        data-accordion-toggle
+                        data-accordion-target="cicil-emas-menu"
+                        aria-expanded="{{ $isCicilEmasActive ? 'true' : 'false' }}"
+                    >
+                        <span class="flex items-center gap-2">
+                            <svg
+                                class="size-5"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M3.75 6a2.25 2.25 0 0 1 2.25-2.25h12a2.25 2.25 0 0 1 2.25 2.25v1.5A2.25 2.25 0 0 1 18 9.75H6A2.25 2.25 0 0 1 3.75 7.5V6Zm0 7.5A2.25 2.25 0 0 1 6 11.25h12a2.25 2.25 0 0 1 2.25 2.25v1.5A2.25 2.25 0 0 1 18 17.25H6a2.25 2.25 0 0 1-2.25-2.25v-1.5Zm6.75 5.25a.75.75 0 0 1 .75-.75h2a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1-.75-.75Z"
+                                />
+                            </svg>
+                            <span>{{ __('Cicil Emas') }}</span>
+                        </span>
+                        <svg
+                            data-accordion-icon
+                            class="size-4 transform transition-transform duration-300 {{ $isCicilEmasActive ? 'rotate-90' : '' }}"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                        >
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                        </svg>
+                    </button>
+                    <div
+                        id="cicil-emas-menu"
+                        class="ms-3 mt-1 space-y-1 overflow-hidden text-sm transition-all duration-300"
+                        style="max-height: {{ $isCicilEmasActive ? '500px' : '0px' }};"
+                    >
+                        <a
+                            href="{{ route('cicil-emas.transaksi-emas') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('cicil-emas.transaksi-emas'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('cicil-emas.transaksi-emas'),
+                            ])
+                        >
+                            {{ __('Transaksi Emas') }}
+                        </a>
+                        <a
+                            href="{{ route('cicil-emas.daftar-cicilan') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('cicil-emas.daftar-cicilan'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('cicil-emas.daftar-cicilan'),
+                            ])
+                        >
+                            {{ __('Daftar Cicilan') }}
                         </a>
                     </div>
                 </div>
