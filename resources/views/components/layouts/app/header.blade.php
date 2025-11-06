@@ -102,6 +102,18 @@
                     {{ __('Dashboard') }}
                     </flux:navlist.item>
                 </flux:navlist.group>
+                @if (auth()->user()?->role === 'admin')
+                    <flux:navlist.group :heading="__('Master')">
+                        <flux:navlist.item
+                            icon="users"
+                            :href="route('admin.users.index')"
+                            :current="request()->routeIs('admin.users.*')"
+                            wire:navigate
+                        >
+                            {{ __('Master User') }}
+                        </flux:navlist.item>
+                    </flux:navlist.group>
+                @endif
             </flux:navlist>
 
             <flux:spacer />
