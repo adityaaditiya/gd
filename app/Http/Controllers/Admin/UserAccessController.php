@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\UserMenuPermission;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -48,10 +51,35 @@ class UserAccessController extends Controller
             'permissions' => ['required', 'array'],
         ]);
 
+        $normalized = $this->normalizePermissions($validated['permissions']);
+
+        DB::transaction(function () use ($user, $normalized) {
+            UserMenuPermission::query()
+                ->where('user_id', $user->id)
+                ->delete();
+
+            $timestamp = now();
+            $payload = collect($normalized)
+                ->map(fn ($config, $menuKey) => [
+                    'user_id' => $user->id,
+                    'menu_key' => $menuKey,
+                    'allowed' => $config['allowed'],
+                    'actions' => $config['actions'],
+                    'created_at' => $timestamp,
+                    'updated_at' => $timestamp,
+                ])
+                ->values()
+                ->all();
+
+            if ($payload !== []) {
+                UserMenuPermission::query()->insert($payload);
+            }
+        });
+
         return response()->json([
             'status' => 'success',
             'message' => __('Konfigurasi hak akses untuk :user berhasil disimpan.', ['user' => $user->username]),
-            'permissions' => $validated['permissions'],
+            'permissions' => $normalized,
         ]);
     }
 
@@ -60,10 +88,16 @@ class UserAccessController extends Controller
      */
     public function reset(User $user): JsonResponse
     {
+        UserMenuPermission::query()
+            ->where('user_id', $user->id)
+            ->delete();
+
+        $defaults = $this->defaultPermissions();
+
         return response()->json([
             'status' => 'success',
             'message' => __('Hak akses untuk :user telah direset ke pengaturan awal.', ['user' => $user->username]),
-            'permissions' => $this->defaultPermissions(),
+            'permissions' => $defaults,
         ]);
     }
 
@@ -182,23 +216,22 @@ class UserAccessController extends Controller
     private function permissionsForUser(User $user): array
     {
         $permissions = $this->defaultPermissions();
-        $template = $this->samplePermissions()[strtoupper($user->username)] ?? [];
 
-        foreach ($template as $key => $settings) {
-            if (! isset($permissions[$key])) {
+        $saved = UserMenuPermission::query()
+            ->where('user_id', $user->id)
+            ->get(['menu_key', 'allowed', 'actions']);
+
+        foreach ($saved as $entry) {
+            if (! isset($permissions[$entry->menu_key])) {
                 continue;
             }
 
-            if (array_key_exists('allowed', $settings)) {
-                $permissions[$key]['allowed'] = (bool) $settings['allowed'];
-            }
+            $permissions[$entry->menu_key]['allowed'] = (bool) $entry->allowed;
 
-            if (! empty($settings['actions']) && is_array($settings['actions'])) {
-                foreach ($settings['actions'] as $action => $allowed) {
-                    if (isset($permissions[$key]['actions'][$action])) {
-                        $permissions[$key]['actions'][$action] = (bool) $allowed;
-                    }
-                }
+            $storedActions = (array) ($entry->actions ?? []);
+
+            foreach (array_keys($permissions[$entry->menu_key]['actions']) as $action) {
+                $permissions[$entry->menu_key]['actions'][$action] = (bool) ($storedActions[$action] ?? false);
             }
         }
 
@@ -206,63 +239,27 @@ class UserAccessController extends Controller
     }
 
     /**
-     * Sample templates to simulate permission states for existing users.
+     * Normalize the incoming payload so it matches the allowed menu structure.
      */
-    private function samplePermissions(): array
+    private function normalizePermissions(array $input): array
     {
-        return [
-            'ADMIN' => [
-                'dashboard' => ['allowed' => true],
-                'data-master' => ['allowed' => true],
-                'master-user' => [
-                    'allowed' => true,
-                    'actions' => ['create' => true, 'read' => true, 'update' => true, 'delete' => false],
-                ],
-                'master-group' => [
-                    'allowed' => true,
-                    'actions' => ['create' => true, 'read' => true, 'update' => false, 'delete' => false],
-                ],
-                'master-jenis' => [
-                    'allowed' => true,
-                    'actions' => ['create' => false, 'read' => true, 'update' => false, 'delete' => false],
-                ],
-                'transaksi' => ['allowed' => true],
-                'pengajuan' => [
-                    'allowed' => true,
-                    'actions' => ['create' => true, 'read' => true, 'update' => true, 'delete' => false],
-                ],
-                'pencairan' => [
-                    'allowed' => true,
-                    'actions' => ['create' => false, 'read' => true, 'update' => false, 'delete' => false],
-                ],
-                'laporan' => ['allowed' => true],
-                'laporan-harian' => [
-                    'allowed' => true,
-                    'actions' => ['read' => true, 'export' => true],
-                ],
-                'laporan-bulanan' => [
-                    'allowed' => true,
-                    'actions' => ['read' => true, 'export' => false],
-                ],
-            ],
-            'ADMIN2' => [
-                'dashboard' => ['allowed' => true],
-                'data-master' => ['allowed' => true],
-                'master-user' => [
-                    'allowed' => true,
-                    'actions' => ['create' => false, 'read' => true, 'update' => true, 'delete' => false],
-                ],
-                'transaksi' => ['allowed' => true],
-                'pengajuan' => [
-                    'allowed' => true,
-                    'actions' => ['create' => true, 'read' => true, 'update' => true, 'delete' => true],
-                ],
-                'laporan' => ['allowed' => true],
-                'laporan-harian' => [
-                    'allowed' => true,
-                    'actions' => ['read' => true, 'export' => false],
-                ],
-            ],
-        ];
+        $defaults = $this->defaultPermissions();
+        $normalized = [];
+
+        foreach ($defaults as $menuKey => $config) {
+            $allowed = Arr::get($input, "$menuKey.allowed", false);
+            $actions = [];
+
+            foreach (array_keys($config['actions']) as $action) {
+                $actions[$action] = (bool) Arr::get($input, "$menuKey.actions.$action", false);
+            }
+
+            $normalized[$menuKey] = [
+                'allowed' => (bool) $allowed,
+                'actions' => $actions,
+            ];
+        }
+
+        return $normalized;
     }
 }
