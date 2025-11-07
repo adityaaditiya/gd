@@ -226,7 +226,7 @@
                                 <path
                                     stroke-linecap="round"
                                     stroke-linejoin="round"
-                                    d="M2.25 12l9.6-9.6a1.125 1.125 0 0 1 1.59 0L23.25 12M4.5 9.75V21h4.5v-6.75h6v6.75h4.5V9.75"
+                                    d="M4.5 6H13.5M13.5 6 10.5 3m3 3-3 3M19.5 18H10.5m0 0 3 3m-3-3 3-3M4.5 12h15"
                                 />
                             </svg>
                             <span>{{ __('Jual Emas') }}</span>
