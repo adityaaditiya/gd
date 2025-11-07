@@ -37,6 +37,29 @@ Route::middleware(['auth'])->group(function () {
             Route::view('daftar-cicilan', 'cicil-emas.daftar-cicilan')->name('daftar-cicilan');
         });
 
+    Route::prefix('jual-emas')
+        ->as('jual-emas.')
+        ->group(function () {
+            Route::view('transaksi-penjualan', 'jual-emas.transaksi-penjualan')->name('transaksi-penjualan');
+            Route::view('lihat-penjualan', 'jual-emas.lihat-penjualan')->name('lihat-penjualan');
+            Route::view('batal-penjualan', 'jual-emas.batal-penjualan')->name('batal-penjualan');
+        });
+
+    Route::prefix('beli-emas')
+        ->as('beli-emas.')
+        ->group(function () {
+            Route::view('transaksi-pembelian', 'beli-emas.transaksi-pembelian')->name('transaksi-pembelian');
+            Route::view('lihat-pembelian', 'beli-emas.lihat-pembelian')->name('lihat-pembelian');
+            Route::view('batal-pembelian', 'beli-emas.batal-pembelian')->name('batal-pembelian');
+        });
+
+    Route::prefix('titip-emas')
+        ->as('titip-emas.')
+        ->group(function () {
+            Route::view('transaksi-titip-emas', 'titip-emas.transaksi-titip-emas')->name('transaksi-titip-emas');
+            Route::view('lihat-titipan', 'titip-emas.lihat-titipan')->name('lihat-titipan');
+        });
+
     Route::prefix('nasabah')
         ->as('nasabah.')
         ->group(function () {

@@ -16,6 +16,12 @@
                 $isGadaiActive = request()->routeIs(...$gadaiRoutes);
                 $cicilEmasRoutes = ['cicil-emas.transaksi-emas', 'cicil-emas.daftar-cicilan'];
                 $isCicilEmasActive = request()->routeIs(...$cicilEmasRoutes);
+                $jualEmasRoutes = ['jual-emas.transaksi-penjualan', 'jual-emas.lihat-penjualan', 'jual-emas.batal-penjualan'];
+                $isJualEmasActive = request()->routeIs(...$jualEmasRoutes);
+                $beliEmasRoutes = ['beli-emas.transaksi-pembelian', 'beli-emas.lihat-pembelian', 'beli-emas.batal-pembelian'];
+                $isBeliEmasActive = request()->routeIs(...$beliEmasRoutes);
+                $titipEmasRoutes = ['titip-emas.transaksi-titip-emas', 'titip-emas.lihat-titipan'];
+                $isTitipEmasActive = request()->routeIs(...$titipEmasRoutes);
                 $nasabahRoutes = ['nasabah.data-nasabah', 'nasabah.lihat-transaksi-nasabah'];
                 $isNasabahActive = request()->routeIs(...$nasabahRoutes);
                 $masterRoutes = ['admin.users.*', 'admin.pages.*'];
@@ -195,6 +201,232 @@
                             ])
                         >
                             {{ __('Daftar Cicilan') }}
+                        </a>
+                    </div>
+                </div>
+
+                <div>
+                    <button
+                        type="button"
+                        class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-neutral-700 transition-colors duration-200 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-700 dark:hover:text-white"
+                        data-accordion-toggle
+                        data-accordion-target="jual-emas-menu"
+                        aria-expanded="{{ $isJualEmasActive ? 'true' : 'false' }}"
+                    >
+                        <span class="flex items-center gap-2">
+                            <svg
+                                class="size-5"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M2.25 12l9.6-9.6a1.125 1.125 0 0 1 1.59 0L23.25 12M4.5 9.75V21h4.5v-6.75h6v6.75h4.5V9.75"
+                                />
+                            </svg>
+                            <span>{{ __('Jual Emas') }}</span>
+                        </span>
+                        <svg
+                            data-accordion-icon
+                            class="size-4 transform transition-transform duration-300 {{ $isJualEmasActive ? 'rotate-90' : '' }}"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                        >
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                        </svg>
+                    </button>
+                    <div
+                        id="jual-emas-menu"
+                        class="ms-3 mt-1 space-y-1 overflow-hidden text-sm transition-all duration-300"
+                        style="max-height: {{ $isJualEmasActive ? '500px' : '0px' }};"
+                    >
+                        <a
+                            href="{{ route('jual-emas.transaksi-penjualan') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('jual-emas.transaksi-penjualan'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('jual-emas.transaksi-penjualan'),
+                            ])
+                        >
+                            {{ __('Transaksi Penjualan') }}
+                        </a>
+                        <a
+                            href="{{ route('jual-emas.lihat-penjualan') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('jual-emas.lihat-penjualan'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('jual-emas.lihat-penjualan'),
+                            ])
+                        >
+                            {{ __('Lihat Penjualan') }}
+                        </a>
+                        <a
+                            href="{{ route('jual-emas.batal-penjualan') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('jual-emas.batal-penjualan'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('jual-emas.batal-penjualan'),
+                            ])
+                        >
+                            {{ __('Batal Penjualan') }}
+                        </a>
+                    </div>
+                </div>
+
+                <div>
+                    <button
+                        type="button"
+                        class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-neutral-700 transition-colors duration-200 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-700 dark:hover:text-white"
+                        data-accordion-toggle
+                        data-accordion-target="beli-emas-menu"
+                        aria-expanded="{{ $isBeliEmasActive ? 'true' : 'false' }}"
+                    >
+                        <span class="flex items-center gap-2">
+                            <svg
+                                class="size-5"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M20.25 7.5l-8.954 8.955a1.125 1.125 0 0 1-1.591 0L3.75 10.5m16.5-3L15 3.75M20.25 7.5 15 12.75"
+                                />
+                            </svg>
+                            <span>{{ __('Beli Emas') }}</span>
+                        </span>
+                        <svg
+                            data-accordion-icon
+                            class="size-4 transform transition-transform duration-300 {{ $isBeliEmasActive ? 'rotate-90' : '' }}"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                        >
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                        </svg>
+                    </button>
+                    <div
+                        id="beli-emas-menu"
+                        class="ms-3 mt-1 space-y-1 overflow-hidden text-sm transition-all duration-300"
+                        style="max-height: {{ $isBeliEmasActive ? '500px' : '0px' }};"
+                    >
+                        <a
+                            href="{{ route('beli-emas.transaksi-pembelian') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('beli-emas.transaksi-pembelian'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('beli-emas.transaksi-pembelian'),
+                            ])
+                        >
+                            {{ __('Transaksi Pembelian') }}
+                        </a>
+                        <a
+                            href="{{ route('beli-emas.lihat-pembelian') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('beli-emas.lihat-pembelian'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('beli-emas.lihat-pembelian'),
+                            ])
+                        >
+                            {{ __('Lihat Pembelian') }}
+                        </a>
+                        <a
+                            href="{{ route('beli-emas.batal-pembelian') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('beli-emas.batal-pembelian'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('beli-emas.batal-pembelian'),
+                            ])
+                        >
+                            {{ __('Batal Pembelian') }}
+                        </a>
+                    </div>
+                </div>
+
+                <div>
+                    <button
+                        type="button"
+                        class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-neutral-700 transition-colors duration-200 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-700 dark:hover:text-white"
+                        data-accordion-toggle
+                        data-accordion-target="titip-emas-menu"
+                        aria-expanded="{{ $isTitipEmasActive ? 'true' : 'false' }}"
+                    >
+                        <span class="flex items-center gap-2">
+                            <svg
+                                class="size-5"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M2.25 12a9.75 9.75 0 0 1 19.5 0v6a2.25 2.25 0 0 1-2.25 2.25H4.5A2.25 2.25 0 0 1 2.25 18V12Zm9-4.5h1.5a1.5 1.5 0 0 1 1.5 1.5v1.5h-4.5V9a1.5 1.5 0 0 1 1.5-1.5Zm-1.5 6h4.5V18h-4.5v-4.5Z"
+                                />
+                            </svg>
+                            <span>{{ __('Titip Emas') }}</span>
+                        </span>
+                        <svg
+                            data-accordion-icon
+                            class="size-4 transform transition-transform duration-300 {{ $isTitipEmasActive ? 'rotate-90' : '' }}"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                        >
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                        </svg>
+                    </button>
+                    <div
+                        id="titip-emas-menu"
+                        class="ms-3 mt-1 space-y-1 overflow-hidden text-sm transition-all duration-300"
+                        style="max-height: {{ $isTitipEmasActive ? '500px' : '0px' }};"
+                    >
+                        <a
+                            href="{{ route('titip-emas.transaksi-titip-emas') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('titip-emas.transaksi-titip-emas'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('titip-emas.transaksi-titip-emas'),
+                            ])
+                        >
+                            {{ __('Transaksi Titip Emas') }}
+                        </a>
+                        <a
+                            href="{{ route('titip-emas.lihat-titipan') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('titip-emas.lihat-titipan'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('titip-emas.lihat-titipan'),
+                            ])
+                        >
+                            {{ __('Lihat Titipan') }}
                         </a>
                     </div>
                 </div>
