@@ -22,6 +22,28 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/password', 'settings.password')->name('user-password.edit');
     Volt::route('settings/appearance', 'settings.appearance')->name('appearance.edit');
 
+    Route::prefix('gadai')
+        ->as('gadai.')
+        ->group(function () {
+            Route::view('pemberian-kredit', 'gadai.pemberian-kredit')->name('pemberian-kredit');
+            Route::view('lihat-gadai', 'gadai.lihat-gadai')->name('lihat-gadai');
+            Route::view('lihat-data-lelang', 'gadai.lihat-data-lelang')->name('lihat-data-lelang');
+        });
+
+    Route::prefix('cicil-emas')
+        ->as('cicil-emas.')
+        ->group(function () {
+            Route::view('transaksi-emas', 'cicil-emas.transaksi-emas')->name('transaksi-emas');
+            Route::view('daftar-cicilan', 'cicil-emas.daftar-cicilan')->name('daftar-cicilan');
+        });
+
+    Route::prefix('nasabah')
+        ->as('nasabah.')
+        ->group(function () {
+            Route::view('data-nasabah', 'nasabah.data-nasabah')->name('data-nasabah');
+            Route::view('lihat-transaksi-nasabah', 'nasabah.lihat-transaksi-nasabah')->name('lihat-transaksi-nasabah');
+        });
+
     Volt::route('settings/two-factor', 'settings.two-factor')
         ->middleware(
             when(
@@ -42,6 +64,8 @@ Route::middleware(['auth'])->group(function () {
             Route::get('users', [UserController::class, 'index'])->name('users.index');
             Route::post('users', [UserController::class, 'store'])->name('users.store');
             Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
+
+            Route::view('pages', 'admin.pages.index')->name('pages.index');
 
             Route::controller(UserAccessController::class)
                 ->prefix('access')
