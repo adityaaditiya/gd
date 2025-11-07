@@ -37,6 +37,13 @@ Route::middleware(['auth'])->group(function () {
             Route::view('daftar-cicilan', 'cicil-emas.daftar-cicilan')->name('daftar-cicilan');
         });
 
+    Route::prefix('nasabah')
+        ->as('nasabah.')
+        ->group(function () {
+            Route::view('data-nasabah', 'nasabah.data-nasabah')->name('data-nasabah');
+            Route::view('lihat-transaksi-nasabah', 'nasabah.lihat-transaksi-nasabah')->name('lihat-transaksi-nasabah');
+        });
+
     Volt::route('settings/two-factor', 'settings.two-factor')
         ->middleware(
             when(
