@@ -1,35 +1,18 @@
 @php
-    $pageTitle = $pageTitle ?? __('Data Nasabah');
-    $searchEndpoint = $searchEndpoint ?? route('nasabah.data-nasabah');
-    $showCreateButton = $showCreateButton ?? true;
+    $pageTitle = $pageTitle ?? __('Nasabah Baru');
+    $searchEndpoint = $searchEndpoint ?? route('nasabah.nasabah-baru');
     $activeDateFrom = $activeDateFrom ?? '';
     $activeDateTo = $activeDateTo ?? '';
 @endphp
 
 <x-layouts.app :title="$pageTitle">
-    <div class="space-y-8" id="nasabah-page">
+    <div class="space-y-8" id="nasabah-baru-page">
         <div class="flex flex-col gap-2">
             <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white">{{ $pageTitle }}</h1>
             <p class="text-sm text-neutral-600 dark:text-neutral-300">
-                {{ __('Kelola dan telusuri informasi lengkap nasabah melalui tabel interaktif berikut.') }}
+                {{ __('Kelola dan telusuri daftar nasabah baru yang terdaftar melalui tabel interaktif berikut.') }}
             </p>
         </div>
-
- @if (session('status'))
-            <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-700 dark:border-emerald-500/60 dark:bg-emerald-500/10 dark:text-emerald-300">
-                <p class="font-semibold text-black">{{ session('status') }}</p>
-                @if (session('kode_member'))
-                    <p class="mt-1 text-sm text-black">{{ __('Kode member otomatis:') }}</p>
-                    <input
-                        type="text"
-                        readonly
-                        value="{{ session('kode_member') }}"
-                        class="mt-2 w-full rounded-lg border border-emerald-300 bg-white px-3 py-2 font-semibold tracking-wide text-emerald-700 shadow-sm dark:border-emerald-500/60 dark:bg-neutral-900 dark:text-emerald-300"
-                    />
-                    <p class="mt-1 text-x text-black" >{{ __('Salin kode ini untuk keperluan verifikasi dan layanan selanjutnya.') }}</p>
-                @endif
-            </div>
-        @endif
 
         <div class="rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-800">
             <div class="flex flex-col gap-4 border-b border-neutral-200 p-4 dark:border-neutral-700 lg:flex-row lg:items-center lg:justify-between">
@@ -76,18 +59,6 @@
                         {{ __('Reset Filter') }}
                     </button>
                 </div>
-                @if ($showCreateButton)
-                    <a
-                        href="{{ route('nasabah.tambah-nasabah') }}"
-                        wire:navigate
-                        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-emerald-600 bg-emerald-600 px-4 py-4 text-sm font-semibold text-blue-600 shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-500 dark:bg-emerald-500 dark:hover:border-emerald-400 dark:hover:bg-emerald-400"
-                    >
-                        <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                        </svg>
-                        <span>{{ __('Tambah Nasabah') }}</span>
-                    </a>
-                @endif
             </div>
         </div>
 
@@ -95,11 +66,6 @@
                 <table class="min-w-full divide-y divide-neutral-200 text-left text-sm text-neutral-700 dark:divide-neutral-700 dark:text-neutral-200">
                     <thead class="bg-neutral-50 text-xs uppercase tracking-wide text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
                         <tr>
-                            <th scope="col" class="min-w-[120px] px-4 py-3">
-                                <button type="button" class="flex items-center gap-1" data-sort-key="actions" disabled>
-                                    <span>{{ __('Aksi') }}</span>
-                                </button>
-                            </th>
                             <th scope="col" class="min-w-[160px] px-4 py-3">
                                 <button type="button" class="flex items-center gap-1" data-sort-key="nik">
                                     <span>{{ __('Kode Member') }}</span>
@@ -242,8 +208,8 @@
         const nasabahInitialDataset = @js($nasabahs);
         const nasabahSearchEndpoint = @js($searchEndpoint);
         (() => {
-            function initializeNasabahPage() {
-                const container = document.getElementById('nasabah-page');
+            function initializeNasabahBaruPage() {
+                const container = document.getElementById('nasabah-baru-page');
 
                 if (!container || container.dataset.initialized === 'true') {
                     return;
@@ -267,18 +233,12 @@
                     nasabah_lama: Boolean(item?.nasabah_lama),
                     kode_member: item?.kode_member ?? '',
                     created_at: item?.created_at ?? '',
-                    edit_url: item?.edit_url ?? '',
-                    delete_url: item?.delete_url ?? '',
                 });
 
-                let dataset = Array.isArray(window.__nasabahDataset)
-                    ? window.__nasabahDataset
-                    : Array.isArray(nasabahInitialDataset)
-                        ? [...nasabahInitialDataset]
-                        : [];
+                let dataset = Array.isArray(nasabahInitialDataset)
+                    ? nasabahInitialDataset.map(toRecord)
+                    : [];
 
-                dataset = dataset.map(toRecord);
-                window.__nasabahDataset = dataset;
                 let initialDataset = dataset.map((item) => ({ ...item }));
 
                 const searchState = {
@@ -295,7 +255,6 @@
                 const dateFromInput = document.getElementById('nasabahDateFrom');
                 const dateToInput = document.getElementById('nasabahDateTo');
                 const resetDateButton = document.getElementById('nasabahResetDateFilter');
-                const csrfToken = document.head.querySelector('meta[name="csrf-token"]')?.content ?? '';
                 const paginationLabels = {
                     first: 'First',
                     back: 'Back',
@@ -501,23 +460,8 @@
                     }
 
                     const rows = pageItems
-                        .map((item) => {
-                            const editUrl = escapeAttribute(item.edit_url ?? '#');
-                            const deleteUrl = escapeAttribute(item.delete_url ?? '#');
-                            const recordId = escapeAttribute(item.id ?? '');
-
-                            return `
+                        .map((item) => `
                                 <tr class="hover:bg-neutral-50 dark:hover:bg-neutral-700/40">
-                                    <td class="px-4 py-3">
-                                        <div class="flex items-center gap-2">
-                                            <a href="${editUrl}" wire:navigate class="rounded-lg border border-emerald-200 px-2 py-1 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50 focus:outline-none dark:border-emerald-400/40 dark:text-emerald-300 dark:hover:bg-emerald-400/10">{{ __('Edit') }}</a>
-                                            <form method="POST" action="${deleteUrl}" data-nasabah-delete-form data-nasabah-id="${recordId}" class="inline-flex">
-                                                <input type="hidden" name="_token" value="${escapeAttribute(csrfToken)}">
-                                                <input type="hidden" name="_method" value="DELETE">
-                                                <button type="submit" data-nasabah-delete-button class="rounded-lg border border-red-200 px-2 py-1 text-xs font-semibold text-red-600 transition hover:bg-red-50 focus:outline-none dark:border-red-400/40 dark:text-red-300 dark:hover:bg-red-400/10">{{ __('Hapus') }}</button>
-                                            </form>
-                                        </div>
-                                    </td>
                                     <td class="whitespace-nowrap px-4 py-3 font-mono text-sm">${escapeHtml(item.kode_member)}</td>
                                     <td class="whitespace-nowrap px-4 py-3 font-mono text-sm">${escapeHtml(item.nik)}</td>
                                     <td class="px-4 py-3 font-medium text-neutral-800 dark:text-neutral-100">${escapeHtml(item.nama)}</td>
@@ -529,8 +473,7 @@
                                     <td class="px-4 py-3">${escapeHtml(item.npwp) || '-'}</td>
                                     <td class="px-4 py-3">${escapeHtml(item.id_lain) || '-'}</td>
                                 </tr>
-                            `;
-                        })
+                            `)
                         .join('');
 
                     tableBody.innerHTML = rows;
@@ -562,7 +505,6 @@
 
                 function resetDataset() {
                     dataset = initialDataset.map((item) => ({ ...item }));
-                    window.__nasabahDataset = dataset;
                     renderTable();
                 }
 
@@ -628,7 +570,6 @@
                         }
 
                         dataset = records;
-                        window.__nasabahDataset = dataset;
                         renderTable();
                     } catch (error) {
                         if (error.name === 'AbortError') {
@@ -830,42 +771,13 @@
             }
 
             if (document.readyState !== 'loading') {
-                initializeNasabahPage();
+                initializeNasabahBaruPage();
             } else {
-                document.addEventListener('DOMContentLoaded', initializeNasabahPage, { once: true });
+                document.addEventListener('DOMContentLoaded', initializeNasabahBaruPage, { once: true });
             }
 
-            document.addEventListener('livewire:navigated', initializeNasabahPage);
+            document.addEventListener('livewire:navigated', initializeNasabahBaruPage);
 
-            if (!window.__nasabahDeleteHandlerRegistered) {
-                document.addEventListener('submit', (event) => {
-                    const form = event.target.closest('[data-nasabah-delete-form]');
-                    if (!form) {
-                        return;
-                    }
-
-                    const recordId = form.getAttribute('data-nasabah-id');
-                    const target = window.__nasabahDataset?.find?.((entry) => String(entry.id ?? '') === String(recordId ?? ''));
-                    const name = target?.nama ?? '';
-                    const sanitizedName = String(name ?? '').replace(/"/g, '\\"');
-                    const prefix = `{{ __('Apakah Anda yakin ingin menghapus data nasabah') }}`;
-                    const fallback = `{{ __('Apakah Anda yakin ingin menghapus data nasabah ini?') }}`;
-                    const message = sanitizedName ? `${prefix} "${sanitizedName}"?` : fallback;
-
-                    if (!window.confirm(message)) {
-                        event.preventDefault();
-                        return;
-                    }
-
-                    const submitButton = form.querySelector('[data-nasabah-delete-button]');
-                    if (submitButton) {
-                        submitButton.setAttribute('disabled', 'disabled');
-                        submitButton.classList.add('opacity-60', 'cursor-not-allowed');
-                    }
-                });
-
-                window.__nasabahDeleteHandlerRegistered = true;
-            }
         })();
     </script>
 </x-layouts.app>
