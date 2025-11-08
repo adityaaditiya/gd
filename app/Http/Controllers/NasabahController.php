@@ -57,19 +57,23 @@ class NasabahController extends Controller
      */
     public function store(Request $request): JsonResponse|RedirectResponse
     {
+        $ageLimit = now()->subYears(17)->format('Y-m-d');
+
         $validated = $request->validate([
             'nik' => ['required', 'string', 'max:50', 'unique:nasabahs,nik'],
             'nama' => ['required', 'string', 'max:255'],
             'tempat_lahir' => ['required', 'string', 'max:255'],
-            'tanggal_lahir' => ['required', 'date'],
+            'tanggal_lahir' => ['required', 'date', 'before_or_equal:' . $ageLimit],
             'telepon' => ['required', 'string', 'max:50'],
-            'kota' => ['nullable', 'string', 'max:255'],
-            'kelurahan' => ['nullable', 'string', 'max:255'],
-            'kecamatan' => ['nullable', 'string', 'max:255'],
+            'kota' => ['required', 'string', 'max:255'],
+            'kelurahan' => ['required', 'string', 'max:255'],
+            'kecamatan' => ['required', 'string', 'max:255'],
             'alamat' => ['required', 'string'],
             'npwp' => ['nullable', 'string', 'max:50'],
             'id_lain' => ['nullable', 'string', 'max:50'],
             'nasabah_lama' => ['nullable', 'boolean'],
+        ], [
+            'tanggal_lahir.before_or_equal' => __('Data tidak bisa disimpan karena usia nasabah minimal 17 tahun.'),
         ]);
 
         $validated['nasabah_lama'] = $request->boolean('nasabah_lama');
@@ -133,19 +137,23 @@ class NasabahController extends Controller
      */
     public function update(Request $request, Nasabah $nasabah): RedirectResponse
     {
+        $ageLimit = now()->subYears(17)->format('Y-m-d');
+
         $validated = $request->validate([
             'nik' => ['required', 'string', 'max:50', 'unique:nasabahs,nik,' . $nasabah->id],
             'nama' => ['required', 'string', 'max:255'],
             'tempat_lahir' => ['required', 'string', 'max:255'],
-            'tanggal_lahir' => ['required', 'date'],
+            'tanggal_lahir' => ['required', 'date', 'before_or_equal:' . $ageLimit],
             'telepon' => ['required', 'string', 'max:50'],
-            'kota' => ['nullable', 'string', 'max:255'],
-            'kelurahan' => ['nullable', 'string', 'max:255'],
-            'kecamatan' => ['nullable', 'string', 'max:255'],
+            'kota' => ['required', 'string', 'max:255'],
+            'kelurahan' => ['required', 'string', 'max:255'],
+            'kecamatan' => ['required', 'string', 'max:255'],
             'alamat' => ['required', 'string'],
             'npwp' => ['nullable', 'string', 'max:50'],
             'id_lain' => ['nullable', 'string', 'max:50'],
             'nasabah_lama' => ['nullable', 'boolean'],
+        ], [
+            'tanggal_lahir.before_or_equal' => __('Data tidak bisa disimpan karena usia nasabah minimal 17 tahun.'),
         ]);
 
         $validated['nasabah_lama'] = $request->boolean('nasabah_lama');

@@ -91,12 +91,13 @@
     </div>
 
     <div>
-        <label for="kota" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Kota') }}</label>
+        <label for="kota" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Kota') }} <span class="text-red-500">*</span></label>
         <input
             id="kota"
             name="kota"
             type="text"
             value="{{ old('kota', $nasabah->kota ?? '') }}"
+            required
             class="mt-2 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
         />
         @error('kota')
@@ -105,12 +106,13 @@
     </div>
 
     <div>
-        <label for="kelurahan" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Kelurahan') }}</label>
+        <label for="kelurahan" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Kelurahan') }} <span class="text-red-500">*</span></label>
         <input
             id="kelurahan"
             name="kelurahan"
             type="text"
             value="{{ old('kelurahan', $nasabah->kelurahan ?? '') }}"
+            required
             class="mt-2 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
         />
         @error('kelurahan')
@@ -119,12 +121,13 @@
     </div>
 
     <div>
-        <label for="kecamatan" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Kecamatan') }}</label>
+        <label for="kecamatan" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Kecamatan') }} <span class="text-red-500">*</span></label>
         <input
             id="kecamatan"
             name="kecamatan"
             type="text"
             value="{{ old('kecamatan', $nasabah->kecamatan ?? '') }}"
+            required
             class="mt-2 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
         />
         @error('kecamatan')
