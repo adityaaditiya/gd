@@ -67,6 +67,8 @@ Route::middleware(['auth'])->group(function () {
             Route::get('tambah-nasabah', [NasabahController::class, 'create'])->name('tambah-nasabah');
             Route::get('data-nasabah', [NasabahController::class, 'index'])->name('data-nasabah');
             Route::post('data-nasabah', [NasabahController::class, 'store'])->name('data-nasabah.store');
+            Route::view('cdd-nasabah', 'nasabah.cdd-nasabah')->name('cdd-nasabah');
+            Route::view('nasabah-baru', 'nasabah.nasabah-baru')->name('nasabah-baru');
             Route::view('lihat-transaksi-nasabah', 'nasabah.lihat-transaksi-nasabah')->name('lihat-transaksi-nasabah');
             Route::get('{nasabah}/edit', [NasabahController::class, 'edit'])->name('edit');
             Route::put('{nasabah}', [NasabahController::class, 'update'])->name('update');

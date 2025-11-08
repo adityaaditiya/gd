@@ -22,7 +22,12 @@
                 $isBeliEmasActive = request()->routeIs(...$beliEmasRoutes);
                 $titipEmasRoutes = ['titip-emas.transaksi-titip-emas', 'titip-emas.lihat-titipan'];
                 $isTitipEmasActive = request()->routeIs(...$titipEmasRoutes);
-                $nasabahRoutes = ['nasabah.data-nasabah', 'nasabah.tambah-nasabah', 'nasabah.lihat-transaksi-nasabah'];
+                $nasabahRoutes = [
+                    'nasabah.data-nasabah',
+                    'nasabah.tambah-nasabah',
+                    'nasabah.cdd-nasabah',
+                    'nasabah.lihat-transaksi-nasabah',
+                ];
                 $isNasabahActive = request()->routeIs(...$nasabahRoutes);
                 $masterRoutes = ['admin.users.*', 'admin.pages.*'];
                 $isMasterActive = request()->routeIs(...$masterRoutes);
@@ -484,6 +489,17 @@
                             ])
                         >
                             {{ __('Data Nasabah') }}
+                        </a>
+                        <a
+                            href="{{ route('nasabah.cdd-nasabah') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('nasabah.cdd-nasabah'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('nasabah.cdd-nasabah'),
+                            ])
+                        >
+                            {{ __('CDD Nasabah') }}
                         </a>
                         <a
                             href="{{ route('nasabah.lihat-transaksi-nasabah') }}"
