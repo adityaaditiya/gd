@@ -1,9 +1,4 @@
-@php
-    $pageTitle = $pageTitle ?? __('Data Nasabah');
-    $searchEndpoint = $searchEndpoint ?? route('nasabah.data-nasabah');
-@endphp
-
-<x-layouts.app :title="$pageTitle">
+<x-layouts.app :title="__('Data Nasabah')">
     <div class="space-y-8" id="nasabah-page">
         <div class="flex flex-col gap-2">
             <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white">{{ __('Data Nasabah') }}</h1>
@@ -210,7 +205,7 @@
 
     <script>
         const nasabahInitialDataset = @js($nasabahs);
-        const nasabahSearchEndpoint = @js($searchEndpoint);
+        const nasabahSearchEndpoint = @js(route('nasabah.data-nasabah'));
         (() => {
             function initializeNasabahPage() {
                 const container = document.getElementById('nasabah-page');
