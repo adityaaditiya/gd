@@ -109,6 +109,118 @@ class NasabahController extends Controller
     }
 
     /**
+     * Display the Nasabah Baru page with read-only data and filters.
+     */
+    public function nasabahBaru(Request $request): View|JsonResponse
+    {
+        $transform = fn (Nasabah $nasabah) => [
+            'id' => $nasabah->id,
+            'nik' => $nasabah->nik,
+            'nama' => $nasabah->nama,
+            'tempat_lahir' => $nasabah->tempat_lahir,
+            'tanggal_lahir' => optional($nasabah->tanggal_lahir)->format('Y-m-d'),
+            'telepon' => $nasabah->telepon,
+            'kota' => $nasabah->kota,
+            'kelurahan' => $nasabah->kelurahan,
+            'kecamatan' => $nasabah->kecamatan,
+            'alamat' => $nasabah->alamat,
+            'npwp' => $nasabah->npwp,
+            'id_lain' => $nasabah->id_lain,
+            'nasabah_lama' => $nasabah->nasabah_lama,
+            'kode_member' => $nasabah->kode_member,
+            'tanggal_pendaftaran' => optional($nasabah->created_at)->format('Y-m-d'),
+        ];
+
+        $sanitizeDate = static function (?string $value): ?Carbon {
+            $value = trim((string) $value);
+
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+                return null;
+            }
+
+            try {
+                return Carbon::createFromFormat('Y-m-d', $value)->startOfDay();
+            } catch (\Throwable) {
+                return null;
+            }
+        };
+
+        $dateFrom = $sanitizeDate($request->query('date_from'));
+        $dateTo = $sanitizeDate($request->query('date_to'));
+        $searchTerm = trim((string) $request->query('search', ''));
+
+        $query = Nasabah::query()
+            ->where('nasabah_lama', false)
+            ->when($dateFrom, fn ($builder) => $builder->whereDate('created_at', '>=', $dateFrom->toDateString()))
+            ->when($dateTo, fn ($builder) => $builder->whereDate('created_at', '<=', $dateTo->toDateString()))
+            ->when($searchTerm !== '', function ($builder) use ($searchTerm) {
+                $likeTerm = "%{$searchTerm}%";
+                $dateTerm = null;
+
+                if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $searchTerm, $matches)) {
+                    $dateTerm = sprintf('%04d-%02d-%02d', (int) $matches[1], (int) $matches[2], (int) $matches[3]);
+                } elseif (preg_match('/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})$/', $searchTerm, $matches)) {
+                    $year = strlen($matches[3]) === 2 ? '20' . $matches[3] : $matches[3];
+                    $dateTerm = sprintf('%04d-%02d-%02d', (int) $year, (int) $matches[2], (int) $matches[1]);
+                }
+
+                $builder->where(function ($query) use ($likeTerm, $dateTerm) {
+                    $query
+                        ->where('nik', 'like', $likeTerm)
+                        ->orWhere('nama', 'like', $likeTerm)
+                        ->orWhere('tempat_lahir', 'like', $likeTerm)
+                        ->orWhere('telepon', 'like', $likeTerm)
+                        ->orWhere('kota', 'like', $likeTerm)
+                        ->orWhere('kelurahan', 'like', $likeTerm)
+                        ->orWhere('kecamatan', 'like', $likeTerm)
+                        ->orWhere('alamat', 'like', $likeTerm)
+                        ->orWhere('npwp', 'like', $likeTerm)
+                        ->orWhere('id_lain', 'like', $likeTerm)
+                        ->orWhere('kode_member', 'like', $likeTerm);
+
+                    if ($dateTerm) {
+                        $query
+                            ->orWhereDate('tanggal_lahir', $dateTerm)
+                            ->orWhereDate('created_at', $dateTerm);
+                    } else {
+                        $query
+                            ->orWhere('tanggal_lahir', 'like', $likeTerm)
+                            ->orWhere('created_at', 'like', $likeTerm);
+                    }
+                });
+            });
+
+        if ($request->expectsJson()) {
+            $nasabahs = $query
+                ->latest('created_at')
+                ->limit(200)
+                ->get()
+                ->map($transform)
+                ->values();
+
+            return response()->json([
+                'data' => $nasabahs,
+            ]);
+        }
+
+        $nasabahs = $query
+            ->latest('created_at')
+            ->limit(100)
+            ->get()
+            ->map($transform)
+            ->values();
+
+        return view('nasabah.nasabah-baru', [
+            'nasabahs' => $nasabahs,
+            'filters' => [
+                'date_from' => optional($dateFrom)?->toDateString(),
+                'date_to' => optional($dateTo)?->toDateString(),
+                'search' => $searchTerm,
+            ],
+        ]);
+    }
+
+    /**
      * Store a newly created nasabah in storage.
      */
     public function store(Request $request): JsonResponse|RedirectResponse
