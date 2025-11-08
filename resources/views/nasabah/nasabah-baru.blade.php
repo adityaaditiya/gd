@@ -1,7 +1,6 @@
 @php
-    $pageTitle = $pageTitle ?? __('Data Nasabah');
-    $searchEndpoint = $searchEndpoint ?? route('nasabah.data-nasabah');
-    $showCreateButton = $showCreateButton ?? true;
+    $pageTitle = $pageTitle ?? __('Nasabah Baru');
+    $searchEndpoint = $searchEndpoint ?? route('nasabah.nasabah-baru');
     $activeDateFrom = $activeDateFrom ?? '';
     $activeDateTo = $activeDateTo ?? '';
 @endphp
@@ -11,11 +10,11 @@
         <div class="flex flex-col gap-2">
             <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white">{{ $pageTitle }}</h1>
             <p class="text-sm text-neutral-600 dark:text-neutral-300">
-                {{ __('Kelola dan telusuri informasi lengkap nasabah melalui tabel interaktif berikut.') }}
+                {{ __('Kelola dan telusuri daftar nasabah baru yang terdaftar melalui tabel interaktif berikut.') }}
             </p>
         </div>
 
- @if (session('status'))
+        @if (session('status'))
             <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-700 dark:border-emerald-500/60 dark:bg-emerald-500/10 dark:text-emerald-300">
                 <p class="font-semibold text-black">{{ session('status') }}</p>
                 @if (session('kode_member'))
@@ -76,18 +75,6 @@
                         {{ __('Reset Filter') }}
                     </button>
                 </div>
-                @if ($showCreateButton)
-                    <a
-                        href="{{ route('nasabah.tambah-nasabah') }}"
-                        wire:navigate
-                        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-emerald-600 bg-emerald-600 px-4 py-4 text-sm font-semibold text-blue-600 shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-500 dark:bg-emerald-500 dark:hover:border-emerald-400 dark:hover:bg-emerald-400"
-                    >
-                        <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                        </svg>
-                        <span>{{ __('Tambah Nasabah') }}</span>
-                    </a>
-                @endif
             </div>
         </div>
 
