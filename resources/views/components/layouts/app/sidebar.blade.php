@@ -23,10 +23,11 @@
                 $titipEmasRoutes = ['titip-emas.transaksi-titip-emas', 'titip-emas.lihat-titipan'];
                 $isTitipEmasActive = request()->routeIs(...$titipEmasRoutes);
                 $nasabahRoutes = [
-                    'nasabah.data-nasabah',
                     'nasabah.tambah-nasabah',
-                    'nasabah.cdd-nasabah',
+                    'nasabah.data-nasabah',
                     'nasabah.lihat-transaksi-nasabah',
+                    'nasabah.nasabah-baru',
+                    'nasabah.cdd-nasabah',
                 ];
                 $isNasabahActive = request()->routeIs(...$nasabahRoutes);
                 $masterRoutes = ['admin.users.*', 'admin.pages.*'];
@@ -490,6 +491,29 @@
                         >
                             {{ __('Data Nasabah') }}
                         </a>
+                                                <a
+                            href="{{ route('nasabah.lihat-transaksi-nasabah') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('nasabah.lihat-transaksi-nasabah'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('nasabah.lihat-transaksi-nasabah'),
+                            ])
+                        >
+                            {{ __('Lihat Transaksi Nasabah') }}
+                        </a>
+                        </a>
+                                                <a
+                            href="{{ route('nasabah.nasabah-baru') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('nasabah.lihat-transaksi-nasabah'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('nasabah.lihat-transaksi-nasabah'),
+                            ])
+                        >
+                            {{ __('Data Nasabah Baru') }}
+                        </a>
                         <a
                             href="{{ route('nasabah.cdd-nasabah') }}"
                             wire:navigate
@@ -500,17 +524,6 @@
                             ])
                         >
                             {{ __('CDD Nasabah') }}
-                        </a>
-                        <a
-                            href="{{ route('nasabah.lihat-transaksi-nasabah') }}"
-                            wire:navigate
-                            @class([
-                                'block rounded-lg px-3 py-2 transition-colors duration-200',
-                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('nasabah.lihat-transaksi-nasabah'),
-                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('nasabah.lihat-transaksi-nasabah'),
-                            ])
-                        >
-                            {{ __('Lihat Transaksi Nasabah') }}
                         </a>
                     </div>
                 </div>
