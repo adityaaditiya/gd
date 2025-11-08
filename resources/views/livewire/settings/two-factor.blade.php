@@ -182,7 +182,7 @@ new class extends Component {
 
     <x-settings.layout
         :heading="__('Two Factor Authentication')"
-        :subheading="__('Manage your two-factor authentication settings')"
+        :subheading="__('Kelola pengaturan autentikasi dua faktor Anda')"
     >
         <div class="flex flex-col w-full mx-auto space-y-6 text-sm" wire:cloak>
             @if ($twoFactorEnabled)
@@ -215,7 +215,7 @@ new class extends Component {
                     </div>
 
                     <flux:text variant="subtle">
-                        {{ __('When you enable two-factor authentication, you will be prompted for a secure pin during login. This pin can be retrieved from a TOTP-supported application on your phone.') }}
+                        {{ __('Saat Anda mengaktifkan autentikasi dua faktor, Anda akan diminta memasukkan PIN aman saat masuk. PIN ini dapat diperoleh dari aplikasi yang mendukung TOTP di ponsel Anda.') }}
                     </flux:text>
 
                     <flux:button
