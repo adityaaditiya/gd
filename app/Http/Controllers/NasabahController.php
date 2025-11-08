@@ -45,6 +45,7 @@ class NasabahController extends Controller
                 'pageTitle' => __('Nasabah Baru'),
                 'searchEndpoint' => route('nasabah.nasabah-baru'),
                 'showCreateButton' => false,
+                'view' => 'nasabah.nasabah-baru',
             ]
         );
     }
@@ -203,7 +204,11 @@ class NasabahController extends Controller
             ->map(fn (Nasabah $nasabah) => $this->transformNasabah($nasabah))
             ->values();
 
-        return view('nasabah.data-nasabah', array_merge([
+        $viewName = $viewData['view'] ?? 'nasabah.data-nasabah';
+
+        unset($viewData['view']);
+
+        return view($viewName, array_merge([
             'nasabahs' => $nasabahs,
             'showCreateButton' => $viewData['showCreateButton'] ?? true,
             'activeDateFrom' => $dateFrom,
