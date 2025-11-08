@@ -196,7 +196,6 @@
 
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end sm:gap-4">
                     <nav id="nasabahPagination" class="flex flex-wrap items-center gap-2" aria-label="{{ __('Navigasi halaman nasabah') }}"></nav>
-                    <span id="nasabahPaginationSummary" class="text-sm font-medium text-neutral-500 dark:text-neutral-400">0-0 of 0</span>
                 </div>
             </div>
         </div>
@@ -204,6 +203,7 @@
 
     <script>
         const nasabahInitialDataset = @js($nasabahs);
+        const nasabahSearchEndpoint = @js(route('nasabah.data-nasabah'));
         (() => {
             function initializeNasabahPage() {
                 const container = document.getElementById('nasabah-page');
@@ -241,6 +241,12 @@
 
                 dataset = dataset.map(toRecord);
                 window.__nasabahDataset = dataset;
+                const initialDataset = dataset.map((item) => ({ ...item }));
+
+                const searchState = {
+                    abortController: null,
+                    debounceId: null,
+                };
 
                 const tableBody = document.getElementById('nasabahTableBody');
                 const searchInput = document.getElementById('nasabahSearch');
@@ -248,7 +254,6 @@
                 const rowsPerPageSelect = document.getElementById('nasabahRowsPerPage');
                 const rowsPerPageValue = document.getElementById('nasabahRowsPerPageValue');
                 const paginationContainer = document.getElementById('nasabahPagination');
-                const paginationSummary = document.getElementById('nasabahPaginationSummary');
                 const csrfToken = document.head.querySelector('meta[name="csrf-token"]')?.content ?? '';
                 const paginationLabels = {
                     first: 'First',
@@ -315,13 +320,9 @@
                 }
 
                 function renderPaginationControls({ totalRecords, totalPages, startIndex, pageItemsCount }) {
-                    if (!paginationContainer || !paginationSummary) {
+                    if (!paginationContainer) {
                         return;
                     }
-
-                    const from = totalRecords ? startIndex + 1 : 0;
-                    const to = totalRecords ? startIndex + pageItemsCount : 0;
-                    paginationSummary.textContent = `${from}-${to} of ${totalRecords}`;
 
                     const baseButtonClass = 'inline-flex items-center justify-center rounded-lg border border-neutral-300 px-3 py-1.5 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-700/60 dark:focus:ring-emerald-900/40';
                     const disabledClass = 'cursor-not-allowed opacity-50';
@@ -505,10 +506,84 @@
                     });
                 }
 
-                searchInput?.addEventListener('input', (event) => {
-                    state.searchTerm = event.target.value;
-                    state.currentPage = 1;
+                function resetDataset() {
+                    dataset = initialDataset.map((item) => ({ ...item }));
+                    window.__nasabahDataset = dataset;
                     renderTable();
+                }
+
+                async function performSearch(term) {
+                    if (searchState.abortController) {
+                        searchState.abortController.abort();
+                    }
+
+                    const controller = new AbortController();
+                    searchState.abortController = controller;
+
+                    try {
+                        const params = new URLSearchParams({ search: term });
+                        const response = await fetch(`${nasabahSearchEndpoint}?${params.toString()}`, {
+                            headers: {
+                                Accept: 'application/json',
+                            },
+                            signal: controller.signal,
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`Request failed with status ${response.status}`);
+                        }
+
+                        const payload = await response.json();
+
+                        const activeTerm = (searchInput?.value ?? '').trim();
+                        if (activeTerm !== term) {
+                            return;
+                        }
+
+                        const records = Array.isArray(payload?.data) ? payload.data.map(toRecord) : [];
+                        dataset = records;
+                        window.__nasabahDataset = dataset;
+                        renderTable();
+                    } catch (error) {
+                        if (error.name === 'AbortError') {
+                            return;
+                        }
+
+                        console.error('Failed to fetch nasabah data', error);
+                    } finally {
+                        if (searchState.abortController === controller) {
+                            searchState.abortController = null;
+                        }
+                    }
+                }
+
+                function handleSearchInput(value) {
+                    const trimmed = String(value ?? '').trim();
+                    state.searchTerm = trimmed;
+                    state.currentPage = 1;
+
+                    if (searchState.debounceId) {
+                        window.clearTimeout(searchState.debounceId);
+                    }
+
+                    if (!trimmed) {
+                        if (searchState.abortController) {
+                            searchState.abortController.abort();
+                            searchState.abortController = null;
+                        }
+                        resetDataset();
+                        return;
+                    }
+
+                    searchState.debounceId = window.setTimeout(() => {
+                        performSearch(trimmed);
+                    }, 300);
+
+                    renderTable();
+                }
+
+                searchInput?.addEventListener('input', (event) => {
+                    handleSearchInput(event.target.value);
                 });
 
                 sortButtons.forEach((button) => {
