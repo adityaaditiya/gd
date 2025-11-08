@@ -146,11 +146,18 @@
         </div>
     </div>
 
-    <div id="nasabahModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-neutral-950/60 p-4 backdrop-blur-sm">
+    <div
+        id="nasabahModal"
+        class="fixed inset-0 z-50 hidden items-center justify-center bg-neutral-950/60 p-4 backdrop-blur-sm"
+        role="dialog"
+        aria-modal="true"
+        aria-hidden="true"
+        aria-labelledby="nasabahModalTitle"
+    >
         <div class="relative w-full max-w-2xl rounded-xl border border-neutral-200 bg-white shadow-xl dark:border-neutral-700 dark:bg-neutral-900">
             <div class="flex items-start justify-between border-b border-neutral-200 p-4 dark:border-neutral-700">
                 <div>
-                    <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Tambah Data Nasabah') }}</h2>
+                    <h2 id="nasabahModalTitle" class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Tambah Data Nasabah') }}</h2>
                     <p class="text-sm text-neutral-500 dark:text-neutral-300">{{ __('Lengkapi formulir berikut untuk menambahkan member baru.') }}</p>
                 </div>
                 <button type="button" id="closeNasabahModal" class="rounded-full p-1 text-neutral-400 transition hover:text-neutral-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:hover:text-neutral-200">
@@ -241,8 +248,17 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const dataset = [
+        (() => {
+            function initializeNasabahPage() {
+                const container = document.getElementById('nasabah-page');
+
+                if (!container || container.dataset.initialized === 'true') {
+                    return;
+                }
+
+                container.dataset.initialized = 'true';
+
+                const dataset = [
                 {
                     nik: '3173021509860001',
                     nama: 'Siti Maemunah',
@@ -315,312 +331,343 @@
                 },
             ];
 
-            const state = {
-                sortKey: 'nama',
-                sortDirection: 'asc',
-                searchTerm: '',
-            };
-
-            const tableBody = document.getElementById('nasabahTableBody');
-            const searchInput = document.getElementById('nasabahSearch');
-            const sortButtons = Array.from(document.querySelectorAll('[data-sort-key]'));
-            const addButton = document.getElementById('addNasabahButton');
-            const modal = document.getElementById('nasabahModal');
-            const closeModalButton = document.getElementById('closeNasabahModal');
-            const cancelButton = document.getElementById('cancelNasabahForm');
-            const form = document.getElementById('nasabahForm');
-            const kodeMemberGroup = document.getElementById('kodeMemberGroup');
-            const kodeMemberInput = document.getElementById('kodeMember');
-
-            const formFields = {
-                nik: document.getElementById('formNik'),
-                nama: document.getElementById('formNama'),
-                tempat_lahir: document.getElementById('formTempatLahir'),
-                tanggal_lahir: document.getElementById('formTanggalLahir'),
-                telepon: document.getElementById('formTelepon'),
-                kota: document.getElementById('formKota'),
-                kelurahan: document.getElementById('formKelurahan'),
-                kecamatan: document.getElementById('formKecamatan'),
-                npwp: document.getElementById('formNpwp'),
-                id_lain: document.getElementById('formIdLain'),
-                alamat: document.getElementById('formAlamat'),
-                nasabah_lama: document.getElementById('formNasabahLama'),
-            };
-
-            const errorElements = Object.fromEntries(
-                Object.keys(formFields).map((field) => [field, form.querySelector(`[data-error-for="${field}"]`)]),
-            );
-
-            function formatDate(dateString) {
-                if (!dateString) return '';
-                const [year, month, day] = dateString.split('-');
-                return `${day}/${month}/${year}`;
-            }
-
-            function normalize(value) {
-                return String(value ?? '')
-                    .toLowerCase()
-                    .replace(/\s+/g, ' ')
-                    .trim();
-            }
-
-            function renderTable() {
-                const term = normalize(state.searchTerm);
-
-                const filtered = dataset.filter((item) => {
-                    if (!term) {
-                        return true;
-                    }
-
-                    const haystack = [
-                        item.nik,
-                        item.nama,
-                        item.tempat_lahir,
-                        formatDate(item.tanggal_lahir),
-                        item.telepon,
-                        item.kota,
-                        item.kelurahan,
-                        item.kecamatan,
-                        item.alamat,
-                        item.npwp,
-                        item.nasabah_lama ? 'ya' : 'tidak',
-                        item.id_lain,
-                    ]
-                        .map(normalize)
-                        .join(' ');
-
-                    return haystack.includes(term);
-                });
-
-                filtered.sort((a, b) => {
-                    const { sortKey, sortDirection } = state;
-
-                    if (sortKey === 'nasabah_lama') {
-                        return sortDirection === 'asc'
-                            ? Number(a.nasabah_lama) - Number(b.nasabah_lama)
-                            : Number(b.nasabah_lama) - Number(a.nasabah_lama);
-                    }
-
-                    if (sortKey === 'tanggal_lahir') {
-                        const aTime = a.tanggal_lahir ? new Date(a.tanggal_lahir).getTime() : 0;
-                        const bTime = b.tanggal_lahir ? new Date(b.tanggal_lahir).getTime() : 0;
-                        return sortDirection === 'asc' ? aTime - bTime : bTime - aTime;
-                    }
-
-                    const aValue = normalize(a[sortKey] ?? '');
-                    const bValue = normalize(b[sortKey] ?? '');
-
-                    if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-                    if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
-                    return 0;
-                });
-
-                if (!filtered.length) {
-                    tableBody.innerHTML = `
-                        <tr>
-                            <td colspan="10" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-300">
-                                ${'{{ __('Data tidak ditemukan untuk kata kunci yang dimasukkan.') }}'}
-                            </td>
-                        </tr>
-                    `;
-                    return;
-                }
-
-                const rows = filtered
-                    .map((item) => {
-                        return `
-                            <tr class="hover:bg-neutral-50 dark:hover:bg-neutral-700/40">
-                                <td class="px-4 py-3">
-                                    <div class="flex items-center gap-2">
-                                        <button type="button" class="rounded-lg border border-emerald-200 px-2 py-1 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50 focus:outline-none dark:border-emerald-400/40 dark:text-emerald-300 dark:hover:bg-emerald-400/10">{{ __('Edit') }}</button>
-                                        <button type="button" class="rounded-lg border border-red-200 px-2 py-1 text-xs font-semibold text-red-600 transition hover:bg-red-50 focus:outline-none dark:border-red-400/40 dark:text-red-300 dark:hover:bg-red-400/10">{{ __('Hapus') }}</button>
-                                    </div>
-                                </td>
-                                <td class="whitespace-nowrap px-4 py-3 font-mono text-sm">${item.nik}</td>
-                                <td class="px-4 py-3 font-medium text-neutral-800 dark:text-neutral-100">${item.nama}</td>
-                                <td class="px-4 py-3">${formatDate(item.tanggal_lahir)}</td>
-                                <td class="px-4 py-3">${item.telepon}</td>
-                                <td class="px-4 py-3">${item.kota ?? '-'}</td>
-                                <td class="px-4 py-3">${item.kecamatan ?? '-'}</td>
-                                <td class="px-4 py-3">${item.npwp ?? '-'}</td>
-                                <td class="px-4 py-3">
-                                    <input type="checkbox" ${item.nasabah_lama ? 'checked' : ''} disabled class="size-4 rounded border-neutral-300 text-emerald-600 focus:ring-emerald-500 dark:border-neutral-600 dark:bg-neutral-700" aria-label="{{ __('Nasabah lama') }}" />
-                                </td>
-                                <td class="px-4 py-3">${item.id_lain ?? '-'}</td>
-                            </tr>
-                        `;
-                    })
-                    .join('');
-
-                tableBody.innerHTML = rows;
-            }
-
-            function updateSortIndicators() {
-                sortButtons.forEach((button) => {
-                    const key = button.dataset.sortKey;
-                    const icon = button.querySelector('[data-sort-icon]');
-
-                    if (!icon) return;
-
-                    if (state.sortKey === key) {
-                        icon.classList.remove('hidden');
-                        icon.classList.toggle('rotate-180', state.sortDirection === 'desc');
-                    } else {
-                        icon.classList.add('hidden');
-                        icon.classList.remove('rotate-180');
-                    }
-                });
-            }
-
-            function clearErrors() {
-                Object.values(errorElements).forEach((element) => {
-                    if (!element) return;
-                    element.textContent = '';
-                    element.classList.add('hidden');
-                });
-            }
-
-            function showError(field, message) {
-                const element = errorElements[field];
-                if (!element) return;
-                element.textContent = message;
-                element.classList.remove('hidden');
-            }
-
-            function openModal() {
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-                document.body.classList.add('overflow-hidden');
-                form.reset();
-                clearErrors();
-                kodeMemberGroup.classList.add('hidden');
-                kodeMemberInput.value = '';
-                formFields.nasabah_lama.checked = false;
-                formFields.nik.focus();
-            }
-
-            function closeModal() {
-                modal.classList.remove('flex');
-                modal.classList.add('hidden');
-                document.body.classList.remove('overflow-hidden');
-            }
-
-            function generateMemberCode() {
-                const timestamp = Date.now().toString(36).toUpperCase();
-                return `MBR-${timestamp.slice(-6)}`;
-            }
-
-            function handleFormSubmit(event) {
-                event.preventDefault();
-                clearErrors();
-
-                const values = {
-                    nik: formFields.nik.value.trim(),
-                    nama: formFields.nama.value.trim(),
-                    tempat_lahir: formFields.tempat_lahir.value.trim(),
-                    tanggal_lahir: formFields.tanggal_lahir.value,
-                    telepon: formFields.telepon.value.trim(),
-                    kota: formFields.kota.value.trim(),
-                    kelurahan: formFields.kelurahan.value.trim(),
-                    kecamatan: formFields.kecamatan.value.trim(),
-                    npwp: formFields.npwp.value.trim(),
-                    id_lain: formFields.id_lain.value.trim(),
-                    alamat: formFields.alamat.value.trim(),
-                    nasabah_lama: formFields.nasabah_lama.checked,
+                const state = {
+                    sortKey: 'nama',
+                    sortDirection: 'asc',
+                    searchTerm: '',
                 };
 
-                let hasError = false;
+                const tableBody = document.getElementById('nasabahTableBody');
+                const searchInput = document.getElementById('nasabahSearch');
+                const sortButtons = Array.from(document.querySelectorAll('[data-sort-key]'));
+                const addButton = document.getElementById('addNasabahButton');
+                const modal = document.getElementById('nasabahModal');
+                const closeModalButton = document.getElementById('closeNasabahModal');
+                const cancelButton = document.getElementById('cancelNasabahForm');
+                const form = document.getElementById('nasabahForm');
+                const kodeMemberGroup = document.getElementById('kodeMemberGroup');
+                const kodeMemberInput = document.getElementById('kodeMember');
 
-                if (!values.nik) {
-                    showError('nik', '{{ __('NIK wajib diisi.') }}');
-                    hasError = true;
-                }
-                if (!values.nama) {
-                    showError('nama', '{{ __('Nama wajib diisi.') }}');
-                    hasError = true;
-                }
-                if (!values.tempat_lahir) {
-                    showError('tempat_lahir', '{{ __('Tempat lahir wajib diisi.') }}');
-                    hasError = true;
-                }
-                if (!values.tanggal_lahir) {
-                    showError('tanggal_lahir', '{{ __('Tanggal lahir wajib diisi.') }}');
-                    hasError = true;
-                }
-                if (!values.telepon) {
-                    showError('telepon', '{{ __('Nomor telepon wajib diisi.') }}');
-                    hasError = true;
-                }
-                if (!values.alamat) {
-                    showError('alamat', '{{ __('Alamat wajib diisi.') }}');
-                    hasError = true;
+                const formFields = {
+                    nik: document.getElementById('formNik'),
+                    nama: document.getElementById('formNama'),
+                    tempat_lahir: document.getElementById('formTempatLahir'),
+                    tanggal_lahir: document.getElementById('formTanggalLahir'),
+                    telepon: document.getElementById('formTelepon'),
+                    kota: document.getElementById('formKota'),
+                    kelurahan: document.getElementById('formKelurahan'),
+                    kecamatan: document.getElementById('formKecamatan'),
+                    npwp: document.getElementById('formNpwp'),
+                    id_lain: document.getElementById('formIdLain'),
+                    alamat: document.getElementById('formAlamat'),
+                    nasabah_lama: document.getElementById('formNasabahLama'),
+                };
+
+                const errorElements = Object.fromEntries(
+                    Object.keys(formFields).map((field) => [field, form.querySelector(`[data-error-for="${field}"]`)]),
+                );
+
+                function formatDate(dateString) {
+                    if (!dateString) return '';
+                    const [year, month, day] = dateString.split('-');
+                    return `${day}/${month}/${year}`;
                 }
 
-                if (hasError) {
-                    return;
+                function normalize(value) {
+                    return String(value ?? '')
+                        .toLowerCase()
+                        .replace(/\\s+/g, ' ')
+                        .trim();
                 }
 
-                const kodeMember = generateMemberCode();
+                function renderTable() {
+                    const term = normalize(state.searchTerm);
 
-                dataset.push({
-                    nik: values.nik,
-                    nama: values.nama,
-                    tempat_lahir: values.tempat_lahir,
-                    tanggal_lahir: values.tanggal_lahir,
-                    telepon: values.telepon,
-                    kota: values.kota || '-',
-                    kelurahan: values.kelurahan || '-',
-                    kecamatan: values.kecamatan || '-',
-                    alamat: values.alamat,
-                    npwp: values.npwp || '-',
-                    nasabah_lama: values.nasabah_lama,
-                    id_lain: values.id_lain || '-',
+                    const filtered = dataset.filter((item) => {
+                        if (!term) {
+                            return true;
+                        }
+
+                        const haystack = [
+                            item.nik,
+                            item.nama,
+                            item.tempat_lahir,
+                            formatDate(item.tanggal_lahir),
+                            item.telepon,
+                            item.kota,
+                            item.kelurahan,
+                            item.kecamatan,
+                            item.alamat,
+                            item.npwp,
+                            item.nasabah_lama ? 'ya' : 'tidak',
+                            item.id_lain,
+                        ]
+                            .map(normalize)
+                            .join(' ');
+
+                        return haystack.includes(term);
+                    });
+
+                    filtered.sort((a, b) => {
+                        const { sortKey, sortDirection } = state;
+
+                        if (sortKey === 'nasabah_lama') {
+                            return sortDirection === 'asc'
+                                ? Number(a.nasabah_lama) - Number(b.nasabah_lama)
+                                : Number(b.nasabah_lama) - Number(a.nasabah_lama);
+                        }
+
+                        if (sortKey === 'tanggal_lahir') {
+                            const aTime = a.tanggal_lahir ? new Date(a.tanggal_lahir).getTime() : 0;
+                            const bTime = b.tanggal_lahir ? new Date(b.tanggal_lahir).getTime() : 0;
+                            return sortDirection === 'asc' ? aTime - bTime : bTime - aTime;
+                        }
+
+                        const aValue = normalize(a[sortKey] ?? '');
+                        const bValue = normalize(b[sortKey] ?? '');
+
+                        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+                        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+                        return 0;
+                    });
+
+                    if (!filtered.length) {
+                        tableBody.innerHTML = `
+                            <tr>
+                                <td colspan="10" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-300">
+                                    ${'{{ __('Data tidak ditemukan untuk kata kunci yang dimasukkan.') }}'}
+                                </td>
+                            </tr>
+                        `;
+                        return;
+                    }
+
+                    const rows = filtered
+                        .map((item) => {
+                            return `
+                                <tr class="hover:bg-neutral-50 dark:hover:bg-neutral-700/40">
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center gap-2">
+                                            <button type="button" class="rounded-lg border border-emerald-200 px-2 py-1 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50 focus:outline-none dark:border-emerald-400/40 dark:text-emerald-300 dark:hover:bg-emerald-400/10">{{ __('Edit') }}</button>
+                                            <button type="button" class="rounded-lg border border-red-200 px-2 py-1 text-xs font-semibold text-red-600 transition hover:bg-red-50 focus:outline-none dark:border-red-400/40 dark:text-red-300 dark:hover:bg-red-400/10">{{ __('Hapus') }}</button>
+                                        </div>
+                                    </td>
+                                    <td class="whitespace-nowrap px-4 py-3 font-mono text-sm">${item.nik}</td>
+                                    <td class="px-4 py-3 font-medium text-neutral-800 dark:text-neutral-100">${item.nama}</td>
+                                    <td class="px-4 py-3">${formatDate(item.tanggal_lahir)}</td>
+                                    <td class="px-4 py-3">${item.telepon}</td>
+                                    <td class="px-4 py-3">${item.kota ?? '-'}</td>
+                                    <td class="px-4 py-3">${item.kecamatan ?? '-'}</td>
+                                    <td class="px-4 py-3">${item.npwp ?? '-'}</td>
+                                    <td class="px-4 py-3">
+                                        <input type="checkbox" ${item.nasabah_lama ? 'checked' : ''} disabled class="size-4 rounded border-neutral-300 text-emerald-600 focus:ring-emerald-500 dark:border-neutral-600 dark:bg-neutral-700" aria-label="{{ __('Nasabah lama') }}" />
+                                    </td>
+                                    <td class="px-4 py-3">${item.id_lain ?? '-'}</td>
+                                </tr>
+                            `;
+                        })
+                        .join('');
+
+                    tableBody.innerHTML = rows;
+                }
+
+                function updateSortIndicators() {
+                    sortButtons.forEach((button) => {
+                        const key = button.dataset.sortKey;
+                        const icon = button.querySelector('[data-sort-icon]');
+
+                        if (!icon) return;
+
+                        if (state.sortKey === key) {
+                            icon.classList.remove('hidden');
+                            icon.classList.toggle('rotate-180', state.sortDirection === 'desc');
+                        } else {
+                            icon.classList.add('hidden');
+                            icon.classList.remove('rotate-180');
+                        }
+                    });
+                }
+
+                function clearErrors() {
+                    Object.values(errorElements).forEach((element) => {
+                        if (!element) return;
+                        element.textContent = '';
+                        element.classList.add('hidden');
+                    });
+                }
+
+                function showError(field, message) {
+                    const element = errorElements[field];
+                    if (!element) return;
+                    element.textContent = message;
+                    element.classList.remove('hidden');
+                }
+
+                function resetForm() {
+                    form.reset();
+                    clearErrors();
+                    kodeMemberGroup.classList.add('hidden');
+                    kodeMemberInput.value = '';
+                    formFields.nasabah_lama.checked = false;
+                }
+
+                function openModal() {
+                    resetForm();
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                    document.body.classList.add('overflow-hidden');
+                    modal.setAttribute('aria-hidden', 'false');
+                    formFields.nik.focus();
+                }
+
+                function closeModal({ reset = false } = {}) {
+                    if (reset) {
+                        resetForm();
+                    }
+                    modal.classList.remove('flex');
+                    modal.classList.add('hidden');
+                    document.body.classList.remove('overflow-hidden');
+                    modal.setAttribute('aria-hidden', 'true');
+                }
+
+                function generateMemberCode() {
+                    const timestamp = Date.now().toString(36).toUpperCase();
+                    return `MBR-${timestamp.slice(-6)}`;
+                }
+
+                function handleFormSubmit(event) {
+                    event.preventDefault();
+                    clearErrors();
+
+                    const values = {
+                        nik: formFields.nik.value.trim(),
+                        nama: formFields.nama.value.trim(),
+                        tempat_lahir: formFields.tempat_lahir.value.trim(),
+                        tanggal_lahir: formFields.tanggal_lahir.value,
+                        telepon: formFields.telepon.value.trim(),
+                        kota: formFields.kota.value.trim(),
+                        kelurahan: formFields.kelurahan.value.trim(),
+                        kecamatan: formFields.kecamatan.value.trim(),
+                        npwp: formFields.npwp.value.trim(),
+                        id_lain: formFields.id_lain.value.trim(),
+                        alamat: formFields.alamat.value.trim(),
+                        nasabah_lama: formFields.nasabah_lama.checked,
+                    };
+
+                    let hasError = false;
+
+                    if (!values.nik) {
+                        showError('nik', '{{ __('NIK wajib diisi.') }}');
+                        hasError = true;
+                    }
+                    if (!values.nama) {
+                        showError('nama', '{{ __('Nama wajib diisi.') }}');
+                        hasError = true;
+                    }
+                    if (!values.tempat_lahir) {
+                        showError('tempat_lahir', '{{ __('Tempat lahir wajib diisi.') }}');
+                        hasError = true;
+                    }
+                    if (!values.tanggal_lahir) {
+                        showError('tanggal_lahir', '{{ __('Tanggal lahir wajib diisi.') }}');
+                        hasError = true;
+                    }
+                    if (!values.telepon) {
+                        showError('telepon', '{{ __('Nomor telepon wajib diisi.') }}');
+                        hasError = true;
+                    }
+                    if (!values.alamat) {
+                        showError('alamat', '{{ __('Alamat wajib diisi.') }}');
+                        hasError = true;
+                    }
+
+                    if (hasError) {
+                        return;
+                    }
+
+                    const kodeMember = generateMemberCode();
+
+                    dataset.push({
+                        nik: values.nik,
+                        nama: values.nama,
+                        tempat_lahir: values.tempat_lahir,
+                        tanggal_lahir: values.tanggal_lahir,
+                        telepon: values.telepon,
+                        kota: values.kota || '-',
+                        kelurahan: values.kelurahan || '-',
+                        kecamatan: values.kecamatan || '-',
+                        alamat: values.alamat,
+                        npwp: values.npwp || '-',
+                        nasabah_lama: values.nasabah_lama,
+                        id_lain: values.id_lain || '-',
+                    });
+
+                    kodeMemberInput.value = kodeMember;
+                    kodeMemberGroup.classList.remove('hidden');
+                    renderTable();
+                }
+
+                searchInput.addEventListener('input', (event) => {
+                    state.searchTerm = event.target.value;
+                    renderTable();
                 });
 
-                kodeMemberInput.value = kodeMember;
-                kodeMemberGroup.classList.remove('hidden');
+                sortButtons.forEach((button) => {
+                    const key = button.dataset.sortKey;
+                    if (!key || key === 'actions') {
+                        return;
+                    }
+
+                    button.addEventListener('click', () => {
+                        if (state.sortKey === key) {
+                            state.sortDirection = state.sortDirection === 'asc' ? 'desc' : 'asc';
+                        } else {
+                            state.sortKey = key;
+                            state.sortDirection = 'asc';
+                        }
+                        updateSortIndicators();
+                        renderTable();
+                    });
+                });
+
+                addButton.addEventListener('click', openModal);
+                closeModalButton.addEventListener('click', () => closeModal({ reset: true }));
+                cancelButton.addEventListener('click', () => {
+                    closeModal({ reset: true });
+                });
+
+                modal.addEventListener('click', (event) => {
+                    if (event.target === modal) {
+                        closeModal({ reset: true });
+                    }
+                });
+
+                const handleEscapeKey = (event) => {
+                    if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
+                        closeModal({ reset: true });
+                    }
+                };
+
+                if (window.__nasabahHandleEscapeKey) {
+                    document.removeEventListener('keydown', window.__nasabahHandleEscapeKey);
+                }
+
+                window.__nasabahHandleEscapeKey = handleEscapeKey;
+                document.addEventListener('keydown', handleEscapeKey);
+
+                form.addEventListener('submit', handleFormSubmit);
+
+                updateSortIndicators();
                 renderTable();
             }
 
-            searchInput.addEventListener('input', (event) => {
-                state.searchTerm = event.target.value;
-                renderTable();
-            });
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initializeNasabahPage);
+            } else {
+                initializeNasabahPage();
+            }
 
-            sortButtons.forEach((button) => {
-                const key = button.dataset.sortKey;
-                if (!key || key === 'actions') {
-                    return;
-                }
-
-                button.addEventListener('click', () => {
-                    if (state.sortKey === key) {
-                        state.sortDirection = state.sortDirection === 'asc' ? 'desc' : 'asc';
-                    } else {
-                        state.sortKey = key;
-                        state.sortDirection = 'asc';
-                    }
-                    updateSortIndicators();
-                    renderTable();
-                });
-            });
-
-            addButton.addEventListener('click', openModal);
-            closeModalButton.addEventListener('click', closeModal);
-            cancelButton.addEventListener('click', () => {
-                closeModal();
-            });
-
-            modal.addEventListener('click', (event) => {
-                if (event.target === modal) {
-                    closeModal();
-                }
-            });
-
-            form.addEventListener('submit', handleFormSubmit);
-
-            updateSortIndicators();
-            renderTable();
-        });
+            document.addEventListener('livewire:navigated', initializeNasabahPage);
+        })();
     </script>
 </x-layouts.app>
