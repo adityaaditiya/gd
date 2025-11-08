@@ -42,6 +42,8 @@ class NasabahController extends Controller
                 'id_lain' => $nasabah->id_lain,
                 'nasabah_lama' => $nasabah->nasabah_lama,
                 'kode_member' => $nasabah->kode_member,
+                'edit_url' => route('nasabah.edit', $nasabah),
+                'delete_url' => route('nasabah.destroy', $nasabah),
             ])
             ->values();
 
@@ -90,6 +92,8 @@ class NasabahController extends Controller
             'id_lain' => $nasabah->id_lain,
             'nasabah_lama' => $nasabah->nasabah_lama,
             'kode_member' => $nasabah->kode_member,
+            'edit_url' => route('nasabah.edit', $nasabah),
+            'delete_url' => route('nasabah.destroy', $nasabah),
         ];
 
         if ($request->wantsJson()) {
@@ -112,5 +116,56 @@ class NasabahController extends Controller
         return redirect()
             ->route('nasabah.data-nasabah')
             ->with($flash);
+    }
+
+    /**
+     * Show the form for editing the specified nasabah.
+     */
+    public function edit(Nasabah $nasabah): View
+    {
+        return view('nasabah.edit-nasabah', [
+            'nasabah' => $nasabah,
+        ]);
+    }
+
+    /**
+     * Update the specified nasabah in storage.
+     */
+    public function update(Request $request, Nasabah $nasabah): RedirectResponse
+    {
+        $validated = $request->validate([
+            'nik' => ['required', 'string', 'max:50', 'unique:nasabahs,nik,' . $nasabah->id],
+            'nama' => ['required', 'string', 'max:255'],
+            'tempat_lahir' => ['required', 'string', 'max:255'],
+            'tanggal_lahir' => ['required', 'date'],
+            'telepon' => ['required', 'string', 'max:50'],
+            'kota' => ['nullable', 'string', 'max:255'],
+            'kelurahan' => ['nullable', 'string', 'max:255'],
+            'kecamatan' => ['nullable', 'string', 'max:255'],
+            'alamat' => ['required', 'string'],
+            'npwp' => ['nullable', 'string', 'max:50'],
+            'id_lain' => ['nullable', 'string', 'max:50'],
+            'nasabah_lama' => ['nullable', 'boolean'],
+        ]);
+
+        $validated['nasabah_lama'] = $request->boolean('nasabah_lama');
+
+        $nasabah->update($validated);
+
+        return redirect()
+            ->route('nasabah.data-nasabah')
+            ->with('status', __('Data nasabah berhasil diperbarui.'));
+    }
+
+    /**
+     * Remove the specified nasabah from storage.
+     */
+    public function destroy(Nasabah $nasabah): RedirectResponse
+    {
+        $nasabah->delete();
+
+        return redirect()
+            ->route('nasabah.data-nasabah')
+            ->with('status', __('Data nasabah berhasil dihapus.'));
     }
 }

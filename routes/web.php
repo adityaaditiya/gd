@@ -68,6 +68,9 @@ Route::middleware(['auth'])->group(function () {
             Route::get('data-nasabah', [NasabahController::class, 'index'])->name('data-nasabah');
             Route::post('data-nasabah', [NasabahController::class, 'store'])->name('data-nasabah.store');
             Route::view('lihat-transaksi-nasabah', 'nasabah.lihat-transaksi-nasabah')->name('lihat-transaksi-nasabah');
+            Route::get('{nasabah}/edit', [NasabahController::class, 'edit'])->name('edit');
+            Route::put('{nasabah}', [NasabahController::class, 'update'])->name('update');
+            Route::delete('{nasabah}', [NasabahController::class, 'destroy'])->name('destroy');
         });
 
     Volt::route('settings/two-factor', 'settings.two-factor')
