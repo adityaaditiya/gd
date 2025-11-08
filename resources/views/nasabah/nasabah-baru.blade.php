@@ -18,22 +18,7 @@
 
         <div class="rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-800">
             <div class="flex flex-col gap-4 border-b border-neutral-200 p-4 dark:border-neutral-700 lg:flex-row lg:items-center lg:justify-between">
-                <label class="flex w-full items-center gap-3 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-600 shadow-sm focus-within:border-emerald-500 focus-within:text-neutral-900 focus-within:ring-2 focus-within:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-300 dark:focus-within:border-emerald-400 dark:focus-within:text-white dark:focus-within:ring-emerald-900/40 lg:max-w-lg" for="nasabahBaruSearch">
-                    <svg class="size-5 text-neutral-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                    </svg>
-                    <div class="flex w-full flex-col">
-                        <span class="text-xs font-medium uppercase tracking-wide text-neutral-400">{{ __('Pencarian Global') }}</span>
-                        <input
-                            id="nasabahBaruSearch"
-                            type="search"
-                            placeholder="{{ __('Cari berdasarkan nama, NIK, alamat, dll...') }}"
-                            class="w-full border-0 bg-transparent p-0 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-0 dark:text-white"
-                            value="{{ $initialFilters['search'] }}"
-                        />
-                    </div>
-                </label>
-
+                
                 <div class="flex w-full flex-col gap-3 lg:w-auto lg:flex-row lg:items-end lg:gap-4">
                     <label class="flex flex-col gap-2 text-sm text-neutral-600 dark:text-neutral-200">
                         <span class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Tanggal Dari') }}</span>
@@ -58,9 +43,24 @@
                         id="nasabahBaruResetFilters"
                         class="inline-flex items-center justify-center rounded-lg border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-700/60"
                     >
-                        {{ __('Atur Ulang Filter') }}
+                        {{ __('Reset Filter') }}
                     </button>
                 </div>
+                <label class="flex w-full items-center gap-3 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-600 shadow-sm focus-within:border-emerald-500 focus-within:text-neutral-900 focus-within:ring-2 focus-within:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-300 dark:focus-within:border-emerald-400 dark:focus-within:text-white dark:focus-within:ring-emerald-900/40 lg:max-w-lg" for="nasabahBaruSearch">
+                    <svg class="size-5 text-neutral-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                    </svg>
+                    <div class="flex w-full flex-col">
+                        <!-- <span class="text-xs font-medium uppercase tracking-wide text-neutral-400">{{ __('Pencarian Global') }}</span> -->
+                        <input
+                            id="nasabahBaruSearch"
+                            type="search"
+                            placeholder="{{ __('Cari berdasarkan nama, NIK, alamat, dll...') }}"
+                            class="w-full border-0 bg-transparent p-0 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-0 dark:text-white"
+                            value="{{ $initialFilters['search'] }}"
+                        />
+                    </div>
+                </label>
             </div>
 
             <div class="overflow-x-auto">
@@ -72,6 +72,8 @@
                             <th scope="col" class="px-4 py-3">{{ __('Nama') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('Telepon') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('Kota') }}</th>
+                            <th scope="col" class="px-4 py-3">{{ __('Kecamatan') }}</th>
+                            <th scope="col" class="px-4 py-3">{{ __('Alamat') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('Tanggal Pendaftaran') }}</th>
                         </tr>
                     </thead>
@@ -85,19 +87,23 @@
         </div>
     </div>
 
-    <script>
+    {{-- SCRIPT: navigate-once + namespace agar tidak redeclare saat Livewire swap --}}
+    <script data-navigate-once>
         const nasabahBaruInitialDataset = @js($nasabahs);
         const nasabahBaruSearchEndpoint = @js(route('nasabah.nasabah-baru'));
         const nasabahBaruInitialFilters = @js($initialFilters);
 
-        (() => {
+        // Namespace global aman
+        window.KRESNO = window.KRESNO || {};
+        (function () {
+            if (window.KRESNO.nasabahBaru?.initializedScript) {
+                // Skrip sudah didefinisikan sebelumnya (karena navigate), jangan define ulang
+                return;
+            }
+
             function initializeNasabahBaruPage() {
                 const container = document.getElementById('nasabah-baru-page');
-
-                if (!container || container.dataset.initialized === 'true') {
-                    return;
-                }
-
+                if (!container || container.dataset.initialized === 'true') return;
                 container.dataset.initialized = 'true';
 
                 const toRecord = (item) => ({
@@ -106,6 +112,8 @@
                     nama: item?.nama ?? '',
                     telepon: item?.telepon ?? '',
                     kota: item?.kota ?? '',
+                    kecamatan: item?.kecamatan ?? '',
+                    alamat: item?.alamat ?? '',
                     kode_member: item?.kode_member ?? '',
                     tanggal_pendaftaran: item?.tanggal_pendaftaran ?? '',
                 });
@@ -148,26 +156,17 @@
                         .replace(/'/g, '&#39;');
 
                 const formatDate = (value) => {
-                    if (!value) {
-                        return '';
-                    }
-
+                    if (!value) return '';
                     const [year, month, day] = value.split('-');
                     return `${day}/${month}/${year}`;
                 };
 
                 const renderTable = () => {
-                    if (!tableBody) {
-                        return;
-                    }
+                    if (!tableBody) return;
 
                     if (!Array.isArray(dataset) || dataset.length === 0) {
                         tableBody.innerHTML = '';
-
-                        if (emptyState) {
-                            emptyState.classList.remove('hidden');
-                        }
-
+                        emptyState?.classList.remove('hidden');
                         return;
                     }
 
@@ -178,41 +177,38 @@
                             <td class="px-4 py-3 text-neutral-700 dark:text-neutral-200">${escapeHtml(item.nama)}</td>
                             <td class="whitespace-nowrap px-4 py-3 text-neutral-700 dark:text-neutral-200">${escapeHtml(item.telepon)}</td>
                             <td class="whitespace-nowrap px-4 py-3 text-neutral-700 dark:text-neutral-200">${escapeHtml(item.kota)}</td>
+                            <td class="whitespace-nowrap px-4 py-3 text-neutral-700 dark:text-neutral-200">${escapeHtml(item.kecamatan)}</td>
+                            <td class="whitespace-nowrap px-4 py-3 text-neutral-700 dark:text-neutral-200">${escapeHtml(item.alamat)}</td>
                             <td class="whitespace-nowrap px-4 py-3 text-neutral-700 dark:text-neutral-200">${escapeHtml(formatDate(item.tanggal_pendaftaran))}</td>
                         </tr>
                     `);
 
                     tableBody.innerHTML = rows.join('');
-
-                    if (emptyState) {
-                        emptyState.classList.add('hidden');
-                    }
+                    emptyState?.classList.add('hidden');
                 };
 
                 const applyFilters = () => {
-                    if (state.abortController) {
-                        state.abortController.abort();
-                    }
-
-                    const params = new URLSearchParams();
-
+                    // Jika semua filter kosong → kembali ke dataset awal tanpa fetch
                     const searchTerm = String(state.search ?? '').trim();
                     const dateFrom = sanitizeDateValue(state.dateFrom);
                     const dateTo = sanitizeDateValue(state.dateTo);
 
-                    if (searchTerm !== '') {
-                        params.set('search', searchTerm);
+                    if (!searchTerm && !dateFrom && !dateTo) {
+                        dataset = Array.isArray(nasabahBaruInitialDataset)
+                            ? nasabahBaruInitialDataset.map(toRecord)
+                            : [];
+                        window.__nasabahBaruDataset = dataset;
+                        renderTable();
+                        return;
                     }
 
-                    if (dateFrom) {
-                        params.set('date_from', dateFrom);
-                    }
-
-                    if (dateTo) {
-                        params.set('date_to', dateTo);
-                    }
-
+                    if (state.abortController) state.abortController.abort();
                     state.abortController = new AbortController();
+
+                    const params = new URLSearchParams();
+                    if (searchTerm) params.set('search', searchTerm);
+                    if (dateFrom) params.set('date_from', dateFrom);
+                    if (dateTo) params.set('date_to', dateTo);
 
                     const queryString = params.toString();
                     const requestUrl = queryString ? `${nasabahBaruSearchEndpoint}?${queryString}` : nasabahBaruSearchEndpoint;
@@ -226,10 +222,7 @@
                         },
                     })
                         .then((response) => {
-                            if (!response.ok) {
-                                throw new Error('Network response was not ok');
-                            }
-
+                            if (!response.ok) throw new Error('Network response was not ok');
                             return response.json();
                         })
                         .then((payload) => {
@@ -239,28 +232,35 @@
                             renderTable();
                         })
                         .catch((error) => {
-                            if (error.name === 'AbortError') {
-                                return;
-                            }
-
+                            if (error.name === 'AbortError') return;
                             console.error('Gagal memuat data nasabah baru:', error);
                         });
                 };
 
                 const debounceFetch = () => {
-                    if (state.debounceId) {
-                        window.clearTimeout(state.debounceId);
-                    }
-
-                    state.debounceId = window.setTimeout(() => {
-                        applyFilters();
-                    }, 400);
+                    if (state.debounceId) window.clearTimeout(state.debounceId);
+                    state.debounceId = window.setTimeout(() => applyFilters(), 400);
                 };
 
+                // --- Event handlers ---
                 if (searchInput) {
+                    // input ketika mengetik
                     searchInput.addEventListener('input', (event) => {
                         state.search = event.target.value;
                         debounceFetch();
+                    });
+                    // event 'search' saat klik ikon ❌ (Chrome/Safari)
+                    searchInput.addEventListener('search', (event) => {
+                        if (event.target.value === '') {
+                            state.search = '';
+                            // batalkan request berjalan
+                            if (state.abortController) {
+                                state.abortController.abort();
+                                state.abortController = null;
+                            }
+                            // jika semua filter kosong → reset ke dataset awal
+                            applyFilters();
+                        }
                     });
                 }
 
@@ -284,46 +284,47 @@
                         state.dateFrom = '';
                         state.dateTo = '';
 
-                        if (searchInput) {
-                            searchInput.value = '';
-                        }
-
-                        if (dateFromInput) {
-                            dateFromInput.value = '';
-                        }
-
-                        if (dateToInput) {
-                            dateToInput.value = '';
-                        }
+                        if (searchInput) searchInput.value = '';
+                        if (dateFromInput) dateFromInput.value = '';
+                        if (dateToInput) dateToInput.value = '';
 
                         applyFilters();
                     });
                 }
 
-                if (searchInput && typeof state.search === 'string') {
-                    searchInput.value = state.search;
-                }
+                // Set nilai awal input dari state
+                if (searchInput && typeof state.search === 'string') searchInput.value = state.search;
+                if (dateFromInput && state.dateFrom) dateFromInput.value = state.dateFrom;
+                if (dateToInput && state.dateTo) dateToInput.value = state.dateTo;
 
-                if (dateFromInput && state.dateFrom) {
-                    dateFromInput.value = state.dateFrom;
-                }
-
-                if (dateToInput && state.dateTo) {
-                    dateToInput.value = state.dateTo;
-                }
-
+                // Render pertama
                 renderTable();
 
+                // Jika ada filter awal → apply langsung
                 if (state.search || state.dateFrom || state.dateTo) {
                     applyFilters();
                 }
             }
 
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initializeNasabahBaruPage, { once: true });
-            } else {
-                initializeNasabahBaruPage();
+            // Expose ke namespace + guard supaya tak didefinisikan 2x
+            window.KRESNO.nasabahBaru = {
+                init: initializeNasabahBaruPage,
+                initializedScript: true,
+            };
+
+            // Boot pertama + saat Livewire navigasi
+            function bootNasabahBaru() {
+                window.KRESNO.nasabahBaru.init();
             }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', bootNasabahBaru, { once: true });
+            } else {
+                bootNasabahBaru();
+            }
+
+            // Livewire v3: panggil init setiap halaman di-swap
+            document.addEventListener('livewire:navigated', bootNasabahBaru);
         })();
     </script>
 </x-layouts.app>
