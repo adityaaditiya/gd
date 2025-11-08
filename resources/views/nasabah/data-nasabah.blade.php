@@ -1,3 +1,8 @@
+@php
+    $pageTitle = $pageTitle ?? __('Data Nasabah');
+    $searchEndpoint = $searchEndpoint ?? route('nasabah.data-nasabah');
+    $showCreateButton = $showCreateButton ?? true; // <-- Kesalahan di baris ini
+@endphp
 <x-layouts.app :title="__('Data Nasabah')">
     <div class="space-y-8" id="nasabah-page">
         <div class="flex flex-col gap-2">
@@ -55,6 +60,9 @@
                 @endif
             </div>
         </div>
+
+            </div>
+
 
         <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-neutral-200 text-left text-sm text-neutral-700 dark:divide-neutral-700 dark:text-neutral-200">
@@ -284,6 +292,15 @@
                     dateFrom: sanitizeDateValue(dateFromInput?.value ?? ''),
                     dateTo: sanitizeDateValue(dateToInput?.value ?? ''),
                 };
+
+
+                function normalizeDateRangeOrder() {
+      if (state.dateFrom && state.dateTo && state.dateFrom > state.dateTo) {
+        const t = state.dateFrom;
+        state.dateFrom = state.dateTo;
+        state.dateTo = t;
+      }
+    }
 
                 if (!tableBody) {
                     return;
@@ -584,32 +601,41 @@
                 }
 
                 function triggerDatasetFetch({ debounce = true } = {}) {
-                    if (searchState.debounceId) {
-                        window.clearTimeout(searchState.debounceId);
-                        searchState.debounceId = null;
-                    }
+                      if (searchState.abortController) {
+    searchState.abortController.abort();
+    searchState.abortController = null;
+  }
 
+   if (!state.searchTerm || state.searchTerm.trim() === '') {
+    state.searchTerm = '';
+    state.currentPage = 1;
+    resetDataset();
+    return;
+  }
                     const payload = {
                         search: state.searchTerm,
                     };
 
-                    const hasFilters = Boolean(payload.search);
+                    // const hasFilters = Boolean(payload.search);
 
                     const executeFetch = () => performFetch(payload);
 
                     if (debounce) {
+                            if (searchState.debounceId) clearTimeout(searchState.debounceId);
+
                         searchState.debounceId = window.setTimeout(executeFetch, 300);
                     } else {
                         executeFetch();
                     }
                 }
 
-                    if (hasFilters) {
-                        renderTable();
-                    } else {
-                        resetDataset();
-                    }
-                }
+                
+                //     if (hasFilters) {
+                //         renderTable();
+                //     } else {
+                //         resetDataset();
+                //     }
+                // }
 
                 function handleSearchInput(value) {
                     const trimmed = String(value ?? '').trim();
