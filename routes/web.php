@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\UserAccessController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\NasabahController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
@@ -63,7 +64,8 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('nasabah')
         ->as('nasabah.')
         ->group(function () {
-            Route::view('data-nasabah', 'nasabah.data-nasabah')->name('data-nasabah');
+            Route::get('data-nasabah', [NasabahController::class, 'index'])->name('data-nasabah');
+            Route::post('data-nasabah', [NasabahController::class, 'store'])->name('data-nasabah.store');
             Route::view('lihat-transaksi-nasabah', 'nasabah.lihat-transaksi-nasabah')->name('lihat-transaksi-nasabah');
         });
 

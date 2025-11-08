@@ -154,8 +154,8 @@
         aria-hidden="true"
         aria-labelledby="nasabahModalTitle"
     >
-        <div class="relative w-full max-w-2xl rounded-xl border border-neutral-200 bg-white shadow-xl dark:border-neutral-700 dark:bg-neutral-900">
-            <div class="flex items-start justify-between border-b border-neutral-200 p-4 dark:border-neutral-700">
+        <div class="relative flex w-full max-w-3xl max-h-[90vh] flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xl dark:border-neutral-700 dark:bg-neutral-900">
+            <div class="flex shrink-0 items-start justify-between border-b border-neutral-200 p-4 dark:border-neutral-700">
                 <div>
                     <h2 id="nasabahModalTitle" class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Tambah Data Nasabah') }}</h2>
                     <p class="text-sm text-neutral-500 dark:text-neutral-300">{{ __('Lengkapi formulir berikut untuk menambahkan member baru.') }}</p>
@@ -167,7 +167,8 @@
                 </button>
             </div>
 
-            <form id="nasabahForm" class="space-y-4 overflow-y-auto p-4">
+            <form id="nasabahForm" data-store-url="{{ route('nasabah.data-nasabah.store') }}" class="flex-1 space-y-4 overflow-y-auto p-4">
+                <div id="formGeneralError" class="hidden rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600 dark:border-red-500/60 dark:bg-red-500/10 dark:text-red-300"></div>
                 <div class="grid gap-4 md:grid-cols-2">
                     <div>
                         <label for="formNik" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('NIK') }} <span class="text-red-500">*</span></label>
@@ -241,13 +242,14 @@
 
                 <div class="flex items-center justify-end gap-2 border-t border-neutral-200 pt-4 dark:border-neutral-700">
                     <button type="button" id="cancelNasabahForm" class="inline-flex items-center justify-center rounded-lg border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-600 transition hover:bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-800">{{ __('Batal') }}</button>
-                    <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500">{{ __('Simpan') }}</button>
+                    <button type="submit" data-submit-button class="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500">{{ __('Simpan') }}</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
+        const nasabahInitialDataset = @js($nasabahs);
         (() => {
             function initializeNasabahPage() {
                 const container = document.getElementById('nasabah-page');
@@ -258,78 +260,31 @@
 
                 container.dataset.initialized = 'true';
 
-                const dataset = [
-                {
-                    nik: '3173021509860001',
-                    nama: 'Siti Maemunah',
-                    tempat_lahir: 'Jakarta',
-                    tanggal_lahir: '1986-09-15',
-                    telepon: '081234567890',
-                    kota: 'Jakarta Selatan',
-                    kelurahan: 'Pela Mampang',
-                    kecamatan: 'Mampang Prapatan',
-                    alamat: 'Jl. Kemang Raya No. 5, Pela Mampang, Jakarta Selatan',
-                    npwp: '12.345.678.9-012.000',
-                    nasabah_lama: true,
-                    id_lain: 'SIM 1234567890',
-                },
-                {
-                    nik: '3275010401920003',
-                    nama: 'Budi Hartanto',
-                    tempat_lahir: 'Bandung',
-                    tanggal_lahir: '1992-01-04',
-                    telepon: '082298776655',
-                    kota: 'Bandung',
-                    kelurahan: 'Burangrang',
-                    kecamatan: 'Lengkong',
-                    alamat: 'Jl. Gatot Subroto No. 12, Burangrang, Bandung',
-                    npwp: '45.678.910.1-234.000',
-                    nasabah_lama: false,
-                    id_lain: '-',
-                },
-                {
-                    nik: '3578012205830004',
-                    nama: 'Rina Kusuma',
-                    tempat_lahir: 'Surabaya',
-                    tanggal_lahir: '1983-05-22',
-                    telepon: '085612345678',
-                    kota: 'Surabaya',
-                    kelurahan: 'Darmo',
-                    kecamatan: 'Wonokromo',
-                    alamat: 'Jl. Darmo Permai I No. 8, Darmo, Surabaya',
-                    npwp: '67.890.123.4-567.000',
-                    nasabah_lama: true,
-                    id_lain: 'Paspor C1234567',
-                },
-                {
-                    nik: '3374061011800007',
-                    nama: 'Eko Santoso',
-                    tempat_lahir: 'Semarang',
-                    tanggal_lahir: '1980-11-10',
-                    telepon: '087788990011',
-                    kota: 'Semarang',
-                    kelurahan: 'Jatingaleh',
-                    kecamatan: 'Candisari',
-                    alamat: 'Jl. Setiabudi No. 45, Jatingaleh, Semarang',
-                    npwp: '89.012.345.6-789.000',
-                    nasabah_lama: false,
-                    id_lain: 'SIM 9876543210',
-                },
-                {
-                    nik: '3674012809750008',
-                    nama: 'Lestari Widya',
-                    tempat_lahir: 'Tangerang',
-                    tanggal_lahir: '1975-09-28',
-                    telepon: '081355779900',
-                    kota: 'Tangerang',
-                    kelurahan: 'Karang Tengah',
-                    kecamatan: 'Ciledug',
-                    alamat: 'Jl. Raden Saleh No. 3, Karang Tengah, Tangerang',
-                    npwp: '01.234.567.8-910.000',
-                    nasabah_lama: true,
-                    id_lain: '-',
-                },
-            ];
+                const toRecord = (item) => ({
+                    id: item?.id ?? null,
+                    nik: item?.nik ?? '',
+                    nama: item?.nama ?? '',
+                    tempat_lahir: item?.tempat_lahir ?? '',
+                    tanggal_lahir: item?.tanggal_lahir ?? '',
+                    telepon: item?.telepon ?? '',
+                    kota: item?.kota ?? '',
+                    kelurahan: item?.kelurahan ?? '',
+                    kecamatan: item?.kecamatan ?? '',
+                    alamat: item?.alamat ?? '',
+                    npwp: item?.npwp ?? '',
+                    id_lain: item?.id_lain ?? '',
+                    nasabah_lama: Boolean(item?.nasabah_lama),
+                    kode_member: item?.kode_member ?? '',
+                });
+
+                let dataset = Array.isArray(window.__nasabahDataset)
+                    ? window.__nasabahDataset
+                    : Array.isArray(nasabahInitialDataset)
+                        ? [...nasabahInitialDataset]
+                        : [];
+
+                dataset = dataset.map(toRecord);
+                window.__nasabahDataset = dataset;
 
                 const state = {
                     sortKey: 'nama',
@@ -347,6 +302,10 @@
                 const form = document.getElementById('nasabahForm');
                 const kodeMemberGroup = document.getElementById('kodeMemberGroup');
                 const kodeMemberInput = document.getElementById('kodeMember');
+                const generalError = document.getElementById('formGeneralError');
+                const submitButton = form?.querySelector('[data-submit-button]');
+                const storeUrl = form?.getAttribute('data-store-url') ?? '';
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
 
                 const formFields = {
                     nik: document.getElementById('formNik'),
@@ -364,8 +323,36 @@
                 };
 
                 const errorElements = Object.fromEntries(
-                    Object.keys(formFields).map((field) => [field, form.querySelector(`[data-error-for="${field}"]`)]),
+                    Object.keys(formFields).map((field) => [field, form?.querySelector(`[data-error-for="${field}"]`)]),
                 );
+
+                const setSubmitting = (isSubmitting) => {
+                    if (!submitButton) {
+                        return;
+                    }
+
+                    submitButton.disabled = isSubmitting;
+                    submitButton.classList.toggle('cursor-not-allowed', isSubmitting);
+                    submitButton.classList.toggle('opacity-60', isSubmitting);
+                };
+
+                const showGeneralError = (message) => {
+                    if (!generalError) {
+                        return;
+                    }
+
+                    generalError.textContent = message;
+                    generalError.classList.remove('hidden');
+                };
+
+                const clearGeneralError = () => {
+                    if (!generalError) {
+                        return;
+                    }
+
+                    generalError.textContent = '';
+                    generalError.classList.add('hidden');
+                };
 
                 function formatDate(dateString) {
                     if (!dateString) return '';
@@ -376,7 +363,7 @@
                 function normalize(value) {
                     return String(value ?? '')
                         .toLowerCase()
-                        .replace(/\\s+/g, ' ')
+                        .replace(/\s+/g, ' ')
                         .trim();
                 }
 
@@ -401,6 +388,7 @@
                             item.npwp,
                             item.nasabah_lama ? 'ya' : 'tidak',
                             item.id_lain,
+                            item.kode_member,
                         ]
                             .map(normalize)
                             .join(' ');
@@ -423,8 +411,8 @@
                             return sortDirection === 'asc' ? aTime - bTime : bTime - aTime;
                         }
 
-                        const aValue = normalize(a[sortKey] ?? '');
-                        const bValue = normalize(b[sortKey] ?? '');
+                        const aValue = normalize(a?.[sortKey]);
+                        const bValue = normalize(b?.[sortKey]);
 
                         if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
                         if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
@@ -435,7 +423,7 @@
                         tableBody.innerHTML = `
                             <tr>
                                 <td colspan="10" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-300">
-                                    ${'{{ __('Data tidak ditemukan untuk kata kunci yang dimasukkan.') }}'}
+                                    {{ __('Data tidak ditemukan untuk kata kunci yang dimasukkan.') }}
                                 </td>
                             </tr>
                         `;
@@ -456,13 +444,13 @@
                                     <td class="px-4 py-3 font-medium text-neutral-800 dark:text-neutral-100">${item.nama}</td>
                                     <td class="px-4 py-3">${formatDate(item.tanggal_lahir)}</td>
                                     <td class="px-4 py-3">${item.telepon}</td>
-                                    <td class="px-4 py-3">${item.kota ?? '-'}</td>
-                                    <td class="px-4 py-3">${item.kecamatan ?? '-'}</td>
-                                    <td class="px-4 py-3">${item.npwp ?? '-'}</td>
+                                    <td class="px-4 py-3">${item.kota || '-'}</td>
+                                    <td class="px-4 py-3">${item.kecamatan || '-'}</td>
+                                    <td class="px-4 py-3">${item.npwp || '-'}</td>
                                     <td class="px-4 py-3">
                                         <input type="checkbox" ${item.nasabah_lama ? 'checked' : ''} disabled class="size-4 rounded border-neutral-300 text-emerald-600 focus:ring-emerald-500 dark:border-neutral-600 dark:bg-neutral-700" aria-label="{{ __('Nasabah lama') }}" />
                                     </td>
-                                    <td class="px-4 py-3">${item.id_lain ?? '-'}</td>
+                                    <td class="px-4 py-3">${item.id_lain || '-'}</td>
                                 </tr>
                             `;
                         })
@@ -494,6 +482,8 @@
                         element.textContent = '';
                         element.classList.add('hidden');
                     });
+
+                    clearGeneralError();
                 }
 
                 function showError(field, message) {
@@ -509,6 +499,7 @@
                     kodeMemberGroup.classList.add('hidden');
                     kodeMemberInput.value = '';
                     formFields.nasabah_lama.checked = false;
+                    setSubmitting(false);
                 }
 
                 function openModal() {
@@ -530,12 +521,7 @@
                     modal.setAttribute('aria-hidden', 'true');
                 }
 
-                function generateMemberCode() {
-                    const timestamp = Date.now().toString(36).toUpperCase();
-                    return `MBR-${timestamp.slice(-6)}`;
-                }
-
-                function handleFormSubmit(event) {
+                const handleFormSubmit = async (event) => {
                     event.preventDefault();
                     clearErrors();
 
@@ -581,31 +567,57 @@
                         hasError = true;
                     }
 
-                    if (hasError) {
+                    if (hasError || !storeUrl) {
+                        if (!storeUrl) {
+                            showGeneralError('{{ __('Konfigurasi penyimpanan tidak ditemukan.') }}');
+                        }
                         return;
                     }
 
-                    const kodeMember = generateMemberCode();
+                    setSubmitting(true);
 
-                    dataset.push({
-                        nik: values.nik,
-                        nama: values.nama,
-                        tempat_lahir: values.tempat_lahir,
-                        tanggal_lahir: values.tanggal_lahir,
-                        telepon: values.telepon,
-                        kota: values.kota || '-',
-                        kelurahan: values.kelurahan || '-',
-                        kecamatan: values.kecamatan || '-',
-                        alamat: values.alamat,
-                        npwp: values.npwp || '-',
-                        nasabah_lama: values.nasabah_lama,
-                        id_lain: values.id_lain || '-',
-                    });
+                    try {
+                        const response = await fetch(storeUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                Accept: 'application/json',
+                                'X-CSRF-TOKEN': csrfToken,
+                            },
+                            body: JSON.stringify(values),
+                        });
 
-                    kodeMemberInput.value = kodeMember;
-                    kodeMemberGroup.classList.remove('hidden');
-                    renderTable();
-                }
+                        const result = await response.json().catch(() => null);
+
+                        if (!response.ok) {
+                            if (response.status === 422 && result?.errors) {
+                                Object.entries(result.errors).forEach(([field, messages]) => {
+                                    if (Array.isArray(messages) && messages.length) {
+                                        showError(field, messages[0]);
+                                    }
+                                });
+                            }
+
+                            showGeneralError(result?.message ?? '{{ __('Terjadi kesalahan saat menyimpan data. Silakan coba lagi.') }}');
+                            return;
+                        }
+
+                        const record = toRecord(result?.nasabah ?? {});
+                        dataset.push(record);
+                        window.__nasabahDataset = dataset;
+                        form.reset();
+                        formFields.nasabah_lama.checked = false;
+                        kodeMemberInput.value = record.kode_member;
+                        kodeMemberGroup.classList.remove('hidden');
+                        renderTable();
+                        formFields.nik.focus();
+                    } catch (error) {
+                        console.error(error);
+                        showGeneralError('{{ __('Tidak dapat terhubung ke server. Silakan periksa koneksi Anda.') }}');
+                    } finally {
+                        setSubmitting(false);
+                    }
+                };
 
                 searchInput.addEventListener('input', (event) => {
                     state.searchTerm = event.target.value;
