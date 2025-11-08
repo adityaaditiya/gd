@@ -2,8 +2,6 @@
     $pageTitle = $pageTitle ?? __('Data Nasabah');
     $searchEndpoint = $searchEndpoint ?? route('nasabah.data-nasabah');
     $showCreateButton = $showCreateButton ?? true;
-    $activeDateFrom = $activeDateFrom ?? '';
-    $activeDateTo = $activeDateTo ?? '';
 @endphp
 
 <x-layouts.app :title="$pageTitle">
@@ -15,7 +13,7 @@
             </p>
         </div>
 
- @if (session('status'))
+        @if (session('status'))
             <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-700 dark:border-emerald-500/60 dark:bg-emerald-500/10 dark:text-emerald-300">
                 <p class="font-semibold text-black">{{ session('status') }}</p>
                 @if (session('kode_member'))
@@ -48,33 +46,6 @@
                             />
                         </div>
                     </label>
-                    <div class="grid w-full gap-3 sm:grid-cols-2 lg:max-w-lg">
-                        <label class="flex flex-col gap-2 text-xs font-medium uppercase tracking-wide text-neutral-400">
-                            <span>{{ __('Dari Tanggal') }}</span>
-                            <input
-                                id="nasabahDateFrom"
-                                type="date"
-                                value="{{ $activeDateFrom }}"
-                                class="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-normal text-neutral-700 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-200 dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
-                            />
-                        </label>
-                        <label class="flex flex-col gap-2 text-xs font-medium uppercase tracking-wide text-neutral-400">
-                            <span>{{ __('Sampai Tanggal') }}</span>
-                            <input
-                                id="nasabahDateTo"
-                                type="date"
-                                value="{{ $activeDateTo }}"
-                                class="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-normal text-neutral-700 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-200 dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
-                            />
-                        </label>
-                    </div>
-                    <button
-                        type="button"
-                        id="nasabahResetDateFilter"
-                        class="inline-flex items-center justify-center whitespace-nowrap rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-700 shadow-sm transition hover:bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-700/60 dark:focus-visible:outline-emerald-500"
-                    >
-                        {{ __('Reset Filter') }}
-                    </button>
                 </div>
                 @if ($showCreateButton)
                     <a
@@ -239,7 +210,7 @@
     </div>
 
     <script>
-        const nasabahInitialDataset = @js($nasabahs);
+        const dataNasabahInitialDataset = @js($nasabahs);
         const nasabahSearchEndpoint = @js($searchEndpoint);
         (() => {
             function initializeNasabahPage() {
@@ -271,14 +242,14 @@
                     delete_url: item?.delete_url ?? '',
                 });
 
-                let dataset = Array.isArray(window.__nasabahDataset)
-                    ? window.__nasabahDataset
-                    : Array.isArray(nasabahInitialDataset)
-                        ? [...nasabahInitialDataset]
+                let dataset = Array.isArray(window.__dataNasabahDataset)
+                    ? window.__dataNasabahDataset
+                    : Array.isArray(dataNasabahInitialDataset)
+                        ? [...dataNasabahInitialDataset]
                         : [];
 
                 dataset = dataset.map(toRecord);
-                window.__nasabahDataset = dataset;
+                window.__dataNasabahDataset = dataset;
                 let initialDataset = dataset.map((item) => ({ ...item }));
 
                 const searchState = {
@@ -562,11 +533,11 @@
 
                 function resetDataset() {
                     dataset = initialDataset.map((item) => ({ ...item }));
-                    window.__nasabahDataset = dataset;
+                    window.__dataNasabahDataset = dataset;
                     renderTable();
                 }
 
-                async function performFetch({ search, dateFrom, dateTo }) {
+                async function performFetch({ search }) {
                     if (searchState.abortController) {
                         searchState.abortController.abort();
                     }
@@ -577,19 +548,8 @@
                     try {
                         const params = new URLSearchParams();
                         const trimmedSearch = String(search ?? '').trim();
-                        const normalizedDateFrom = sanitizeDateValue(dateFrom);
-                        const normalizedDateTo = sanitizeDateValue(dateTo);
-
                         if (trimmedSearch !== '') {
                             params.set('search', trimmedSearch);
-                        }
-
-                        if (normalizedDateFrom) {
-                            params.set('date_from', normalizedDateFrom);
-                        }
-
-                        if (normalizedDateTo) {
-                            params.set('date_to', normalizedDateTo);
                         }
 
                         const queryString = params.toString();
@@ -610,25 +570,18 @@
                         const payload = await response.json();
 
                         const activeSearch = (searchInput?.value ?? '').trim();
-                        const activeDateFrom = sanitizeDateValue(dateFromInput?.value ?? '');
-                        const activeDateTo = sanitizeDateValue(dateToInput?.value ?? '');
-
-                        if (
-                            activeSearch !== trimmedSearch ||
-                            activeDateFrom !== normalizedDateFrom ||
-                            activeDateTo !== normalizedDateTo
-                        ) {
+                        if (activeSearch !== trimmedSearch) {
                             return;
                         }
 
                         const records = Array.isArray(payload?.data) ? payload.data.map(toRecord) : [];
 
-                        if (trimmedSearch === '' && !normalizedDateFrom && !normalizedDateTo) {
+                        if (trimmedSearch === '') {
                             initialDataset = records.map((item) => ({ ...item }));
                         }
 
                         dataset = records;
-                        window.__nasabahDataset = dataset;
+                        window.__dataNasabahDataset = dataset;
                         renderTable();
                     } catch (error) {
                         if (error.name === 'AbortError') {
@@ -651,11 +604,9 @@
 
                     const payload = {
                         search: state.searchTerm,
-                        dateFrom: state.dateFrom,
-                        dateTo: state.dateTo,
                     };
 
-                    const hasFilters = Boolean(payload.search) || Boolean(payload.dateFrom) || Boolean(payload.dateTo);
+                    const hasFilters = Boolean(payload.search);
 
                     const executeFetch = () => performFetch(payload);
 
@@ -664,6 +615,7 @@
                     } else {
                         executeFetch();
                     }
+                }
 
                     if (hasFilters) {
                         renderTable();
@@ -677,22 +629,6 @@
                     state.searchTerm = trimmed;
                     state.currentPage = 1;
                     triggerDatasetFetch({ debounce: true });
-                }
-
-                function normalizeDateRangeOrder() {
-                    if (state.dateFrom && state.dateTo && state.dateFrom > state.dateTo) {
-                        const temp = state.dateFrom;
-                        state.dateFrom = state.dateTo;
-                        state.dateTo = temp;
-
-                        if (dateFromInput && dateFromInput.value !== state.dateFrom) {
-                            dateFromInput.value = state.dateFrom;
-                        }
-
-                        if (dateToInput && dateToInput.value !== state.dateTo) {
-                            dateToInput.value = state.dateTo;
-                        }
-                    }
                 }
 
                 normalizeDateRangeOrder();
@@ -837,7 +773,7 @@
 
             document.addEventListener('livewire:navigated', initializeNasabahPage);
 
-            if (!window.__nasabahDeleteHandlerRegistered) {
+            if (!window.__dataNasabahDeleteHandlerRegistered) {
                 document.addEventListener('submit', (event) => {
                     const form = event.target.closest('[data-nasabah-delete-form]');
                     if (!form) {
@@ -845,7 +781,7 @@
                     }
 
                     const recordId = form.getAttribute('data-nasabah-id');
-                    const target = window.__nasabahDataset?.find?.((entry) => String(entry.id ?? '') === String(recordId ?? ''));
+                    const target = window.__dataNasabahDataset?.find?.((entry) => String(entry.id ?? '') === String(recordId ?? ''));
                     const name = target?.nama ?? '';
                     const sanitizedName = String(name ?? '').replace(/"/g, '\\"');
                     const prefix = `{{ __('Apakah Anda yakin ingin menghapus data nasabah') }}`;
@@ -864,7 +800,7 @@
                     }
                 });
 
-                window.__nasabahDeleteHandlerRegistered = true;
+                window.__dataNasabahDeleteHandlerRegistered = true;
             }
         })();
     </script>
