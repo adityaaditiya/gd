@@ -12,6 +12,7 @@
                 method="POST"
                 action="{{ route('nasabah.update', $nasabah) }}"
                 class="space-y-6 p-6"
+                data-nasabah-form
             >
                 @csrf
                 @method('PUT')
