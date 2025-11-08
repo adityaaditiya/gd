@@ -1,13 +1,12 @@
 @php
     $pageTitle = $pageTitle ?? __('Data Nasabah');
     $searchEndpoint = $searchEndpoint ?? route('nasabah.data-nasabah');
-    $showCreateButton = $showCreateButton ?? true;
 @endphp
 
 <x-layouts.app :title="$pageTitle">
     <div class="space-y-8" id="nasabah-page">
         <div class="flex flex-col gap-2">
-            <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white">{{ $pageTitle }}</h1>
+            <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white">{{ __('Data Nasabah') }}</h1>
             <p class="text-sm text-neutral-600 dark:text-neutral-300">
                 {{ __('Kelola dan telusuri informasi lengkap nasabah melalui tabel interaktif berikut.') }}
             </p>
@@ -210,7 +209,7 @@
     </div>
 
     <script>
-        const dataNasabahInitialDataset = @js($nasabahs);
+        const nasabahInitialDataset = @js($nasabahs);
         const nasabahSearchEndpoint = @js($searchEndpoint);
         (() => {
             function initializeNasabahPage() {
@@ -237,7 +236,6 @@
                     id_lain: item?.id_lain ?? '',
                     nasabah_lama: Boolean(item?.nasabah_lama),
                     kode_member: item?.kode_member ?? '',
-                    created_at: item?.created_at ?? '',
                     edit_url: item?.edit_url ?? '',
                     delete_url: item?.delete_url ?? '',
                 });
@@ -282,8 +280,8 @@
                 }
 
                 const state = {
-                    sortKey: 'created_at',
-                    sortDirection: 'desc',
+                    sortKey: 'nama',
+                    sortDirection: 'asc',
                     searchTerm: '',
                     pageSize: defaultPageSize,
                     currentPage: 1,
@@ -411,12 +409,6 @@
                             return sortDirection === 'asc'
                                 ? Number(a.nasabah_lama) - Number(b.nasabah_lama)
                                 : Number(b.nasabah_lama) - Number(a.nasabah_lama);
-                        }
-
-                        if (sortKey === 'created_at') {
-                            const aTime = new Date(a?.created_at ?? '').getTime() || 0;
-                            const bTime = new Date(b?.created_at ?? '').getTime() || 0;
-                            return state.sortDirection === 'asc' ? aTime - bTime : bTime - aTime;
                         }
 
                         if (sortKey === 'tanggal_lahir') {

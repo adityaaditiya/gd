@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Nasabah;
-use Closure;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -27,24 +25,87 @@ class NasabahController extends Controller
      */
     public function index(Request $request): View|JsonResponse
     {
-        return $this->nasabahListing($request);
-    }
+        $transform = fn (Nasabah $nasabah) => [
+            'id' => $nasabah->id,
+            'nik' => $nasabah->nik,
+            'nama' => $nasabah->nama,
+            'tempat_lahir' => $nasabah->tempat_lahir,
+            'tanggal_lahir' => optional($nasabah->tanggal_lahir)->format('Y-m-d'),
+            'telepon' => $nasabah->telepon,
+            'kota' => $nasabah->kota,
+            'kelurahan' => $nasabah->kelurahan,
+            'kecamatan' => $nasabah->kecamatan,
+            'alamat' => $nasabah->alamat,
+            'npwp' => $nasabah->npwp,
+            'id_lain' => $nasabah->id_lain,
+            'nasabah_lama' => $nasabah->nasabah_lama,
+            'kode_member' => $nasabah->kode_member,
+            'edit_url' => route('nasabah.edit', $nasabah),
+            'delete_url' => route('nasabah.destroy', $nasabah),
+        ];
 
-    /**
-     * Display the Nasabah Baru page, filtered to nasabah_lama = 1.
-     */
-    public function nasabahBaru(Request $request): View|JsonResponse
-    {
-        return $this->nasabahListing(
-            $request,
-            function (Builder $query): void {
-                $query->where('nasabah_lama', true);
-            },
-            [
-                'pageTitle' => __('Nasabah Baru'),
-                'searchEndpoint' => route('nasabah.nasabah-baru'),
-            ]
-        );
+        $query = Nasabah::query();
+
+        if ($request->expectsJson()) {
+            $searchTerm = trim((string) $request->query('search', ''));
+
+            $nasabahs = $query
+                ->when($searchTerm !== '', function ($builder) use ($searchTerm) {
+                    $booleanTerm = strtolower($searchTerm);
+                    $dateTerm = null;
+
+                    if (preg_match('/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})$/', $searchTerm, $matches)) {
+                        $year = strlen($matches[3]) === 2 ? '20' . $matches[3] : $matches[3];
+                        $dateTerm = sprintf('%04d-%02d-%02d', (int) $year, (int) $matches[2], (int) $matches[1]);
+                    }
+
+                    $builder->where(function ($query) use ($searchTerm, $booleanTerm, $dateTerm) {
+                        $likeTerm = "%{$searchTerm}%";
+
+                        $query
+                            ->where('nik', 'like', $likeTerm)
+                            ->orWhere('nama', 'like', $likeTerm)
+                            ->orWhere('tempat_lahir', 'like', $likeTerm)
+                            ->orWhere('telepon', 'like', $likeTerm)
+                            ->orWhere('kota', 'like', $likeTerm)
+                            ->orWhere('kelurahan', 'like', $likeTerm)
+                            ->orWhere('kecamatan', 'like', $likeTerm)
+                            ->orWhere('alamat', 'like', $likeTerm)
+                            ->orWhere('npwp', 'like', $likeTerm)
+                            ->orWhere('id_lain', 'like', $likeTerm)
+                            ->orWhere('kode_member', 'like', $likeTerm);
+
+                        if ($dateTerm) {
+                            $query->orWhereDate('tanggal_lahir', $dateTerm);
+                        } else {
+                            $query->orWhere('tanggal_lahir', 'like', $likeTerm);
+                        }
+
+                        if (in_array($booleanTerm, ['ya', 'tidak'], true)) {
+                            $query->orWhere('nasabah_lama', $booleanTerm === 'ya');
+                        }
+                    });
+                })
+                ->latest()
+                ->get()
+                ->map($transform)
+                ->values();
+
+            return response()->json([
+                'data' => $nasabahs,
+            ]);
+        }
+
+        $nasabahs = $query
+            ->latest()
+            ->limit(100)
+            ->get()
+            ->map($transform)
+            ->values();
+
+        return view('nasabah.data-nasabah', [
+            'nasabahs' => $nasabahs,
+        ]);
     }
 
     /**
@@ -170,113 +231,5 @@ class NasabahController extends Controller
         return redirect()
             ->route('nasabah.data-nasabah')
             ->with('status', __('Data nasabah berhasil dihapus.'));
-    }
-
-    /**
-     * Build the listing response for nasabah resources.
-     */
-    private function nasabahListing(Request $request, ?Closure $scope = null, array $viewData = []): View|JsonResponse
-    {
-        $query = Nasabah::query();
-
-        if ($scope) {
-            $scope($query);
-        }
-
-        if ($request->expectsJson()) {
-            $searchTerm = trim((string) $request->query('search', ''));
-
-            if ($searchTerm !== '') {
-                $this->applyNasabahSearchFilter($query, $searchTerm);
-            }
-
-            $nasabahs = $query
-                ->latest()
-                ->get()
-                ->map(fn (Nasabah $nasabah) => $this->transformNasabah($nasabah))
-                ->values();
-
-            return response()->json([
-                'data' => $nasabahs,
-            ]);
-        }
-
-        $nasabahs = $query
-            ->latest()
-            ->limit(100)
-            ->get()
-            ->map(fn (Nasabah $nasabah) => $this->transformNasabah($nasabah))
-            ->values();
-
-        return view('nasabah.data-nasabah', array_merge([
-            'nasabahs' => $nasabahs,
-        ], $viewData));
-    }
-
-    /**
-     * Apply search filters for nasabah listing queries.
-     */
-    private function applyNasabahSearchFilter(Builder $query, string $searchTerm): void
-    {
-        $booleanTerm = strtolower($searchTerm);
-        $dateTerm = null;
-
-        if (preg_match('/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})$/', $searchTerm, $matches)) {
-            $year = strlen($matches[3]) === 2 ? '20' . $matches[3] : $matches[3];
-            $dateTerm = sprintf('%04d-%02d-%02d', (int) $year, (int) $matches[2], (int) $matches[1]);
-        }
-
-        $query->where(function (Builder $builder) use ($searchTerm, $booleanTerm, $dateTerm) {
-            $likeTerm = "%{$searchTerm}%";
-
-            $builder
-                ->where('nik', 'like', $likeTerm)
-                ->orWhere('nama', 'like', $likeTerm)
-                ->orWhere('tempat_lahir', 'like', $likeTerm)
-                ->orWhere('telepon', 'like', $likeTerm)
-                ->orWhere('kota', 'like', $likeTerm)
-                ->orWhere('kelurahan', 'like', $likeTerm)
-                ->orWhere('kecamatan', 'like', $likeTerm)
-                ->orWhere('alamat', 'like', $likeTerm)
-                ->orWhere('npwp', 'like', $likeTerm)
-                ->orWhere('id_lain', 'like', $likeTerm)
-                ->orWhere('kode_member', 'like', $likeTerm);
-
-            if ($dateTerm) {
-                $builder->orWhereDate('tanggal_lahir', $dateTerm);
-            } else {
-                $builder->orWhere('tanggal_lahir', 'like', $likeTerm);
-            }
-
-            if (in_array($booleanTerm, ['ya', 'tidak'], true)) {
-                $builder->orWhere('nasabah_lama', $booleanTerm === 'ya');
-            }
-        });
-    }
-
-    /**
-     * Transform a nasabah model for responses.
-     */
-    private function transformNasabah(Nasabah $nasabah): array
-    {
-        return [
-            'id' => $nasabah->id,
-            'nik' => $nasabah->nik,
-            'nama' => $nasabah->nama,
-            'tempat_lahir' => $nasabah->tempat_lahir,
-            'tanggal_lahir' => optional($nasabah->tanggal_lahir)->format('Y-m-d'),
-            'telepon' => $nasabah->telepon,
-            'kota' => $nasabah->kota,
-            'kelurahan' => $nasabah->kelurahan,
-            'kecamatan' => $nasabah->kecamatan,
-            'alamat' => $nasabah->alamat,
-            'npwp' => $nasabah->npwp,
-            'id_lain' => $nasabah->id_lain,
-            'nasabah_lama' => $nasabah->nasabah_lama,
-            'kode_member' => $nasabah->kode_member,
-            'created_at' => optional($nasabah->created_at)->toIso8601String(),
-            'edit_url' => route('nasabah.edit', $nasabah),
-            'delete_url' => route('nasabah.destroy', $nasabah),
-        ];
     }
 }
