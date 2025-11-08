@@ -6,10 +6,19 @@ use App\Models\Nasabah;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use Illuminate\View\View;
 
 class NasabahController extends Controller
 {
+    /**
+     * Show the form for creating a new nasabah.
+     */
+    public function create(): View
+    {
+        return view('nasabah.tambah-nasabah');
+    }
+
     /**
      * Display the Data Nasabah page.
      */
@@ -90,8 +99,18 @@ class NasabahController extends Controller
             ], 201);
         }
 
+        $redirectTo = $request->input('redirect_to');
+        $flash = [
+            'status' => __('Data nasabah berhasil disimpan.'),
+            'kode_member' => $nasabah->kode_member,
+        ];
+
+        if ($redirectTo && Route::has($redirectTo)) {
+            return redirect()->route($redirectTo)->with($flash);
+        }
+
         return redirect()
             ->route('nasabah.data-nasabah')
-            ->with('status', __('Data nasabah berhasil disimpan.'));
+            ->with($flash);
     }
 }

@@ -25,18 +25,6 @@
                     </div>
                 </label>
 
-                <div class="flex justify-end">
-                    <button
-                        id="addNasabahButton"
-                        type="button"
-                        class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
-                    >
-                        <svg class="size-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                        </svg>
-                        <span>{{ __('+ Tambah Data Member') }}</span>
-                    </button>
-                </div>
             </div>
 
             <div class="overflow-x-auto">
@@ -146,108 +134,6 @@
         </div>
     </div>
 
-    <div
-        id="nasabahModal"
-        class="fixed inset-0 z-50 hidden items-center justify-center bg-neutral-950/60 p-4 backdrop-blur-sm"
-        role="dialog"
-        aria-modal="true"
-        aria-hidden="true"
-        aria-labelledby="nasabahModalTitle"
-    >
-        <div class="relative flex w-full max-w-3xl max-h-[90vh] flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xl dark:border-neutral-700 dark:bg-neutral-900">
-            <div class="flex shrink-0 items-start justify-between border-b border-neutral-200 p-4 dark:border-neutral-700">
-                <div>
-                    <h2 id="nasabahModalTitle" class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Tambah Data Nasabah') }}</h2>
-                    <p class="text-sm text-neutral-500 dark:text-neutral-300">{{ __('Lengkapi formulir berikut untuk menambahkan member baru.') }}</p>
-                </div>
-                <button type="button" id="closeNasabahModal" class="rounded-full p-1 text-neutral-400 transition hover:text-neutral-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:hover:text-neutral-200">
-                    <svg class="size-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-
-            <form id="nasabahForm" data-store-url="{{ route('nasabah.data-nasabah.store') }}" class="flex-1 space-y-4 overflow-y-auto p-4">
-                <div id="formGeneralError" class="hidden rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600 dark:border-red-500/60 dark:bg-red-500/10 dark:text-red-300"></div>
-                <div class="grid gap-4 md:grid-cols-2">
-                    <div>
-                        <label for="formNik" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('NIK') }} <span class="text-red-500">*</span></label>
-                        <input id="formNik" name="nik" type="text" class="mt-2 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40" required />
-                        <p data-error-for="nik" class="mt-1 text-xs text-red-500 hidden"></p>
-                    </div>
-                    <div>
-                        <label for="formNama" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Nama') }} <span class="text-red-500">*</span></label>
-                        <input id="formNama" name="nama" type="text" class="mt-2 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40" required />
-                        <p data-error-for="nama" class="mt-1 text-xs text-red-500 hidden"></p>
-                    </div>
-                    <div>
-                        <label for="formTempatLahir" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Tempat Lahir') }} <span class="text-red-500">*</span></label>
-                        <input id="formTempatLahir" name="tempat_lahir" type="text" class="mt-2 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40" required />
-                        <p data-error-for="tempat_lahir" class="mt-1 text-xs text-red-500 hidden"></p>
-                    </div>
-                    <div>
-                        <label for="formTanggalLahir" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Tanggal Lahir') }} <span class="text-red-500">*</span></label>
-                        <input id="formTanggalLahir" name="tanggal_lahir" type="date" class="mt-2 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40" required />
-                        <p data-error-for="tanggal_lahir" class="mt-1 text-xs text-red-500 hidden"></p>
-                    </div>
-                    <div>
-                        <label for="formTelepon" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Telepon') }} <span class="text-red-500">*</span></label>
-                        <input id="formTelepon" name="telepon" type="tel" inputmode="tel" class="mt-2 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40" required />
-                        <p data-error-for="telepon" class="mt-1 text-xs text-red-500 hidden"></p>
-                    </div>
-                    <div>
-                        <label for="formKota" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Kota') }}</label>
-                        <input id="formKota" name="kota" type="text" class="mt-2 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40" />
-                        <p data-error-for="kota" class="mt-1 text-xs text-red-500 hidden"></p>
-                    </div>
-                    <div>
-                        <label for="formKelurahan" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Kelurahan') }}</label>
-                        <input id="formKelurahan" name="kelurahan" type="text" class="mt-2 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40" />
-                        <p data-error-for="kelurahan" class="mt-1 text-xs text-red-500 hidden"></p>
-                    </div>
-                    <div>
-                        <label for="formKecamatan" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Kecamatan') }}</label>
-                        <input id="formKecamatan" name="kecamatan" type="text" class="mt-2 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40" />
-                        <p data-error-for="kecamatan" class="mt-1 text-xs text-red-500 hidden"></p>
-                    </div>
-                    <div>
-                        <label for="formNpwp" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('No NPWP') }}</label>
-                        <input id="formNpwp" name="npwp" type="text" class="mt-2 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40" />
-                        <p data-error-for="npwp" class="mt-1 text-xs text-red-500 hidden"></p>
-                    </div>
-                    <div>
-                        <label for="formIdLain" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('No Identitas Lain') }}</label>
-                        <input id="formIdLain" name="id_lain" type="text" class="mt-2 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40" />
-                        <p data-error-for="id_lain" class="mt-1 text-xs text-red-500 hidden"></p>
-                    </div>
-                </div>
-
-                <div>
-                    <label for="formAlamat" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Alamat') }} <span class="text-red-500">*</span></label>
-                    <textarea id="formAlamat" name="alamat" rows="3" class="mt-2 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40" required></textarea>
-                    <p data-error-for="alamat" class="mt-1 text-xs text-red-500 hidden"></p>
-                </div>
-
-                <div class="flex items-center gap-2">
-                    <input id="formNasabahLama" name="nasabah_lama" type="checkbox" class="size-4 rounded border-neutral-300 text-emerald-600 focus:ring-emerald-500 dark:border-neutral-600 dark:bg-neutral-800 dark:focus:ring-emerald-400" />
-                    <label for="formNasabahLama" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Nasabah Lama') }}</label>
-                </div>
-
-                <div id="kodeMemberGroup" class="hidden rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700 dark:border-emerald-500/60 dark:bg-emerald-500/10 dark:text-emerald-300">
-                    <p class="font-medium">{{ __('Data berhasil disimpan!') }}</p>
-                    <p>{{ __('Kode Member Anda:') }}</p>
-                    <input id="kodeMember" type="text" readonly class="mt-2 w-full rounded-lg border border-emerald-300 bg-white px-3 py-2 text-sm font-semibold tracking-wide text-emerald-700 shadow-sm dark:border-emerald-500/60 dark:bg-neutral-900 dark:text-emerald-300" />
-                    <p class="mt-1 text-xs text-emerald-600 dark:text-emerald-400">{{ __('Kode ini dibuat otomatis oleh sistem dan tidak dapat diubah.') }}</p>
-                </div>
-
-                <div class="flex items-center justify-end gap-2 border-t border-neutral-200 pt-4 dark:border-neutral-700">
-                    <button type="button" id="cancelNasabahForm" class="inline-flex items-center justify-center rounded-lg border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-600 transition hover:bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-800">{{ __('Batal') }}</button>
-                    <button type="submit" data-submit-button class="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500">{{ __('Simpan') }}</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <script>
         const nasabahInitialDataset = @js($nasabahs);
         (() => {
@@ -295,64 +181,10 @@
                 const tableBody = document.getElementById('nasabahTableBody');
                 const searchInput = document.getElementById('nasabahSearch');
                 const sortButtons = Array.from(document.querySelectorAll('[data-sort-key]'));
-                const addButton = document.getElementById('addNasabahButton');
-                const modal = document.getElementById('nasabahModal');
-                const closeModalButton = document.getElementById('closeNasabahModal');
-                const cancelButton = document.getElementById('cancelNasabahForm');
-                const form = document.getElementById('nasabahForm');
-                const kodeMemberGroup = document.getElementById('kodeMemberGroup');
-                const kodeMemberInput = document.getElementById('kodeMember');
-                const generalError = document.getElementById('formGeneralError');
-                const submitButton = form?.querySelector('[data-submit-button]');
-                const storeUrl = form?.getAttribute('data-store-url') ?? '';
-                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
 
-                const formFields = {
-                    nik: document.getElementById('formNik'),
-                    nama: document.getElementById('formNama'),
-                    tempat_lahir: document.getElementById('formTempatLahir'),
-                    tanggal_lahir: document.getElementById('formTanggalLahir'),
-                    telepon: document.getElementById('formTelepon'),
-                    kota: document.getElementById('formKota'),
-                    kelurahan: document.getElementById('formKelurahan'),
-                    kecamatan: document.getElementById('formKecamatan'),
-                    npwp: document.getElementById('formNpwp'),
-                    id_lain: document.getElementById('formIdLain'),
-                    alamat: document.getElementById('formAlamat'),
-                    nasabah_lama: document.getElementById('formNasabahLama'),
-                };
-
-                const errorElements = Object.fromEntries(
-                    Object.keys(formFields).map((field) => [field, form?.querySelector(`[data-error-for="${field}"]`)]),
-                );
-
-                const setSubmitting = (isSubmitting) => {
-                    if (!submitButton) {
-                        return;
-                    }
-
-                    submitButton.disabled = isSubmitting;
-                    submitButton.classList.toggle('cursor-not-allowed', isSubmitting);
-                    submitButton.classList.toggle('opacity-60', isSubmitting);
-                };
-
-                const showGeneralError = (message) => {
-                    if (!generalError) {
-                        return;
-                    }
-
-                    generalError.textContent = message;
-                    generalError.classList.remove('hidden');
-                };
-
-                const clearGeneralError = () => {
-                    if (!generalError) {
-                        return;
-                    }
-
-                    generalError.textContent = '';
-                    generalError.classList.add('hidden');
-                };
+                if (!tableBody) {
+                    return;
+                }
 
                 function formatDate(dateString) {
                     if (!dateString) return '';
@@ -476,150 +308,7 @@
                     });
                 }
 
-                function clearErrors() {
-                    Object.values(errorElements).forEach((element) => {
-                        if (!element) return;
-                        element.textContent = '';
-                        element.classList.add('hidden');
-                    });
-
-                    clearGeneralError();
-                }
-
-                function showError(field, message) {
-                    const element = errorElements[field];
-                    if (!element) return;
-                    element.textContent = message;
-                    element.classList.remove('hidden');
-                }
-
-                function resetForm() {
-                    form.reset();
-                    clearErrors();
-                    kodeMemberGroup.classList.add('hidden');
-                    kodeMemberInput.value = '';
-                    formFields.nasabah_lama.checked = false;
-                    setSubmitting(false);
-                }
-
-                function openModal() {
-                    resetForm();
-                    modal.classList.remove('hidden');
-                    modal.classList.add('flex');
-                    document.body.classList.add('overflow-hidden');
-                    modal.setAttribute('aria-hidden', 'false');
-                    formFields.nik.focus();
-                }
-
-                function closeModal({ reset = false } = {}) {
-                    if (reset) {
-                        resetForm();
-                    }
-                    modal.classList.remove('flex');
-                    modal.classList.add('hidden');
-                    document.body.classList.remove('overflow-hidden');
-                    modal.setAttribute('aria-hidden', 'true');
-                }
-
-                const handleFormSubmit = async (event) => {
-                    event.preventDefault();
-                    clearErrors();
-
-                    const values = {
-                        nik: formFields.nik.value.trim(),
-                        nama: formFields.nama.value.trim(),
-                        tempat_lahir: formFields.tempat_lahir.value.trim(),
-                        tanggal_lahir: formFields.tanggal_lahir.value,
-                        telepon: formFields.telepon.value.trim(),
-                        kota: formFields.kota.value.trim(),
-                        kelurahan: formFields.kelurahan.value.trim(),
-                        kecamatan: formFields.kecamatan.value.trim(),
-                        npwp: formFields.npwp.value.trim(),
-                        id_lain: formFields.id_lain.value.trim(),
-                        alamat: formFields.alamat.value.trim(),
-                        nasabah_lama: formFields.nasabah_lama.checked,
-                    };
-
-                    let hasError = false;
-
-                    if (!values.nik) {
-                        showError('nik', '{{ __('NIK wajib diisi.') }}');
-                        hasError = true;
-                    }
-                    if (!values.nama) {
-                        showError('nama', '{{ __('Nama wajib diisi.') }}');
-                        hasError = true;
-                    }
-                    if (!values.tempat_lahir) {
-                        showError('tempat_lahir', '{{ __('Tempat lahir wajib diisi.') }}');
-                        hasError = true;
-                    }
-                    if (!values.tanggal_lahir) {
-                        showError('tanggal_lahir', '{{ __('Tanggal lahir wajib diisi.') }}');
-                        hasError = true;
-                    }
-                    if (!values.telepon) {
-                        showError('telepon', '{{ __('Nomor telepon wajib diisi.') }}');
-                        hasError = true;
-                    }
-                    if (!values.alamat) {
-                        showError('alamat', '{{ __('Alamat wajib diisi.') }}');
-                        hasError = true;
-                    }
-
-                    if (hasError || !storeUrl) {
-                        if (!storeUrl) {
-                            showGeneralError('{{ __('Konfigurasi penyimpanan tidak ditemukan.') }}');
-                        }
-                        return;
-                    }
-
-                    setSubmitting(true);
-
-                    try {
-                        const response = await fetch(storeUrl, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                Accept: 'application/json',
-                                'X-CSRF-TOKEN': csrfToken,
-                            },
-                            body: JSON.stringify(values),
-                        });
-
-                        const result = await response.json().catch(() => null);
-
-                        if (!response.ok) {
-                            if (response.status === 422 && result?.errors) {
-                                Object.entries(result.errors).forEach(([field, messages]) => {
-                                    if (Array.isArray(messages) && messages.length) {
-                                        showError(field, messages[0]);
-                                    }
-                                });
-                            }
-
-                            showGeneralError(result?.message ?? '{{ __('Terjadi kesalahan saat menyimpan data. Silakan coba lagi.') }}');
-                            return;
-                        }
-
-                        const record = toRecord(result?.nasabah ?? {});
-                        dataset.push(record);
-                        window.__nasabahDataset = dataset;
-                        form.reset();
-                        formFields.nasabah_lama.checked = false;
-                        kodeMemberInput.value = record.kode_member;
-                        kodeMemberGroup.classList.remove('hidden');
-                        renderTable();
-                        formFields.nik.focus();
-                    } catch (error) {
-                        console.error(error);
-                        showGeneralError('{{ __('Tidak dapat terhubung ke server. Silakan periksa koneksi Anda.') }}');
-                    } finally {
-                        setSubmitting(false);
-                    }
-                };
-
-                searchInput.addEventListener('input', (event) => {
+                searchInput?.addEventListener('input', (event) => {
                     state.searchTerm = event.target.value;
                     renderTable();
                 });
@@ -642,41 +331,14 @@
                     });
                 });
 
-                addButton.addEventListener('click', openModal);
-                closeModalButton.addEventListener('click', () => closeModal({ reset: true }));
-                cancelButton.addEventListener('click', () => {
-                    closeModal({ reset: true });
-                });
-
-                modal.addEventListener('click', (event) => {
-                    if (event.target === modal) {
-                        closeModal({ reset: true });
-                    }
-                });
-
-                const handleEscapeKey = (event) => {
-                    if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
-                        closeModal({ reset: true });
-                    }
-                };
-
-                if (window.__nasabahHandleEscapeKey) {
-                    document.removeEventListener('keydown', window.__nasabahHandleEscapeKey);
-                }
-
-                window.__nasabahHandleEscapeKey = handleEscapeKey;
-                document.addEventListener('keydown', handleEscapeKey);
-
-                form.addEventListener('submit', handleFormSubmit);
-
                 updateSortIndicators();
                 renderTable();
             }
 
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initializeNasabahPage);
-            } else {
+            if (document.readyState !== 'loading') {
                 initializeNasabahPage();
+            } else {
+                document.addEventListener('DOMContentLoaded', initializeNasabahPage, { once: true });
             }
 
             document.addEventListener('livewire:navigated', initializeNasabahPage);

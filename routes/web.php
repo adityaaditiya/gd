@@ -64,6 +64,7 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('nasabah')
         ->as('nasabah.')
         ->group(function () {
+            Route::get('tambah-nasabah', [NasabahController::class, 'create'])->name('tambah-nasabah');
             Route::get('data-nasabah', [NasabahController::class, 'index'])->name('data-nasabah');
             Route::post('data-nasabah', [NasabahController::class, 'store'])->name('data-nasabah.store');
             Route::view('lihat-transaksi-nasabah', 'nasabah.lihat-transaksi-nasabah')->name('lihat-transaksi-nasabah');
