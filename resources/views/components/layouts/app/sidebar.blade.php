@@ -486,17 +486,6 @@
                             {{ __('Data Nasabah') }}
                         </a>
                         <a
-                            href="{{ route('nasabah.tambah-nasabah') }}"
-                            wire:navigate
-                            @class([
-                                'block rounded-lg px-3 py-2 transition-colors duration-200',
-                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('nasabah.tambah-nasabah'),
-                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('nasabah.tambah-nasabah'),
-                            ])
-                        >
-                            {{ __('Tambah Nasabah') }}
-                        </a>
-                        <a
                             href="{{ route('nasabah.lihat-transaksi-nasabah') }}"
                             wire:navigate
                             @class([

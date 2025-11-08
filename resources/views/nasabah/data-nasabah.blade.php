@@ -36,7 +36,7 @@
                         <input
                             id="nasabahSearch"
                             type="search"
-                            placeholder="{{ __('Ketik untuk mencari seluruh data kolom...') }}"
+                            placeholder="{{ __('Ketik untuk mencari seluruh kolom...') }}"
                             class="w-full border-0 bg-transparent p-0 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-0 dark:text-white"
                         />
                     </div>
@@ -44,12 +44,12 @@
                     <a
                         href="{{ route('nasabah.tambah-nasabah') }}"
                         wire:navigate
-                        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-emerald-600 bg-emerald-600 px-4 py-4 text-sm font-semibold text-blue-600 shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-500 dark:bg-emerald-500 dark:hover:border-emerald-400 dark:hover:bg-emerald-400"
+                        class="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-600 bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-500 dark:bg-emerald-500 dark:hover:border-emerald-400 dark:hover:bg-emerald-400"
                     >
                         <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                         </svg>
-                        <span>{{ __('Tambah Nasabah') }}</span>
+                        <span>{{ __('+ Tambah Nasabah') }}</span>
                     </a>
                 </div>
             </div>
@@ -61,16 +61,6 @@
                             <th scope="col" class="min-w-[120px] px-4 py-3">
                                 <button type="button" class="flex items-center gap-1" data-sort-key="actions" disabled>
                                     <span>{{ __('Aksi') }}</span>
-                                </button>
-                            </th>
-                            <th scope="col" class="min-w-[160px] px-4 py-3">
-                                <button type="button" class="flex items-center gap-1" data-sort-key="nik">
-                                    <span>{{ __('Kode Member') }}</span>
-                                    <span data-sort-icon class="hidden">
-                                        <svg class="size-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
-                                        </svg>
-                                    </span>
                                 </button>
                             </th>
                             <th scope="col" class="min-w-[160px] px-4 py-3">
@@ -133,16 +123,6 @@
                                     </span>
                                 </button>
                             </th>
-                            <th scope="col" class="min-w-[160px] px-4 py-3">
-                                <button type="button" class="flex items-center gap-1" data-sort-key="kecamatan">
-                                    <span>{{ __('Alamat') }}</span>
-                                    <span data-sort-icon class="hidden">
-                                        <svg class="size-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
-                                        </svg>
-                                    </span>
-                                </button>
-                            </th>
                             <th scope="col" class="min-w-[140px] px-4 py-3">
                                 <button type="button" class="flex items-center gap-1" data-sort-key="npwp">
                                     <span>{{ __('NPWP') }}</span>
@@ -153,7 +133,7 @@
                                     </span>
                                 </button>
                             </th>
-                            <!-- <th scope="col" class="min-w-[140px] px-4 py-3">
+                            <th scope="col" class="min-w-[140px] px-4 py-3">
                                 <button type="button" class="flex items-center gap-1" data-sort-key="nasabah_lama">
                                     <span>{{ __('Nasabah Lama') }}</span>
                                     <span data-sort-icon class="hidden">
@@ -162,7 +142,7 @@
                                         </svg>
                                     </span>
                                 </button>
-                            </th> -->
+                            </th>
                             <th scope="col" class="min-w-[150px] px-4 py-3">
                                 <button type="button" class="flex items-center gap-1" data-sort-key="id_lain">
                                     <span>{{ __('ID Lain') }}</span>
@@ -349,15 +329,16 @@
                                             </form>
                                         </div>
                                     </td>
-                                    <td class="whitespace-nowrap px-4 py-3 font-mono text-sm">${escapeHtml(item.kode_member)}</td>
                                     <td class="whitespace-nowrap px-4 py-3 font-mono text-sm">${escapeHtml(item.nik)}</td>
                                     <td class="px-4 py-3 font-medium text-neutral-800 dark:text-neutral-100">${escapeHtml(item.nama)}</td>
                                     <td class="px-4 py-3">${formatDate(item.tanggal_lahir)}</td>
                                     <td class="px-4 py-3">${escapeHtml(item.telepon)}</td>
                                     <td class="px-4 py-3">${escapeHtml(item.kota) || '-'}</td>
                                     <td class="px-4 py-3">${escapeHtml(item.kecamatan) || '-'}</td>
-                                    <td class="px-4 py-3 font-medium text-neutral-800 dark:text-neutral-100">${escapeHtml(item.alamat)}</td>
                                     <td class="px-4 py-3">${escapeHtml(item.npwp) || '-'}</td>
+                                    <td class="px-4 py-3">
+                                        <input type="checkbox" ${item.nasabah_lama ? 'checked' : ''} disabled class="size-4 rounded border-neutral-300 text-emerald-600 focus:ring-emerald-500 dark:border-neutral-600 dark:bg-neutral-700" aria-label="{{ __('Nasabah lama') }}" />
+                                    </td>
                                     <td class="px-4 py-3">${escapeHtml(item.id_lain) || '-'}</td>
                                 </tr>
                             `;
@@ -366,11 +347,6 @@
 
                     tableBody.innerHTML = rows;
                 }
-
-                //cek kolom nasabah lama
-                //                    <td class="px-4 py-3">
-                //                        <input type="checkbox" ${item.nasabah_lama ? 'checked' : ''} disabled class="size-4 rounded border-neutral-300 text-emerald-600 focus:ring-emerald-500 dark:border-neutral-600 dark:bg-neutral-700" aria-label="{{ __('Nasabah lama') }}" />
-                //                    </td>
 
                 function updateSortIndicators() {
                     sortButtons.forEach((button) => {
