@@ -1,7 +1,12 @@
-<x-layouts.app :title="__('Data Nasabah')">
+@php
+    $pageTitle = $pageTitle ?? __('Data Nasabah');
+    $searchEndpoint = $searchEndpoint ?? route('nasabah.data-nasabah');
+@endphp
+
+<x-layouts.app :title="$pageTitle">
     <div class="space-y-8" id="nasabah-page">
         <div class="flex flex-col gap-2">
-            <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white">{{ __('Data Nasabah') }}</h1>
+            <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white">{{ $pageTitle }}</h1>
             <p class="text-sm text-neutral-600 dark:text-neutral-300">
                 {{ __('Kelola dan telusuri informasi lengkap nasabah melalui tabel interaktif berikut.') }}
             </p>
@@ -196,7 +201,6 @@
 
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end sm:gap-4">
                     <nav id="nasabahPagination" class="flex flex-wrap items-center gap-2" aria-label="{{ __('Navigasi halaman nasabah') }}"></nav>
-                    <span id="nasabahPaginationSummary" class="text-sm font-medium text-neutral-500 dark:text-neutral-400">0-0 of 0</span>
                 </div>
             </div>
         </div>
@@ -204,6 +208,7 @@
 
     <script>
         const nasabahInitialDataset = @js($nasabahs);
+        const nasabahSearchEndpoint = @js($searchEndpoint);
         (() => {
             function initializeNasabahPage() {
                 const container = document.getElementById('nasabah-page');
@@ -229,6 +234,7 @@
                     id_lain: item?.id_lain ?? '',
                     nasabah_lama: Boolean(item?.nasabah_lama),
                     kode_member: item?.kode_member ?? '',
+                    created_at: item?.created_at ?? '',
                     edit_url: item?.edit_url ?? '',
                     delete_url: item?.delete_url ?? '',
                 });
@@ -241,6 +247,12 @@
 
                 dataset = dataset.map(toRecord);
                 window.__nasabahDataset = dataset;
+                const initialDataset = dataset.map((item) => ({ ...item }));
+
+                const searchState = {
+                    abortController: null,
+                    debounceId: null,
+                };
 
                 const tableBody = document.getElementById('nasabahTableBody');
                 const searchInput = document.getElementById('nasabahSearch');
@@ -248,7 +260,6 @@
                 const rowsPerPageSelect = document.getElementById('nasabahRowsPerPage');
                 const rowsPerPageValue = document.getElementById('nasabahRowsPerPageValue');
                 const paginationContainer = document.getElementById('nasabahPagination');
-                const paginationSummary = document.getElementById('nasabahPaginationSummary');
                 const csrfToken = document.head.querySelector('meta[name="csrf-token"]')?.content ?? '';
                 const paginationLabels = {
                     first: 'First',
@@ -260,8 +271,8 @@
                 const defaultPageSize = Number(rowsPerPageSelect?.value ?? 10) || 10;
 
                 const state = {
-                    sortKey: 'nama',
-                    sortDirection: 'asc',
+                    sortKey: 'created_at',
+                    sortDirection: 'desc',
                     searchTerm: '',
                     pageSize: defaultPageSize,
                     currentPage: 1,
@@ -315,13 +326,9 @@
                 }
 
                 function renderPaginationControls({ totalRecords, totalPages, startIndex, pageItemsCount }) {
-                    if (!paginationContainer || !paginationSummary) {
+                    if (!paginationContainer) {
                         return;
                     }
-
-                    const from = totalRecords ? startIndex + 1 : 0;
-                    const to = totalRecords ? startIndex + pageItemsCount : 0;
-                    paginationSummary.textContent = `${from}-${to} of ${totalRecords}`;
 
                     const baseButtonClass = 'inline-flex items-center justify-center rounded-lg border border-neutral-300 px-3 py-1.5 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-700/60 dark:focus:ring-emerald-900/40';
                     const disabledClass = 'cursor-not-allowed opacity-50';
@@ -391,6 +398,12 @@
                             return sortDirection === 'asc'
                                 ? Number(a.nasabah_lama) - Number(b.nasabah_lama)
                                 : Number(b.nasabah_lama) - Number(a.nasabah_lama);
+                        }
+
+                        if (sortKey === 'created_at') {
+                            const aTime = new Date(a?.created_at ?? '').getTime() || 0;
+                            const bTime = new Date(b?.created_at ?? '').getTime() || 0;
+                            return state.sortDirection === 'asc' ? aTime - bTime : bTime - aTime;
                         }
 
                         if (sortKey === 'tanggal_lahir') {
@@ -505,10 +518,84 @@
                     });
                 }
 
-                searchInput?.addEventListener('input', (event) => {
-                    state.searchTerm = event.target.value;
-                    state.currentPage = 1;
+                function resetDataset() {
+                    dataset = initialDataset.map((item) => ({ ...item }));
+                    window.__nasabahDataset = dataset;
                     renderTable();
+                }
+
+                async function performSearch(term) {
+                    if (searchState.abortController) {
+                        searchState.abortController.abort();
+                    }
+
+                    const controller = new AbortController();
+                    searchState.abortController = controller;
+
+                    try {
+                        const params = new URLSearchParams({ search: term });
+                        const response = await fetch(`${nasabahSearchEndpoint}?${params.toString()}`, {
+                            headers: {
+                                Accept: 'application/json',
+                            },
+                            signal: controller.signal,
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`Request failed with status ${response.status}`);
+                        }
+
+                        const payload = await response.json();
+
+                        const activeTerm = (searchInput?.value ?? '').trim();
+                        if (activeTerm !== term) {
+                            return;
+                        }
+
+                        const records = Array.isArray(payload?.data) ? payload.data.map(toRecord) : [];
+                        dataset = records;
+                        window.__nasabahDataset = dataset;
+                        renderTable();
+                    } catch (error) {
+                        if (error.name === 'AbortError') {
+                            return;
+                        }
+
+                        console.error('Failed to fetch nasabah data', error);
+                    } finally {
+                        if (searchState.abortController === controller) {
+                            searchState.abortController = null;
+                        }
+                    }
+                }
+
+                function handleSearchInput(value) {
+                    const trimmed = String(value ?? '').trim();
+                    state.searchTerm = trimmed;
+                    state.currentPage = 1;
+
+                    if (searchState.debounceId) {
+                        window.clearTimeout(searchState.debounceId);
+                    }
+
+                    if (!trimmed) {
+                        if (searchState.abortController) {
+                            searchState.abortController.abort();
+                            searchState.abortController = null;
+                        }
+                        resetDataset();
+                        return;
+                    }
+
+                    searchState.debounceId = window.setTimeout(() => {
+                        performSearch(trimmed);
+                    }, 300);
+
+                    renderTable();
+                }
+
+                searchInput?.addEventListener('input', (event) => {
+                    handleSearchInput(event.target.value);
                 });
 
                 sortButtons.forEach((button) => {
