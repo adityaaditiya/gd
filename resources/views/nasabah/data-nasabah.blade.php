@@ -263,6 +263,9 @@
                 const rowsPerPageSelect = document.getElementById('nasabahRowsPerPage');
                 const rowsPerPageValue = document.getElementById('nasabahRowsPerPageValue');
                 const paginationContainer = document.getElementById('nasabahPagination');
+                const dateFromInput = document.getElementById('nasabahDateFrom');
+                const dateToInput = document.getElementById('nasabahDateTo');
+                const resetDateButton = document.getElementById('nasabahResetDateFilter');
                 const csrfToken = document.head.querySelector('meta[name="csrf-token"]')?.content ?? '';
                 const paginationLabels = {
                     first: 'First',
@@ -273,6 +276,11 @@
 
                 const defaultPageSize = Number(rowsPerPageSelect?.value ?? 10) || 10;
 
+                function sanitizeDateValue(value) {
+                    const candidate = String(value ?? '').trim();
+                    return /^\d{4}-\d{2}-\d{2}$/.test(candidate) ? candidate : '';
+                }
+
                 const state = {
                     sortKey: 'created_at',
                     sortDirection: 'desc',
@@ -280,6 +288,8 @@
                     pageSize: defaultPageSize,
                     currentPage: 1,
                     totalPages: 1,
+                    dateFrom: sanitizeDateValue(dateFromInput?.value ?? ''),
+                    dateTo: sanitizeDateValue(dateToInput?.value ?? ''),
                 };
 
                 if (!tableBody) {
@@ -605,6 +615,7 @@
                     } else {
                         executeFetch();
                     }
+                }
 
                     if (hasFilters) {
                         renderTable();
@@ -620,8 +631,52 @@
                     triggerDatasetFetch({ debounce: true });
                 }
 
+                normalizeDateRangeOrder();
+
                 searchInput?.addEventListener('input', (event) => {
                     handleSearchInput(event.target.value);
+                });
+
+                dateFromInput?.addEventListener('change', () => {
+                    const sanitized = sanitizeDateValue(dateFromInput.value);
+                    if (dateFromInput.value !== sanitized) {
+                        dateFromInput.value = sanitized;
+                    }
+                    state.dateFrom = sanitized;
+                    normalizeDateRangeOrder();
+                    state.currentPage = 1;
+                    triggerDatasetFetch({ debounce: false });
+                });
+
+                dateToInput?.addEventListener('change', () => {
+                    const sanitized = sanitizeDateValue(dateToInput.value);
+                    if (dateToInput.value !== sanitized) {
+                        dateToInput.value = sanitized;
+                    }
+                    state.dateTo = sanitized;
+                    normalizeDateRangeOrder();
+                    state.currentPage = 1;
+                    triggerDatasetFetch({ debounce: false });
+                });
+
+                resetDateButton?.addEventListener('click', () => {
+                    if (!state.dateFrom && !state.dateTo) {
+                        return;
+                    }
+
+                    state.dateFrom = '';
+                    state.dateTo = '';
+
+                    if (dateFromInput && dateFromInput.value !== '') {
+                        dateFromInput.value = '';
+                    }
+
+                    if (dateToInput && dateToInput.value !== '') {
+                        dateToInput.value = '';
+                    }
+
+                    state.currentPage = 1;
+                    triggerDatasetFetch({ debounce: false });
                 });
 
                 sortButtons.forEach((button) => {
