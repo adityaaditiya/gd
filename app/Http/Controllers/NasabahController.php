@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Nasabah;
+use Carbon\Exceptions\InvalidFormatException;
 use Closure;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Route;
 use Illuminate\View\View;
 
@@ -42,6 +44,7 @@ class NasabahController extends Controller
             [
                 'pageTitle' => __('Nasabah Baru'),
                 'searchEndpoint' => route('nasabah.nasabah-baru'),
+                'showCreateButton' => false,
             ]
         );
     }
@@ -165,6 +168,16 @@ class NasabahController extends Controller
             $scope($query);
         }
 
+        [$dateFrom, $dateTo] = $this->extractDateRange($request);
+
+        if ($dateFrom) {
+            $query->whereDate('created_at', '>=', $dateFrom);
+        }
+
+        if ($dateTo) {
+            $query->whereDate('created_at', '<=', $dateTo);
+        }
+
         if ($request->expectsJson()) {
             $searchTerm = trim((string) $request->query('search', ''));
 
@@ -192,6 +205,9 @@ class NasabahController extends Controller
 
         return view('nasabah.data-nasabah', array_merge([
             'nasabahs' => $nasabahs,
+            'showCreateButton' => $viewData['showCreateButton'] ?? true,
+            'activeDateFrom' => $dateFrom,
+            'activeDateTo' => $dateTo,
         ], $viewData));
     }
 
@@ -260,5 +276,41 @@ class NasabahController extends Controller
             'edit_url' => route('nasabah.edit', $nasabah),
             'delete_url' => route('nasabah.destroy', $nasabah),
         ];
+    }
+
+    /**
+     * Resolve sanitized date range filter values from the request.
+     *
+     * @return array{0: string|null, 1: string|null}
+     */
+    private function extractDateRange(Request $request): array
+    {
+        $dateFrom = $this->normalizeDate((string) $request->query('date_from', ''));
+        $dateTo = $this->normalizeDate((string) $request->query('date_to', ''));
+
+        if ($dateFrom && $dateTo && $dateFrom > $dateTo) {
+            [$dateFrom, $dateTo] = [$dateTo, $dateFrom];
+        }
+
+        return [$dateFrom, $dateTo];
+    }
+
+    private function normalizeDate(?string $value): ?string
+    {
+        if (!is_string($value)) {
+            return null;
+        }
+
+        $value = trim($value);
+
+        if ($value === '') {
+            return null;
+        }
+
+        try {
+            return Carbon::createFromFormat('Y-m-d', $value)->format('Y-m-d');
+        } catch (InvalidFormatException) {
+            return null;
+        }
     }
 }
