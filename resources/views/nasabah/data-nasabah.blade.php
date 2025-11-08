@@ -242,18 +242,15 @@
                     delete_url: item?.delete_url ?? '',
                 });
 
-                const initialDataset = Array.isArray(nasabahInitialDataset)
-                    ? nasabahInitialDataset.map(toRecord)
-                    : [];
+                let dataset = Array.isArray(window.__nasabahDataset)
+                    ? window.__nasabahDataset
+                    : Array.isArray(nasabahInitialDataset)
+                        ? [...nasabahInitialDataset]
+                        : [];
 
-                let dataset = initialDataset.map((item) => ({ ...item }));
+                dataset = dataset.map(toRecord);
                 window.__nasabahDataset = dataset;
                 const initialDataset = dataset.map((item) => ({ ...item }));
-
-                const searchState = {
-                    abortController: null,
-                    debounceId: null,
-                };
 
                 const searchState = {
                     abortController: null,
