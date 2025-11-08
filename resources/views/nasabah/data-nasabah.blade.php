@@ -9,16 +9,16 @@
 
         @if (session('status'))
             <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-700 dark:border-emerald-500/60 dark:bg-emerald-500/10 dark:text-emerald-300">
-                <p class="font-semibold">{{ session('status') }}</p>
+                <p class="font-semibold text-black">{{ session('status') }}</p>
                 @if (session('kode_member'))
-                    <p class="mt-1 text-sm">{{ __('Kode member baru:') }}</p>
+                    <p class="mt-1 text-sm text-black">{{ __('Kode member otomatis:') }}</p>
                     <input
                         type="text"
                         readonly
                         value="{{ session('kode_member') }}"
                         class="mt-2 w-full rounded-lg border border-emerald-300 bg-white px-3 py-2 font-semibold tracking-wide text-emerald-700 shadow-sm dark:border-emerald-500/60 dark:bg-neutral-900 dark:text-emerald-300"
                     />
-                    <p class="mt-1 text-xs">{{ __('Simpan kode ini untuk keperluan verifikasi dan layanan selanjutnya.') }}</p>
+                    <p class="mt-1 text-x text-black" >{{ __('Salin kode ini untuk keperluan verifikasi dan layanan selanjutnya.') }}</p>
                 @endif
             </div>
         @endif
@@ -44,12 +44,12 @@
                     <a
                         href="{{ route('nasabah.tambah-nasabah') }}"
                         wire:navigate
-                        class="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-600 bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-500 dark:bg-emerald-500 dark:hover:border-emerald-400 dark:hover:bg-emerald-400"
+                        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-emerald-600 bg-emerald-600 px-4 py-4 text-sm font-semibold text-blue-600 shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-500 dark:bg-emerald-500 dark:hover:border-emerald-400 dark:hover:bg-emerald-400"
                     >
                         <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                         </svg>
-                        <span>{{ __('+ Tambah Nasabah') }}</span>
+                        <span>{{ __('Tambah Nasabah') }}</span>
                     </a>
                 </div>
             </div>
