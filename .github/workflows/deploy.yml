@@ -1,0 +1,47 @@
+name: Auto Deploy Laravel
+
+on:
+  push:
+    branches:
+      - main # Ganti dengan branch utama Anda (misalnya: master)
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Production Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 192.168.88.103 # Ganti dengan IP server Anda
+          username: krs # Ganti dengan user SSH yang login ke server (misal: krs)
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # Pindah ke direktori proyek Laravel
+            cd /var/www/geka/gd
+            
+            echo "Starting deployment..."
+            
+            # 1. Pull Kode Terbaru
+            git pull origin main
+            
+            # 2. Instalasi Dependensi PHP
+            composer install --no-dev --prefer-dist
+            
+            # 3. Instalasi dan Build Frontend (Vite/NPM)
+            npm install
+            npm run build
+            
+            # 4. Migrasi Database
+            php artisan migrate --force # --force untuk menjalankan di production
+            
+            # 5. Link Storage (Jika belum ada)
+            php artisan storage:link
+            
+            # 6. Bersihkan Cache Laravel
+            php artisan cache:clear
+            php artisan config:cache
+            
+            echo "Deployment complete! Project is live."
