@@ -26,7 +26,6 @@
                     'nasabah.data-nasabah',
                     'nasabah.tambah-nasabah',
                     'nasabah.cdd-nasabah',
-                    'nasabah.nasabah-baru',
                     'nasabah.lihat-transaksi-nasabah',
                 ];
                 $isNasabahActive = request()->routeIs(...$nasabahRoutes);
@@ -501,17 +500,6 @@
                             ])
                         >
                             {{ __('CDD Nasabah') }}
-                        </a>
-                        <a
-                            href="{{ route('nasabah.nasabah-baru') }}"
-                            wire:navigate
-                            @class([
-                                'block rounded-lg px-3 py-2 transition-colors duration-200',
-                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('nasabah.nasabah-baru'),
-                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('nasabah.nasabah-baru'),
-                            ])
-                        >
-                            {{ __('Nasabah Baru') }}
                         </a>
                         <a
                             href="{{ route('nasabah.lihat-transaksi-nasabah') }}"
