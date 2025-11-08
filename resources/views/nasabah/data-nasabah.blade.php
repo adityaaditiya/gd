@@ -1,6 +1,9 @@
 @php
     $pageTitle = $pageTitle ?? __('Data Nasabah');
     $searchEndpoint = $searchEndpoint ?? route('nasabah.data-nasabah');
+    $showCreateButton = $showCreateButton ?? true;
+    $activeDateFrom = $activeDateFrom ?? '';
+    $activeDateTo = $activeDateTo ?? '';
 @endphp
 
 <x-layouts.app :title="$pageTitle">
@@ -30,22 +33,51 @@
 
         <div class="rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-800">
             <div class="flex flex-col gap-4 border-b border-neutral-200 p-4 dark:border-neutral-700 lg:flex-row lg:items-center lg:justify-between">
-                <label class="flex w-full items-center gap-3 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-600 shadow-sm focus-within:border-emerald-500 focus-within:text-neutral-900 focus-within:ring-2 focus-within:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-300 dark:focus-within:border-emerald-400 dark:focus-within:text-white dark:focus-within:ring-emerald-900/40 lg:max-w-sm"
-                    for="nasabahSearch">
-                    <svg class="size-5 text-neutral-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                    </svg>
-                    <div class="flex w-full flex-col">
-                        <span class="text-xs font-medium uppercase tracking-wide text-neutral-400">{{ __('Cari Data (NIK, Nama, Telepon, dll.)') }}</span>
-                        <input
-                            id="nasabahSearch"
-                            type="search"
-                            placeholder="{{ __('Ketik untuk mencari seluruh data kolom...') }}"
-                            class="w-full border-0 bg-transparent p-0 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-0 dark:text-white"
-                        />
+                <div class="flex w-full flex-col gap-3 lg:flex-row lg:items-end lg:gap-4">
+                    <label class="flex w-full items-center gap-3 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-600 shadow-sm focus-within:border-emerald-500 focus-within:text-neutral-900 focus-within:ring-2 focus-within:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-300 dark:focus-within:border-emerald-400 dark:focus-within:text-white dark:focus-within:ring-emerald-900/40 lg:max-w-sm" for="nasabahSearch">
+                        <svg class="size-5 text-neutral-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                        </svg>
+                        <div class="flex w-full flex-col">
+                            <span class="text-xs font-medium uppercase tracking-wide text-neutral-400">{{ __('Cari Data (NIK, Nama, Telepon, dll.)') }}</span>
+                            <input
+                                id="nasabahSearch"
+                                type="search"
+                                placeholder="{{ __('Ketik untuk mencari seluruh data kolom...') }}"
+                                class="w-full border-0 bg-transparent p-0 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-0 dark:text-white"
+                            />
+                        </div>
+                    </label>
+                    <div class="grid w-full gap-3 sm:grid-cols-2 lg:max-w-lg">
+                        <label class="flex flex-col gap-2 text-xs font-medium uppercase tracking-wide text-neutral-400">
+                            <span>{{ __('Dari Tanggal') }}</span>
+                            <input
+                                id="nasabahDateFrom"
+                                type="date"
+                                value="{{ $activeDateFrom }}"
+                                class="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-normal text-neutral-700 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-200 dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+                            />
+                        </label>
+                        <label class="flex flex-col gap-2 text-xs font-medium uppercase tracking-wide text-neutral-400">
+                            <span>{{ __('Sampai Tanggal') }}</span>
+                            <input
+                                id="nasabahDateTo"
+                                type="date"
+                                value="{{ $activeDateTo }}"
+                                class="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-normal text-neutral-700 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-200 dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+                            />
+                        </label>
                     </div>
-                </label>
-<a
+                    <button
+                        type="button"
+                        id="nasabahResetDateFilter"
+                        class="inline-flex items-center justify-center whitespace-nowrap rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-700 shadow-sm transition hover:bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-700/60 dark:focus-visible:outline-emerald-500"
+                    >
+                        {{ __('Reset Filter') }}
+                    </button>
+                </div>
+                @if ($showCreateButton)
+                    <a
                         href="{{ route('nasabah.tambah-nasabah') }}"
                         wire:navigate
                         class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-emerald-600 bg-emerald-600 px-4 py-4 text-sm font-semibold text-blue-600 shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-500 dark:bg-emerald-500 dark:hover:border-emerald-400 dark:hover:bg-emerald-400"
@@ -55,11 +87,11 @@
                         </svg>
                         <span>{{ __('Tambah Nasabah') }}</span>
                     </a>
-                </div>
+                @endif
             </div>
-            </div>
+        </div>
 
-            <div class="overflow-x-auto">
+        <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-neutral-200 text-left text-sm text-neutral-700 dark:divide-neutral-700 dark:text-neutral-200">
                     <thead class="bg-neutral-50 text-xs uppercase tracking-wide text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
                         <tr>
@@ -247,7 +279,7 @@
 
                 dataset = dataset.map(toRecord);
                 window.__nasabahDataset = dataset;
-                const initialDataset = dataset.map((item) => ({ ...item }));
+                let initialDataset = dataset.map((item) => ({ ...item }));
 
                 const searchState = {
                     abortController: null,
@@ -260,6 +292,9 @@
                 const rowsPerPageSelect = document.getElementById('nasabahRowsPerPage');
                 const rowsPerPageValue = document.getElementById('nasabahRowsPerPageValue');
                 const paginationContainer = document.getElementById('nasabahPagination');
+                const dateFromInput = document.getElementById('nasabahDateFrom');
+                const dateToInput = document.getElementById('nasabahDateTo');
+                const resetDateButton = document.getElementById('nasabahResetDateFilter');
                 const csrfToken = document.head.querySelector('meta[name="csrf-token"]')?.content ?? '';
                 const paginationLabels = {
                     first: 'First',
@@ -270,6 +305,11 @@
 
                 const defaultPageSize = Number(rowsPerPageSelect?.value ?? 10) || 10;
 
+                function sanitizeDateValue(value) {
+                    const candidate = String(value ?? '').trim();
+                    return /^\d{4}-\d{2}-\d{2}$/.test(candidate) ? candidate : '';
+                }
+
                 const state = {
                     sortKey: 'created_at',
                     sortDirection: 'desc',
@@ -277,6 +317,8 @@
                     pageSize: defaultPageSize,
                     currentPage: 1,
                     totalPages: 1,
+                    dateFrom: sanitizeDateValue(dateFromInput?.value ?? ''),
+                    dateTo: sanitizeDateValue(dateToInput?.value ?? ''),
                 };
 
                 if (!tableBody) {
@@ -524,7 +566,7 @@
                     renderTable();
                 }
 
-                async function performSearch(term) {
+                async function performFetch({ search, dateFrom, dateTo }) {
                     if (searchState.abortController) {
                         searchState.abortController.abort();
                     }
@@ -533,13 +575,33 @@
                     searchState.abortController = controller;
 
                     try {
-                        const params = new URLSearchParams({ search: term });
-                        const response = await fetch(`${nasabahSearchEndpoint}?${params.toString()}`, {
-                            headers: {
-                                Accept: 'application/json',
-                            },
-                            signal: controller.signal,
-                        });
+                        const params = new URLSearchParams();
+                        const trimmedSearch = String(search ?? '').trim();
+                        const normalizedDateFrom = sanitizeDateValue(dateFrom);
+                        const normalizedDateTo = sanitizeDateValue(dateTo);
+
+                        if (trimmedSearch !== '') {
+                            params.set('search', trimmedSearch);
+                        }
+
+                        if (normalizedDateFrom) {
+                            params.set('date_from', normalizedDateFrom);
+                        }
+
+                        if (normalizedDateTo) {
+                            params.set('date_to', normalizedDateTo);
+                        }
+
+                        const queryString = params.toString();
+                        const response = await fetch(
+                            queryString ? `${nasabahSearchEndpoint}?${queryString}` : nasabahSearchEndpoint,
+                            {
+                                headers: {
+                                    Accept: 'application/json',
+                                },
+                                signal: controller.signal,
+                            }
+                        );
 
                         if (!response.ok) {
                             throw new Error(`Request failed with status ${response.status}`);
@@ -547,12 +609,24 @@
 
                         const payload = await response.json();
 
-                        const activeTerm = (searchInput?.value ?? '').trim();
-                        if (activeTerm !== term) {
+                        const activeSearch = (searchInput?.value ?? '').trim();
+                        const activeDateFrom = sanitizeDateValue(dateFromInput?.value ?? '');
+                        const activeDateTo = sanitizeDateValue(dateToInput?.value ?? '');
+
+                        if (
+                            activeSearch !== trimmedSearch ||
+                            activeDateFrom !== normalizedDateFrom ||
+                            activeDateTo !== normalizedDateTo
+                        ) {
                             return;
                         }
 
                         const records = Array.isArray(payload?.data) ? payload.data.map(toRecord) : [];
+
+                        if (trimmedSearch === '' && !normalizedDateFrom && !normalizedDateTo) {
+                            initialDataset = records.map((item) => ({ ...item }));
+                        }
+
                         dataset = records;
                         window.__nasabahDataset = dataset;
                         renderTable();
@@ -569,33 +643,104 @@
                     }
                 }
 
+                function triggerDatasetFetch({ debounce = true } = {}) {
+                    if (searchState.debounceId) {
+                        window.clearTimeout(searchState.debounceId);
+                        searchState.debounceId = null;
+                    }
+
+                    const payload = {
+                        search: state.searchTerm,
+                        dateFrom: state.dateFrom,
+                        dateTo: state.dateTo,
+                    };
+
+                    const hasFilters = Boolean(payload.search) || Boolean(payload.dateFrom) || Boolean(payload.dateTo);
+
+                    const executeFetch = () => performFetch(payload);
+
+                    if (debounce) {
+                        searchState.debounceId = window.setTimeout(executeFetch, 300);
+                    } else {
+                        executeFetch();
+                    }
+
+                    if (hasFilters) {
+                        renderTable();
+                    } else {
+                        resetDataset();
+                    }
+                }
+
                 function handleSearchInput(value) {
                     const trimmed = String(value ?? '').trim();
                     state.searchTerm = trimmed;
                     state.currentPage = 1;
-
-                    if (searchState.debounceId) {
-                        window.clearTimeout(searchState.debounceId);
-                    }
-
-                    if (!trimmed) {
-                        if (searchState.abortController) {
-                            searchState.abortController.abort();
-                            searchState.abortController = null;
-                        }
-                        resetDataset();
-                        return;
-                    }
-
-                    searchState.debounceId = window.setTimeout(() => {
-                        performSearch(trimmed);
-                    }, 300);
-
-                    renderTable();
+                    triggerDatasetFetch({ debounce: true });
                 }
+
+                function normalizeDateRangeOrder() {
+                    if (state.dateFrom && state.dateTo && state.dateFrom > state.dateTo) {
+                        const temp = state.dateFrom;
+                        state.dateFrom = state.dateTo;
+                        state.dateTo = temp;
+
+                        if (dateFromInput && dateFromInput.value !== state.dateFrom) {
+                            dateFromInput.value = state.dateFrom;
+                        }
+
+                        if (dateToInput && dateToInput.value !== state.dateTo) {
+                            dateToInput.value = state.dateTo;
+                        }
+                    }
+                }
+
+                normalizeDateRangeOrder();
 
                 searchInput?.addEventListener('input', (event) => {
                     handleSearchInput(event.target.value);
+                });
+
+                dateFromInput?.addEventListener('change', () => {
+                    const sanitized = sanitizeDateValue(dateFromInput.value);
+                    if (dateFromInput.value !== sanitized) {
+                        dateFromInput.value = sanitized;
+                    }
+                    state.dateFrom = sanitized;
+                    normalizeDateRangeOrder();
+                    state.currentPage = 1;
+                    triggerDatasetFetch({ debounce: false });
+                });
+
+                dateToInput?.addEventListener('change', () => {
+                    const sanitized = sanitizeDateValue(dateToInput.value);
+                    if (dateToInput.value !== sanitized) {
+                        dateToInput.value = sanitized;
+                    }
+                    state.dateTo = sanitized;
+                    normalizeDateRangeOrder();
+                    state.currentPage = 1;
+                    triggerDatasetFetch({ debounce: false });
+                });
+
+                resetDateButton?.addEventListener('click', () => {
+                    if (!state.dateFrom && !state.dateTo) {
+                        return;
+                    }
+
+                    state.dateFrom = '';
+                    state.dateTo = '';
+
+                    if (dateFromInput && dateFromInput.value !== '') {
+                        dateFromInput.value = '';
+                    }
+
+                    if (dateToInput && dateToInput.value !== '') {
+                        dateToInput.value = '';
+                    }
+
+                    state.currentPage = 1;
+                    triggerDatasetFetch({ debounce: false });
                 });
 
                 sortButtons.forEach((button) => {
