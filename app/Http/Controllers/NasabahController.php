@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Nasabah;
-use Carbon\Exceptions\InvalidFormatException;
 use Closure;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -44,8 +43,6 @@ class NasabahController extends Controller
             [
                 'pageTitle' => __('Nasabah Baru'),
                 'searchEndpoint' => route('nasabah.nasabah-baru'),
-                'showCreateButton' => false,
-                'view' => 'nasabah.nasabah-baru',
             ]
         );
     }
@@ -79,7 +76,24 @@ class NasabahController extends Controller
 
         $nasabah = Nasabah::create($validated);
 
-        $payload = $this->transformNasabah($nasabah);
+        $payload = [
+            'id' => $nasabah->id,
+            'nik' => $nasabah->nik,
+            'nama' => $nasabah->nama,
+            'tempat_lahir' => $nasabah->tempat_lahir,
+            'tanggal_lahir' => optional($nasabah->tanggal_lahir)->format('Y-m-d'),
+            'telepon' => $nasabah->telepon,
+            'kota' => $nasabah->kota,
+            'kelurahan' => $nasabah->kelurahan,
+            'kecamatan' => $nasabah->kecamatan,
+            'alamat' => $nasabah->alamat,
+            'npwp' => $nasabah->npwp,
+            'id_lain' => $nasabah->id_lain,
+            'nasabah_lama' => $nasabah->nasabah_lama,
+            'kode_member' => $nasabah->kode_member,
+            'edit_url' => route('nasabah.edit', $nasabah),
+            'delete_url' => route('nasabah.destroy', $nasabah),
+        ];
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -169,16 +183,6 @@ class NasabahController extends Controller
             $scope($query);
         }
 
-        [$dateFrom, $dateTo] = $this->extractDateRange($request);
-
-        if ($dateFrom) {
-            $query->whereDate('created_at', '>=', $dateFrom);
-        }
-
-        if ($dateTo) {
-            $query->whereDate('created_at', '<=', $dateTo);
-        }
-
         if ($request->expectsJson()) {
             $searchTerm = trim((string) $request->query('search', ''));
 
@@ -204,15 +208,8 @@ class NasabahController extends Controller
             ->map(fn (Nasabah $nasabah) => $this->transformNasabah($nasabah))
             ->values();
 
-        $viewName = $viewData['view'] ?? 'nasabah.data-nasabah';
-
-        unset($viewData['view']);
-
-        return view($viewName, array_merge([
+        return view('nasabah.data-nasabah', array_merge([
             'nasabahs' => $nasabahs,
-            'showCreateButton' => $viewData['showCreateButton'] ?? true,
-            'activeDateFrom' => $dateFrom,
-            'activeDateTo' => $dateTo,
         ], $viewData));
     }
 
@@ -281,41 +278,5 @@ class NasabahController extends Controller
             'edit_url' => route('nasabah.edit', $nasabah),
             'delete_url' => route('nasabah.destroy', $nasabah),
         ];
-    }
-
-    /**
-     * Resolve sanitized date range filter values from the request.
-     *
-     * @return array{0: string|null, 1: string|null}
-     */
-    private function extractDateRange(Request $request): array
-    {
-        $dateFrom = $this->normalizeDate((string) $request->query('date_from', ''));
-        $dateTo = $this->normalizeDate((string) $request->query('date_to', ''));
-
-        if ($dateFrom && $dateTo && $dateFrom > $dateTo) {
-            [$dateFrom, $dateTo] = [$dateTo, $dateFrom];
-        }
-
-        return [$dateFrom, $dateTo];
-    }
-
-    private function normalizeDate(?string $value): ?string
-    {
-        if (!is_string($value)) {
-            return null;
-        }
-
-        $value = trim($value);
-
-        if ($value === '') {
-            return null;
-        }
-
-        try {
-            return Carbon::createFromFormat('Y-m-d', $value)->format('Y-m-d');
-        } catch (InvalidFormatException) {
-            return null;
-        }
     }
 }
