@@ -178,6 +178,27 @@
                     <tbody id="nasabahTableBody" class="divide-y divide-neutral-200 bg-white dark:divide-neutral-700 dark:bg-neutral-800"></tbody>
                 </table>
             </div>
+
+            <div class="flex flex-col gap-4 border-t border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex items-center gap-3">
+                    <label for="nasabahRowsPerPage" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">Rows per page</label>
+                    <span id="nasabahRowsPerPageValue" class="text-sm font-semibold text-neutral-900 dark:text-white">10</span>
+                    <select
+                        id="nasabahRowsPerPage"
+                        class="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-700 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-200 dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+                    >
+                        <option value="10" selected>10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end sm:gap-4">
+                    <nav id="nasabahPagination" class="flex flex-wrap items-center gap-2" aria-label="{{ __('Navigasi halaman nasabah') }}"></nav>
+                    <span id="nasabahPaginationSummary" class="text-sm font-medium text-neutral-500 dark:text-neutral-400">0-0 of 0</span>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -221,16 +242,31 @@
                 dataset = dataset.map(toRecord);
                 window.__nasabahDataset = dataset;
 
+                const tableBody = document.getElementById('nasabahTableBody');
+                const searchInput = document.getElementById('nasabahSearch');
+                const sortButtons = Array.from(document.querySelectorAll('[data-sort-key]'));
+                const rowsPerPageSelect = document.getElementById('nasabahRowsPerPage');
+                const rowsPerPageValue = document.getElementById('nasabahRowsPerPageValue');
+                const paginationContainer = document.getElementById('nasabahPagination');
+                const paginationSummary = document.getElementById('nasabahPaginationSummary');
+                const csrfToken = document.head.querySelector('meta[name="csrf-token"]')?.content ?? '';
+                const paginationLabels = {
+                    first: 'First',
+                    back: 'Back',
+                    next: 'Next',
+                    last: 'Last',
+                };
+
+                const defaultPageSize = Number(rowsPerPageSelect?.value ?? 10) || 10;
+
                 const state = {
                     sortKey: 'nama',
                     sortDirection: 'asc',
                     searchTerm: '',
+                    pageSize: defaultPageSize,
+                    currentPage: 1,
+                    totalPages: 1,
                 };
-
-                const tableBody = document.getElementById('nasabahTableBody');
-                const searchInput = document.getElementById('nasabahSearch');
-                const sortButtons = Array.from(document.querySelectorAll('[data-sort-key]'));
-                const csrfToken = document.head.querySelector('meta[name="csrf-token"]')?.content ?? '';
 
                 if (!tableBody) {
                     return;
@@ -266,6 +302,57 @@
                         .toLowerCase()
                         .replace(/\s+/g, ' ')
                         .trim();
+                }
+
+                function updateRowsPerPageDisplay() {
+                    if (rowsPerPageValue) {
+                        rowsPerPageValue.textContent = String(state.pageSize);
+                    }
+
+                    if (rowsPerPageSelect && Number(rowsPerPageSelect.value) !== Number(state.pageSize)) {
+                        rowsPerPageSelect.value = String(state.pageSize);
+                    }
+                }
+
+                function renderPaginationControls({ totalRecords, totalPages, startIndex, pageItemsCount }) {
+                    if (!paginationContainer || !paginationSummary) {
+                        return;
+                    }
+
+                    const from = totalRecords ? startIndex + 1 : 0;
+                    const to = totalRecords ? startIndex + pageItemsCount : 0;
+                    paginationSummary.textContent = `${from}-${to} of ${totalRecords}`;
+
+                    const baseButtonClass = 'inline-flex items-center justify-center rounded-lg border border-neutral-300 px-3 py-1.5 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-700/60 dark:focus:ring-emerald-900/40';
+                    const disabledClass = 'cursor-not-allowed opacity-50';
+                    const activeClass = 'border-neutral-900 bg-neutral-900 text-white hover:bg-neutral-900 focus:ring-neutral-200 dark:border-neutral-100 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-100';
+
+                    const isFirstPage = state.currentPage === 1;
+                    const isLastPage = state.currentPage === totalPages;
+
+                    const parts = [];
+
+                    parts.push(`<button type="button" class="${baseButtonClass} ${isFirstPage ? disabledClass : ''}" data-page-control="first" ${isFirstPage ? 'disabled' : ''}>&laquo;&laquo; ${paginationLabels.first}</button>`);
+                    parts.push(`<button type="button" class="${baseButtonClass} ${isFirstPage ? disabledClass : ''}" data-page-control="prev" ${isFirstPage ? 'disabled' : ''}>&laquo; ${paginationLabels.back}</button>`);
+
+                    const visiblePages = 5;
+                    let startPage = Math.max(1, state.currentPage - Math.floor(visiblePages / 2));
+                    let endPage = startPage + visiblePages - 1;
+
+                    if (endPage > totalPages) {
+                        endPage = totalPages;
+                        startPage = Math.max(1, endPage - visiblePages + 1);
+                    }
+
+                    for (let page = startPage; page <= endPage; page += 1) {
+                        const isActive = state.currentPage === page;
+                        parts.push(`<button type="button" class="${baseButtonClass} ${isActive ? activeClass : ''}" data-page-number="${page}" ${isActive ? 'aria-current="page"' : ''}>${page}</button>`);
+                    }
+
+                    parts.push(`<button type="button" class="${baseButtonClass} ${isLastPage ? disabledClass : ''}" data-page-control="next" ${isLastPage ? 'disabled' : ''}>${paginationLabels.next} &raquo;</button>`);
+                    parts.push(`<button type="button" class="${baseButtonClass} ${isLastPage ? disabledClass : ''}" data-page-control="last" ${isLastPage ? 'disabled' : ''}>${paginationLabels.last} &raquo;&raquo;</button>`);
+
+                    paginationContainer.innerHTML = parts.join('');
                 }
 
                 function renderTable() {
@@ -320,7 +407,25 @@
                         return 0;
                     });
 
-                    if (!filtered.length) {
+                    const totalRecords = filtered.length;
+                    const totalPages = totalRecords ? Math.ceil(totalRecords / state.pageSize) : 1;
+
+                    state.totalPages = totalPages;
+
+                    if (state.currentPage > totalPages) {
+                        state.currentPage = totalPages;
+                    }
+
+                    if (state.currentPage < 1) {
+                        state.currentPage = 1;
+                    }
+
+                    const startIndex = totalRecords ? (state.currentPage - 1) * state.pageSize : 0;
+                    const pageItems = totalRecords
+                        ? filtered.slice(startIndex, Math.min(startIndex + state.pageSize, totalRecords))
+                        : [];
+
+                    if (!pageItems.length) {
                         tableBody.innerHTML = `
                             <tr>
                                 <td colspan="10" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-300">
@@ -328,10 +433,19 @@
                                 </td>
                             </tr>
                         `;
+
+                        updateRowsPerPageDisplay();
+                        renderPaginationControls({
+                            totalRecords,
+                            totalPages,
+                            startIndex,
+                            pageItemsCount: pageItems.length,
+                        });
+
                         return;
                     }
 
-                    const rows = filtered
+                    const rows = pageItems
                         .map((item) => {
                             const editUrl = escapeAttribute(item.edit_url ?? '#');
                             const deleteUrl = escapeAttribute(item.delete_url ?? '#');
@@ -365,12 +479,14 @@
                         .join('');
 
                     tableBody.innerHTML = rows;
+                    updateRowsPerPageDisplay();
+                    renderPaginationControls({
+                        totalRecords,
+                        totalPages,
+                        startIndex,
+                        pageItemsCount: pageItems.length,
+                    });
                 }
-
-                //cek kolom nasabah lama
-                //                    <td class="px-4 py-3">
-                //                        <input type="checkbox" ${item.nasabah_lama ? 'checked' : ''} disabled class="size-4 rounded border-neutral-300 text-emerald-600 focus:ring-emerald-500 dark:border-neutral-600 dark:bg-neutral-700" aria-label="{{ __('Nasabah lama') }}" />
-                //                    </td>
 
                 function updateSortIndicators() {
                     sortButtons.forEach((button) => {
@@ -391,6 +507,7 @@
 
                 searchInput?.addEventListener('input', (event) => {
                     state.searchTerm = event.target.value;
+                    state.currentPage = 1;
                     renderTable();
                 });
 
@@ -407,10 +524,74 @@
                             state.sortKey = key;
                             state.sortDirection = 'asc';
                         }
+                        state.currentPage = 1;
                         updateSortIndicators();
                         renderTable();
                     });
                 });
+
+                rowsPerPageSelect?.addEventListener('change', (event) => {
+                    const nextSize = Number(event.target.value);
+                    if (!Number.isNaN(nextSize)) {
+                        state.pageSize = nextSize;
+                        state.currentPage = 1;
+                        renderTable();
+                    }
+                });
+
+                if (paginationContainer && paginationContainer.dataset.listenerAttached !== 'true') {
+                    paginationContainer.addEventListener('click', (event) => {
+                        const control = event.target.closest('[data-page-control], [data-page-number]');
+
+                        if (!control) {
+                            return;
+                        }
+
+                        event.preventDefault();
+
+                        if (control.dataset.pageNumber) {
+                            const targetPage = Number(control.dataset.pageNumber);
+                            if (!Number.isNaN(targetPage) && targetPage >= 1 && targetPage <= state.totalPages) {
+                                state.currentPage = targetPage;
+                                renderTable();
+                            }
+                            return;
+                        }
+
+                        const action = control.dataset.pageControl;
+
+                        switch (action) {
+                            case 'first':
+                                if (state.currentPage !== 1) {
+                                    state.currentPage = 1;
+                                    renderTable();
+                                }
+                                break;
+                            case 'prev':
+                                if (state.currentPage > 1) {
+                                    state.currentPage -= 1;
+                                    renderTable();
+                                }
+                                break;
+                            case 'next':
+                                if (state.currentPage < state.totalPages) {
+                                    state.currentPage += 1;
+                                    renderTable();
+                                }
+                                break;
+                            case 'last':
+                                if (state.currentPage !== state.totalPages) {
+                                    state.currentPage = state.totalPages || 1;
+                                    renderTable();
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+                    });
+
+                    paginationContainer.dataset.listenerAttached = 'true';
+                }
 
                 updateSortIndicators();
                 renderTable();
