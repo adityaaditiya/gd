@@ -18,8 +18,8 @@ return new class extends Migration
             $table->foreignId('pegawai_kasir_id')->constrained('users')->cascadeOnUpdate()->restrictOnDelete();
             $table->date('tanggal_gadai');
             $table->date('jatuh_tempo_awal');
-            $table->unsignedDecimal('uang_pinjaman', 15, 2);
-            $table->unsignedDecimal('biaya_admin', 15, 2)->default(0);
+            $table->decimal('uang_pinjaman', 15, 2)->unsigned();
+            $table->decimal('biaya_admin', 15, 2)->unsigned()->default(0);
             $table->enum('status_transaksi', ['Aktif', 'Lunas', 'Perpanjang', 'Lelang'])->default('Aktif');
             $table->timestamps();
         });

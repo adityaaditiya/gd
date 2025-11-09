@@ -8,7 +8,7 @@ use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
 
 class BarangJaminanController extends Controller
 {
@@ -28,23 +28,18 @@ class BarangJaminanController extends Controller
     public function create(): View
     {
         return view('gadai.barang-jaminan.create', [
-            'penaksirList' => $this->penaksirList(),
+            'transaksiList' => $this->getTransaksiOptions(),
+            'penaksirList' => $this->getPenaksirOptions(),
         ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
-        $validated = $this->validateForm($request);
+        $data = $this->validateData($request);
 
-        $transaksi = TransaksiGadai::where('no_sbg', $validated['no_sbg'])->first();
-
-        if (! $transaksi) {
-            return back()
-                ->withInput()
-                ->with('error', __('Nomor SBG tidak ditemukan pada daftar transaksi gadai.'));
-        }
-
-        BarangJaminan::create($this->mapAttributes($validated, $transaksi->getKey()));
+        $barangJaminan = new BarangJaminan($data);
+        $this->handlePhotoUploads($request, $barangJaminan);
+        $barangJaminan->save();
 
         return redirect()
             ->route('gadai.lihat-barang-gadai')
@@ -53,95 +48,171 @@ class BarangJaminanController extends Controller
 
     public function edit(BarangJaminan $barangJaminan): View
     {
-        $barangJaminan->load('transaksi');
-
         return view('gadai.barang-jaminan.edit', [
             'barangJaminan' => $barangJaminan,
-            'penaksirList' => $this->penaksirList(),
+            'transaksiList' => $this->getTransaksiOptions(),
+            'penaksirList' => $this->getPenaksirOptions(),
         ]);
     }
 
     public function update(Request $request, BarangJaminan $barangJaminan): RedirectResponse
     {
-        $validated = $this->validateForm($request);
+        $data = $this->validateData($request);
 
-        $transaksi = TransaksiGadai::where('no_sbg', $validated['no_sbg'])->first();
-
-        if (! $transaksi) {
-            return back()
-                ->withInput()
-                ->with('error', __('Nomor SBG tidak ditemukan pada daftar transaksi gadai.'));
-        }
-
-        $barangJaminan->update($this->mapAttributes($validated, $transaksi->getKey()));
+        $barangJaminan->fill($data);
+        $this->handlePhotoUploads($request, $barangJaminan, true);
+        $barangJaminan->save();
 
         return redirect()
             ->route('gadai.lihat-barang-gadai')
             ->with('status', __('Barang jaminan berhasil diperbarui.'));
     }
 
-    /**
-     * @return \Illuminate\Support\Collection<int, \App\Models\User>
-     */
-    protected function penaksirList()
+    public function destroy(BarangJaminan $barangJaminan): RedirectResponse
+    {
+        $this->deleteAllPhotos($barangJaminan);
+        $barangJaminan->delete();
+
+        return redirect()
+            ->route('gadai.lihat-barang-gadai')
+            ->with('status', __('Barang jaminan berhasil dihapus.'));
+    }
+
+    private function validateData(Request $request): array
+    {
+        $validated = $request->validate([
+            'transaksi_id' => ['required', 'exists:transaksi_gadai,transaksi_id'],
+            'pegawai_penaksir_id' => ['nullable', 'exists:users,id'],
+            'jenis_barang' => ['required', 'string', 'max:255'],
+            'merek' => ['required', 'string', 'max:255'],
+            'usia_barang_thn' => ['nullable', 'integer', 'min:0', 'max:120'],
+            'hps' => ['required', 'string'],
+            'nilai_taksiran' => ['required', 'string'],
+            'kondisi_fisik' => ['nullable', 'string'],
+            'foto_1' => ['nullable', 'image', 'max:2048'],
+            'foto_2' => ['nullable', 'image', 'max:2048'],
+            'foto_3' => ['nullable', 'image', 'max:2048'],
+            'foto_4' => ['nullable', 'image', 'max:2048'],
+            'foto_5' => ['nullable', 'image', 'max:2048'],
+            'foto_6' => ['nullable', 'image', 'max:2048'],
+        ]);
+
+        $validated['hps'] = $this->toDecimalString($validated['hps']);
+        $validated['nilai_taksiran'] = $this->toDecimalString($validated['nilai_taksiran']);
+
+        if (($validated['pegawai_penaksir_id'] ?? null) === '') {
+            $validated['pegawai_penaksir_id'] = null;
+        }
+
+        foreach (range(1, 6) as $index) {
+            unset($validated['foto_' . $index]);
+        }
+
+        return $validated;
+    }
+
+    private function handlePhotoUploads(Request $request, BarangJaminan $barangJaminan, bool $replaceExisting = false): void
+    {
+        foreach (range(1, 6) as $index) {
+            $key = 'foto_' . $index;
+
+            if ($request->hasFile($key)) {
+                if ($replaceExisting) {
+                    $this->deletePhoto($barangJaminan->{$key});
+                }
+
+                $storedPath = $request->file($key)->store('barang-jaminan', 'public');
+                $barangJaminan->{$key} = $storedPath;
+            }
+        }
+    }
+
+    private function deleteAllPhotos(BarangJaminan $barangJaminan): void
+    {
+        foreach (range(1, 6) as $index) {
+            $this->deletePhoto($barangJaminan->{'foto_' . $index});
+        }
+    }
+
+    private function deletePhoto(?string $path): void
+    {
+        if (!$path) {
+            return;
+        }
+
+        $diskPath = $this->normalizeStoragePath($path);
+
+        if ($diskPath !== null) {
+            Storage::disk('public')->delete($diskPath);
+        }
+    }
+
+    private function normalizeStoragePath(string $path): ?string
+    {
+        $path = trim($path);
+
+        if ($path === '') {
+            return null;
+        }
+
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            $parsed = parse_url($path, PHP_URL_PATH);
+            $path = $parsed ?: $path;
+        }
+
+        if (str_starts_with($path, '/')) {
+            $path = ltrim($path, '/');
+        }
+
+        if (str_starts_with($path, 'storage/')) {
+            $path = substr($path, strlen('storage/'));
+        }
+
+        return $path !== '' ? $path : null;
+    }
+
+    private function toDecimalString(string $value): string
+    {
+        $value = trim($value);
+
+        if ($value === '') {
+            return '0.00';
+        }
+
+        $value = preg_replace('/[^0-9,.-]/', '', $value) ?? '0';
+        $lastComma = strrpos($value, ',');
+        $lastDot = strrpos($value, '.');
+
+        if ($lastComma !== false && $lastDot !== false) {
+            if ($lastComma > $lastDot) {
+                $value = str_replace('.', '', $value);
+                $value = str_replace(',', '.', $value);
+            } else {
+                $value = str_replace(',', '', $value);
+            }
+        } elseif ($lastComma !== false) {
+            $value = str_replace('.', '', $value);
+            $value = str_replace(',', '.', $value);
+        } else {
+            $value = str_replace(',', '', $value);
+        }
+
+        return number_format((float) $value, 2, '.', '');
+    }
+
+    private function getTransaksiOptions()
+    {
+        return TransaksiGadai::with('nasabah')
+            ->orderByDesc('tanggal_gadai')
+            ->orderByDesc('created_at')
+            ->get();
+    }
+
+    private function getPenaksirOptions()
     {
         return User::query()
             ->where('role', User::ROLE_PENAKSIR)
             ->orderBy('name')
-            ->get(['id', 'name']);
-    }
-
-    /**
-     * @param  array<string, mixed>  $validated
-     * @return array<string, mixed>
-     */
-    protected function mapAttributes(array $validated, int $transaksiId): array
-    {
-        $hps = round((float) $validated['hps'], 2);
-        $nilaiTaksiran = round($hps * 0.94, 2);
-
-        return [
-            'transaksi_id' => $transaksiId,
-            'pegawai_penaksir_id' => $validated['pegawai_penaksir_id'] ?? null,
-            'jenis_barang' => $validated['jenis_barang'],
-            'merek' => $validated['merek'],
-            'usia_barang_thn' => $validated['usia_barang_thn'] ?? null,
-            'hps' => $hps,
-            'nilai_taksiran' => $nilaiTaksiran,
-            'kondisi_fisik' => $validated['kondisi_fisik'] ?? null,
-            'foto_1' => $validated['foto_1'] ?? null,
-            'foto_2' => $validated['foto_2'] ?? null,
-            'foto_3' => $validated['foto_3'] ?? null,
-            'foto_4' => $validated['foto_4'] ?? null,
-            'foto_5' => $validated['foto_5'] ?? null,
-            'foto_6' => $validated['foto_6'] ?? null,
-        ];
-    }
-
-    protected function validateForm(Request $request): array
-    {
-        return $request->validate([
-            'no_sbg' => [
-                'required',
-                'string',
-                'max:191',
-                Rule::exists('transaksi_gadai', 'no_sbg'),
-            ],
-            'jenis_barang' => ['required', 'string', 'max:191'],
-            'merek' => ['required', 'string', 'max:191'],
-            'usia_barang_thn' => ['nullable', 'integer', 'min:0', 'max:100'],
-            'hps' => ['required', 'numeric', 'min:0'],
-            'pegawai_penaksir_id' => [
-                'nullable',
-                Rule::exists('users', 'id')->where(fn ($query) => $query->where('role', User::ROLE_PENAKSIR)),
-            ],
-            'kondisi_fisik' => ['nullable', 'string'],
-            'foto_1' => ['nullable', 'string', 'max:255'],
-            'foto_2' => ['nullable', 'string', 'max:255'],
-            'foto_3' => ['nullable', 'string', 'max:255'],
-            'foto_4' => ['nullable', 'string', 'max:255'],
-            'foto_5' => ['nullable', 'string', 'max:255'],
-            'foto_6' => ['nullable', 'string', 'max:255'],
-        ]);
+            ->get();
     }
 }
