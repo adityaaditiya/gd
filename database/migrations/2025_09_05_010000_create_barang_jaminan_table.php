@@ -18,8 +18,8 @@ return new class extends Migration
             $table->string('jenis_barang');
             $table->string('merek');
             $table->unsignedTinyInteger('usia_barang_thn')->nullable();
-            $table->unsignedDecimal('hps', 15, 2);
-            $table->unsignedDecimal('nilai_taksiran', 15, 2);
+            $table->decimal('hps', 15, 2)->unsigned();;
+            $table->decimal('nilai_taksiran', 15, 2)->unsigned();;
             $table->text('kondisi_fisik')->nullable();
             $table->string('foto_1')->nullable();
             $table->string('foto_2')->nullable();

@@ -15,7 +15,7 @@
                         <th scope="col" class="px-4 py-3">{{ __('Nasabah') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Jenis Barang') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Merek') }}</th>
-                        <th scope="col" class="px-4 py-3">{{ __('Usia (Tahun)') }}</th>
+                        <th scope="col" class="px-4 py-3">{{ __('Tahun Pembuatan') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Nilai Taksiran') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Uang Pinjaman') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Status') }}</th>
