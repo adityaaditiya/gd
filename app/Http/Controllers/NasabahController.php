@@ -129,6 +129,7 @@ class NasabahController extends Controller
             'nasabah_lama' => $nasabah->nasabah_lama,
             'kode_member' => $nasabah->kode_member,
             'tanggal_pendaftaran' => optional($nasabah->created_at)->format('Y-m-d'),
+            'usia' => optional($nasabah->tanggal_lahir)->age,
         ];
 
         $sanitizeDate = static function (?string $value): ?Carbon {

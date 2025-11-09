@@ -69,7 +69,9 @@
                         <tr>
                             <th scope="col" class="px-4 py-3">{{ __('Kode Member') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('NIK') }}</th>
+                            <th scope="col" class="px-4 py-3">{{ __('Identitas Lain') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('Nama') }}</th>
+                            <th scope="col" class="px-4 py-3">{{ __('Usia') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('Telepon') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('Kota') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('Kecamatan') }}</th>
@@ -126,17 +128,32 @@
                 if (!container || container.dataset.initialized === 'true') return;
                 container.dataset.initialized = 'true';
 
-                const toRecord = (item) => ({
-                    id: item?.id ?? null,
-                    nik: item?.nik ?? '',
-                    nama: item?.nama ?? '',
-                    telepon: item?.telepon ?? '',
-                    kota: item?.kota ?? '',
-                    kecamatan: item?.kecamatan ?? '',
-                    alamat: item?.alamat ?? '',
-                    kode_member: item?.kode_member ?? '',
-                    tanggal_pendaftaran: item?.tanggal_pendaftaran ?? '',
-                });
+                const toRecord = (item) => {
+                    const tanggalLahir = item?.tanggal_lahir ?? '';
+                    const age = (() => {
+                        const numericAge = Number(item?.usia);
+                        if (Number.isFinite(numericAge) && numericAge >= 0) {
+                            return numericAge;
+                        }
+
+                        return calculateAge(tanggalLahir);
+                    })();
+
+                    return {
+                        id: item?.id ?? null,
+                        nik: item?.nik ?? '',
+                        identitas_lain: item?.identitas_lain ?? item?.id_lain ?? '',
+                        nama: item?.nama ?? '',
+                        telepon: item?.telepon ?? '',
+                        kota: item?.kota ?? '',
+                        kecamatan: item?.kecamatan ?? '',
+                        alamat: item?.alamat ?? '',
+                        kode_member: item?.kode_member ?? '',
+                        tanggal_pendaftaran: item?.tanggal_pendaftaran ?? '',
+                        tanggal_lahir: tanggalLahir,
+                        usia: age,
+                    };
+                };
 
                 let dataset = Array.isArray(window.__nasabahBaruDataset)
                     ? window.__nasabahBaruDataset
@@ -187,6 +204,41 @@
                     if (!value) return '';
                     const [year, month, day] = value.split('-');
                     return `${day}/${month}/${year}`;
+                };
+
+                function calculateAge(value) {
+                    const dateString = String(value ?? '').trim();
+                    if (!dateString) return null;
+
+                    const parts = dateString.split('-');
+                    if (parts.length !== 3) return null;
+
+                    const year = Number(parts[0]);
+                    const month = Number(parts[1]);
+                    const day = Number(parts[2]);
+
+                    if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
+                        return null;
+                    }
+
+                    const birthDate = new Date(Date.UTC(year, month - 1, day));
+                    if (Number.isNaN(birthDate.getTime())) return null;
+
+                    const today = new Date();
+                    let age = today.getUTCFullYear() - birthDate.getUTCFullYear();
+                    const monthDiff = today.getUTCMonth() - birthDate.getUTCMonth();
+                    const dayDiff = today.getUTCDate() - birthDate.getUTCDate();
+
+                    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+                        age -= 1;
+                    }
+
+                    return age >= 0 ? age : null;
+                }
+
+                const formatAge = (value) => {
+                    const numeric = Number(value);
+                    return Number.isFinite(numeric) && numeric >= 0 ? String(numeric) : '-';
                 };
 
                 const updateRowsPerPageDisplay = () => {
@@ -299,7 +351,9 @@
                         <tr>
                             <td class="whitespace-nowrap px-4 py-3 font-semibold text-neutral-900 dark:text-white">${escapeHtml(item.kode_member)}</td>
                             <td class="whitespace-nowrap px-4 py-3 text-neutral-700 dark:text-neutral-200">${escapeHtml(item.nik)}</td>
+                            <td class="whitespace-nowrap px-4 py-3 text-neutral-700 dark:text-neutral-200">${escapeHtml(item.identitas_lain || '-')}</td>
                             <td class="px-4 py-3 text-neutral-700 dark:text-neutral-200">${escapeHtml(item.nama)}</td>
+                            <td class="whitespace-nowrap px-4 py-3 text-neutral-700 dark:text-neutral-200">${escapeHtml(formatAge(item.usia))}</td>
                             <td class="whitespace-nowrap px-4 py-3 text-neutral-700 dark:text-neutral-200">${escapeHtml(item.telepon)}</td>
                             <td class="whitespace-nowrap px-4 py-3 text-neutral-700 dark:text-neutral-200">${escapeHtml(item.kota)}</td>
                             <td class="whitespace-nowrap px-4 py-3 text-neutral-700 dark:text-neutral-200">${escapeHtml(item.kecamatan)}</td>
