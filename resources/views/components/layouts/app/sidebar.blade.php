@@ -713,15 +713,15 @@
                             {{ __('Buku Besar') }}
                         </a>
                         <a
-                            href="{{ route('akuntansi.neraca-percobaan') }}"
+                            href="{{ route('akuntansi.neraca') }}"
                             wire:navigate
                             @class([
                                 'block rounded-lg px-3 py-2 transition-colors duration-200',
-                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('akuntansi.neraca-percobaan'),
-                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('akuntansi.neraca-percobaan'),
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('akuntansi.neraca'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('akuntansi.neraca'),
                             ])
                         >
-                            {{ __('Neraca Percobaan') }}
+                            {{ __('Neraca') }}
                         </a>
                         <a
                             href="{{ route('akuntansi.laba-rugi') }}"
@@ -733,17 +733,6 @@
                             ])
                         >
                             {{ __('Laba Rugi') }}
-                        </a>
-                        <a
-                            href="{{ route('akuntansi.neraca') }}"
-                            wire:navigate
-                            @class([
-                                'block rounded-lg px-3 py-2 transition-colors duration-200',
-                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('akuntansi.neraca'),
-                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('akuntansi.neraca'),
-                            ])
-                        >
-                            {{ __('Neraca') }}
                         </a>
                     </div>
                 </div>
