@@ -19,7 +19,7 @@ class EnsureUserIsAdmin
     {
         $user = Auth::user();
 
-        if (! $user || $user->role !== 'admin') {
+        if (! $user || ! $user->hasAdminAccess()) {
             return redirect()->route('user.welcome');
         }
 

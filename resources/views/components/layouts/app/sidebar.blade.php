@@ -544,7 +544,7 @@
                     </div>
                 </div>
 
-                @if (auth()->user()?->role === 'admin')
+                @if (auth()->user()?->hasAdminAccess())
                     <div>
                         <button
                             type="button"

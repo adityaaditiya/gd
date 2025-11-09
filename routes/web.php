@@ -113,7 +113,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('welcome-user', function () {
         $user = Auth::user();
 
-        if ($user?->role === 'admin') {
+        if ($user?->hasAdminAccess()) {
             return redirect()->route('admin.dashboard');
         }
 
