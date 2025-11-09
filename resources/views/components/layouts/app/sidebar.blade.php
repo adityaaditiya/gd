@@ -14,7 +14,6 @@
             @php
                 $gadaiRoutes = [
                     'gadai.pemberian-kredit',
-                    'transaksi-gadai.*',
                     'gadai.lihat-gadai',
                     'gadai.lihat-barang-gadai',
                     'gadai.lihat-data-lelang',
@@ -138,17 +137,6 @@
                             ])
                         >
                             {{ __('Pemberian Kredit') }}
-                        </a>
-                        <a
-                            href="{{ route('transaksi-gadai.index') }}"
-                            wire:navigate
-                            @class([
-                                'block rounded-lg px-3 py-2 transition-colors duration-200',
-                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('transaksi-gadai.*'),
-                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('transaksi-gadai.*'),
-                            ])
-                        >
-                            {{ __('Transaksi Gadai') }}
                         </a>
                         <a
                             href="{{ route('gadai.lihat-gadai') }}"
