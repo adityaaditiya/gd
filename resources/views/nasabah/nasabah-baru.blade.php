@@ -68,14 +68,14 @@
                     <thead class="bg-neutral-50 text-xs uppercase tracking-wide text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
                         <tr>
                             <th scope="col" class="px-4 py-3">{{ __('Kode Member') }}</th>
-                            <th scope="col" class="px-4 py-3">{{ __('NIK') }}</th>
-                            <th scope="col" class="px-4 py-3">{{ __('Identitas Lain') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('Nama') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('Usia') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('Telepon') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('Kota') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('Kecamatan') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('Alamat') }}</th>
+                            <th scope="col" class="px-4 py-3">{{ __('NIK') }}</th>
+                            <th scope="col" class="px-4 py-3">{{ __('Identitas Lain') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('Tanggal Pendaftaran') }}</th>
                         </tr>
                     </thead>
@@ -350,14 +350,15 @@
                     const rows = snapshot.pageItems.map((item) => `
                         <tr>
                             <td class="whitespace-nowrap px-4 py-3 font-semibold text-neutral-900 dark:text-white">${escapeHtml(item.kode_member)}</td>
-                            <td class="whitespace-nowrap px-4 py-3 text-neutral-700 dark:text-neutral-200">${escapeHtml(item.nik)}</td>
-                            <td class="whitespace-nowrap px-4 py-3 text-neutral-700 dark:text-neutral-200">${escapeHtml(item.identitas_lain || '-')}</td>
+                            
                             <td class="px-4 py-3 text-neutral-700 dark:text-neutral-200">${escapeHtml(item.nama)}</td>
-                            <td class="whitespace-nowrap px-4 py-3 text-neutral-700 dark:text-neutral-200">${escapeHtml(formatAge(item.usia))}</td>
+                            <td class="whitespace-nowrap px-4 py-3 text-neutral-700 dark:text-neutral-200">${escapeHtml(formatAge(item.usia))} Tahun</td>
                             <td class="whitespace-nowrap px-4 py-3 text-neutral-700 dark:text-neutral-200">${escapeHtml(item.telepon)}</td>
                             <td class="whitespace-nowrap px-4 py-3 text-neutral-700 dark:text-neutral-200">${escapeHtml(item.kota)}</td>
                             <td class="whitespace-nowrap px-4 py-3 text-neutral-700 dark:text-neutral-200">${escapeHtml(item.kecamatan)}</td>
                             <td class="whitespace-nowrap px-4 py-3 text-neutral-700 dark:text-neutral-200">${escapeHtml(item.alamat)}</td>
+                            <td class="whitespace-nowrap px-4 py-3 text-neutral-700 dark:text-neutral-200">${escapeHtml(item.nik)}</td>
+                            <td class="whitespace-nowrap px-4 py-3 text-neutral-700 dark:text-neutral-200">${escapeHtml(item.identitas_lain || '-')}</td>
                             <td class="whitespace-nowrap px-4 py-3 text-neutral-700 dark:text-neutral-200">${escapeHtml(formatDate(item.tanggal_pendaftaran))}</td>
                         </tr>
                     `);
