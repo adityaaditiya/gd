@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\UserAccessController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\BarangJaminanController;
 use App\Http\Controllers\NasabahController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -28,7 +29,27 @@ Route::middleware(['auth'])->group(function () {
         ->group(function () {
             Route::view('pemberian-kredit', 'gadai.pemberian-kredit')->name('pemberian-kredit');
             Route::view('lihat-gadai', 'gadai.lihat-gadai')->name('lihat-gadai');
+            Route::get('lihat-barang-gadai', [BarangJaminanController::class, 'index'])->name('lihat-barang-gadai');
             Route::view('lihat-data-lelang', 'gadai.lihat-data-lelang')->name('lihat-data-lelang');
+        });
+
+    Route::prefix('laporan')
+        ->as('laporan.')
+        ->group(function () {
+            Route::view('saldo-kas', 'laporan.saldo-kas')->name('saldo-kas');
+            Route::view('transaksi-gadai', 'laporan.transaksi-gadai')->name('transaksi-gadai');
+            Route::view('pelunasan-gadai', 'laporan.pelunasan-gadai')->name('pelunasan-gadai');
+            Route::view('lelang', 'laporan.lelang')->name('lelang');
+        });
+
+    Route::prefix('akuntansi')
+        ->as('akuntansi.')
+        ->group(function () {
+            Route::view('jurnal', 'akuntansi.jurnal')->name('jurnal');
+            Route::view('buku-besar', 'akuntansi.buku-besar')->name('buku-besar');
+            Route::view('neraca-percobaan', 'akuntansi.neraca-percobaan')->name('neraca-percobaan');
+            Route::view('laba-rugi', 'akuntansi.laba-rugi')->name('laba-rugi');
+            Route::view('neraca', 'akuntansi.neraca')->name('neraca');
         });
 
     Route::prefix('cicil-emas')
@@ -112,7 +133,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('welcome-user', function () {
         $user = Auth::user();
 
-        if ($user?->role === 'admin') {
+        if ($user?->hasAdminAccess()) {
             return redirect()->route('admin.dashboard');
         }
 

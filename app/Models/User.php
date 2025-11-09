@@ -12,6 +12,30 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
+    public const ROLE_ADMIN = 'admin';
+    public const ROLE_OWNER = 'owner';
+    public const ROLE_STAFF = 'staff';
+    public const ROLE_KASIR = 'kasir';
+    public const ROLE_PENAKSIR = 'penaksir';
+    public const ROLE_USER = 'user';
+
+    public const ROLES = [
+        self::ROLE_ADMIN,
+        self::ROLE_OWNER,
+        self::ROLE_STAFF,
+        self::ROLE_KASIR,
+        self::ROLE_PENAKSIR,
+        self::ROLE_USER,
+    ];
+
+    public const ADMINISTRATIVE_ROLES = [
+        self::ROLE_ADMIN,
+        self::ROLE_OWNER,
+        self::ROLE_STAFF,
+        self::ROLE_KASIR,
+        self::ROLE_PENAKSIR,
+    ];
+
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, TwoFactorAuthenticatable;
 
@@ -71,5 +95,10 @@ class User extends Authenticatable
     public function menuPermissions(): HasMany
     {
         return $this->hasMany(UserMenuPermission::class);
+    }
+
+    public function hasAdminAccess(): bool
+    {
+        return in_array($this->role, self::ADMINISTRATIVE_ROLES, true);
     }
 }

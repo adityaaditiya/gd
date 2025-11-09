@@ -13,6 +13,17 @@
             </div>
         @endif
 
+        @php
+            $roleOptions = [
+                \App\Models\User::ROLE_ADMIN => __('Admin'),
+                \App\Models\User::ROLE_OWNER => __('Owner'),
+                \App\Models\User::ROLE_STAFF => __('Staff'),
+                \App\Models\User::ROLE_KASIR => __('Kasir'),
+                \App\Models\User::ROLE_PENAKSIR => __('Penaksir'),
+                \App\Models\User::ROLE_USER => __('User'),
+            ];
+        @endphp
+
         <div class="grid gap-6 lg:grid-cols-[minmax(0,360px)_1fr]">
             <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
                 <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Tambah User Baru') }}</h2>
@@ -75,8 +86,11 @@
                             required
                         >
                             <option value="" disabled {{ old('role') ? '' : 'selected' }}>{{ __('Pilih role') }}</option>
-                            <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>{{ __('Admin') }}</option>
-                            <option value="user" {{ old('role') === 'user' ? 'selected' : '' }}>{{ __('User') }}</option>
+                            @foreach ($roleOptions as $roleValue => $roleLabel)
+                                <option value="{{ $roleValue }}" {{ old('role') === $roleValue ? 'selected' : '' }}>
+                                    {{ $roleLabel }}
+                                </option>
+                            @endforeach
                         </select>
                         @error('role', 'storeUser')
                             <p class="text-sm text-rose-600">{{ $message }}</p>
@@ -151,8 +165,11 @@
                                     class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
                                     required
                                 >
-                                    <option value="admin" {{ $selectedRole === 'admin' ? 'selected' : '' }}>{{ __('Admin') }}</option>
-                                    <option value="user" {{ $selectedRole === 'user' ? 'selected' : '' }}>{{ __('User') }}</option>
+                                    @foreach ($roleOptions as $roleValue => $roleLabel)
+                                        <option value="{{ $roleValue }}" {{ $selectedRole === $roleValue ? 'selected' : '' }}>
+                                            {{ $roleLabel }}
+                                        </option>
+                                    @endforeach
                                 </select>
                                 @error('role', 'updateUser_'.$user->id)
                                     <p class="text-sm text-rose-600">{{ $message }}</p>

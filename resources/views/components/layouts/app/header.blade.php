@@ -15,7 +15,7 @@
                 <flux:navbar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                     {{ __('Dashboard') }}
                 </flux:navbar.item>
-                @if (auth()->user()?->role === 'admin')
+                @if (auth()->user()?->hasAdminAccess())
                     <flux:dropdown>
                         <flux:navbar.item
                             as="button"
@@ -120,7 +120,7 @@
                     {{ __('Dashboard') }}
                     </flux:navlist.item>
                 </flux:navlist.group>
-                @if (auth()->user()?->role === 'admin')
+                @if (auth()->user()?->hasAdminAccess())
                     <flux:navlist.group :heading="__('Master')">
                         <flux:navlist.item
                             icon="users"
