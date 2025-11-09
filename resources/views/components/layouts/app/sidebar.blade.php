@@ -12,7 +12,12 @@
             </a>
 
             @php
-                $gadaiRoutes = ['gadai.pemberian-kredit', 'gadai.lihat-gadai', 'gadai.lihat-data-lelang'];
+                $gadaiRoutes = [
+                    'gadai.pemberian-kredit',
+                    'gadai.lihat-gadai',
+                    'gadai.lihat-barang-gadai',
+                    'gadai.lihat-data-lelang',
+                ];
                 $isGadaiActive = request()->routeIs(...$gadaiRoutes);
                 $cicilEmasRoutes = ['cicil-emas.transaksi-emas', 'cicil-emas.daftar-cicilan'];
                 $isCicilEmasActive = request()->routeIs(...$cicilEmasRoutes);
@@ -128,6 +133,17 @@
                             ])
                         >
                             {{ __('Lihat Gadai') }}
+                        </a>
+                        <a
+                            href="{{ route('gadai.lihat-barang-gadai') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('gadai.lihat-barang-gadai'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('gadai.lihat-barang-gadai'),
+                            ])
+                        >
+                            {{ __('Lihat Barang Gadai') }}
                         </a>
                         <a
                             href="{{ route('gadai.lihat-data-lelang') }}"
@@ -528,7 +544,7 @@
                     </div>
                 </div>
 
-                @if (auth()->user()?->role === 'admin')
+                @if (auth()->user()?->hasAdminAccess())
                     <div>
                         <button
                             type="button"
