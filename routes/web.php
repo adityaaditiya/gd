@@ -30,11 +30,10 @@ Route::middleware(['auth'])->group(function () {
             Route::view('pemberian-kredit', 'gadai.pemberian-kredit')->name('pemberian-kredit');
             Route::view('lihat-gadai', 'gadai.lihat-gadai')->name('lihat-gadai');
             Route::get('lihat-barang-gadai', [BarangJaminanController::class, 'index'])->name('lihat-barang-gadai');
-            Route::get('barang-gadai/tambah', [BarangJaminanController::class, 'create'])->name('barang-jaminan.create');
-            Route::post('barang-gadai', [BarangJaminanController::class, 'store'])->name('barang-jaminan.store');
-            Route::get('barang-gadai/{barangJaminan}/edit', [BarangJaminanController::class, 'edit'])->name('barang-jaminan.edit');
-            Route::put('barang-gadai/{barangJaminan}', [BarangJaminanController::class, 'update'])->name('barang-jaminan.update');
-            Route::delete('barang-gadai/{barangJaminan}', [BarangJaminanController::class, 'destroy'])->name('barang-jaminan.destroy');
+            Route::get('barang-jaminan/create', [BarangJaminanController::class, 'create'])->name('barang-jaminan.create');
+            Route::post('barang-jaminan', [BarangJaminanController::class, 'store'])->name('barang-jaminan.store');
+            Route::get('barang-jaminan/{barangJaminan}/edit', [BarangJaminanController::class, 'edit'])->name('barang-jaminan.edit');
+            Route::put('barang-jaminan/{barangJaminan}', [BarangJaminanController::class, 'update'])->name('barang-jaminan.update');
             Route::view('lihat-data-lelang', 'gadai.lihat-data-lelang')->name('lihat-data-lelang');
         });
 
