@@ -28,6 +28,7 @@ Route::middleware(['auth'])->group(function () {
         ->group(function () {
             Route::view('pemberian-kredit', 'gadai.pemberian-kredit')->name('pemberian-kredit');
             Route::view('lihat-gadai', 'gadai.lihat-gadai')->name('lihat-gadai');
+            Route::view('lihat-barang-gadai', 'gadai.lihat-barang-gadai')->name('lihat-barang-gadai');
             Route::view('lihat-data-lelang', 'gadai.lihat-data-lelang')->name('lihat-data-lelang');
         });
 
