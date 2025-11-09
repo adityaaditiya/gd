@@ -193,7 +193,6 @@ class NasabahController extends Controller
         if ($request->expectsJson()) {
             $nasabahs = $query
                 ->latest('created_at')
-                ->limit(200)
                 ->get()
                 ->map($transform)
                 ->values();
