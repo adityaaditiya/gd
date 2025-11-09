@@ -1,6 +1,5 @@
 @php
     $barang = $barangJaminan ?? null;
-    $selectedTransaksi = old('transaksi_id', $barang?->transaksi_id);
     $selectedPenaksir = old('pegawai_penaksir_id', $barang?->pegawai_penaksir_id);
     $resolvePhotoUrl = static function (?string $path): ?string {
         if (!$path) {
@@ -16,26 +15,6 @@
 @endphp
 
 <div class="grid gap-6 lg:grid-cols-2">
-    <div class="flex flex-col gap-2">
-        <label for="transaksi_id" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Transaksi Gadai') }}</label>
-        <select
-            id="transaksi_id"
-            name="transaksi_id"
-            class="block w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
-            required
-        >
-            <option value="" disabled {{ $selectedTransaksi ? '' : 'selected' }}>{{ __('Pilih transaksi') }}</option>
-            @foreach ($transaksiList as $transaksi)
-                <option value="{{ $transaksi->transaksi_id }}" {{ (string) $selectedTransaksi === (string) $transaksi->transaksi_id ? 'selected' : '' }}>
-                    {{ $transaksi->no_sbg }} — {{ $transaksi->nasabah?->nama ?? __('Nasabah Tidak Diketahui') }}
-                </option>
-            @endforeach
-        </select>
-        @error('transaksi_id')
-            <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-        @enderror
-    </div>
-
     <div class="flex flex-col gap-2">
         <label for="pegawai_penaksir_id" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Petugas Penaksir') }}</label>
         <select

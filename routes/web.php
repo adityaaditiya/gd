@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\UserAccessController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\BarangJaminanController;
 use App\Http\Controllers\NasabahController;
+use App\Http\Controllers\TransaksiGadaiController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
@@ -27,7 +28,8 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('gadai')
         ->as('gadai.')
         ->group(function () {
-            Route::view('pemberian-kredit', 'gadai.pemberian-kredit')->name('pemberian-kredit');
+            Route::get('pemberian-kredit', [TransaksiGadaiController::class, 'create'])->name('pemberian-kredit');
+            Route::post('pemberian-kredit', [TransaksiGadaiController::class, 'store'])->name('transaksi-gadai.store');
             Route::view('lihat-gadai', 'gadai.lihat-gadai')->name('lihat-gadai');
             Route::get('lihat-barang-gadai', [BarangJaminanController::class, 'index'])->name('lihat-barang-gadai');
             Route::get('barang-gadai/tambah', [BarangJaminanController::class, 'create'])->name('barang-jaminan.create');

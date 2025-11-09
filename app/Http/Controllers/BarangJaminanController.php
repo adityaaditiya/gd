@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\BarangJaminan;
-use App\Models\TransaksiGadai;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -28,7 +27,6 @@ class BarangJaminanController extends Controller
     public function create(): View
     {
         return view('gadai.barang-jaminan.create', [
-            'transaksiList' => $this->getTransaksiOptions(),
             'penaksirList' => $this->getPenaksirOptions(),
         ]);
     }
@@ -50,7 +48,6 @@ class BarangJaminanController extends Controller
     {
         return view('gadai.barang-jaminan.edit', [
             'barangJaminan' => $barangJaminan,
-            'transaksiList' => $this->getTransaksiOptions(),
             'penaksirList' => $this->getPenaksirOptions(),
         ]);
     }
@@ -81,7 +78,6 @@ class BarangJaminanController extends Controller
     private function validateData(Request $request): array
     {
         $validated = $request->validate([
-            'transaksi_id' => ['required', 'exists:transaksi_gadai,transaksi_id'],
             'pegawai_penaksir_id' => ['nullable', 'exists:users,id'],
             'jenis_barang' => ['required', 'string', 'max:255'],
             'merek' => ['required', 'string', 'max:255'],
@@ -198,14 +194,6 @@ class BarangJaminanController extends Controller
         }
 
         return number_format((float) $value, 2, '.', '');
-    }
-
-    private function getTransaksiOptions()
-    {
-        return TransaksiGadai::with('nasabah')
-            ->orderByDesc('tanggal_gadai')
-            ->orderByDesc('created_at')
-            ->get();
     }
 
     private function getPenaksirOptions()

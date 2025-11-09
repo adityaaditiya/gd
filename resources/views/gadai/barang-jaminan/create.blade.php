@@ -18,7 +18,6 @@
 
                 @include('gadai.barang-jaminan.form-fields', [
                     'barangJaminan' => null,
-                    'transaksiList' => $transaksiList,
                     'penaksirList' => $penaksirList,
                 ])
 
