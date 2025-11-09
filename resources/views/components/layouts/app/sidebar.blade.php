@@ -19,6 +19,21 @@
                     'gadai.lihat-data-lelang',
                 ];
                 $isGadaiActive = request()->routeIs(...$gadaiRoutes);
+                $laporanRoutes = [
+                    'laporan.saldo-kas',
+                    'laporan.transaksi-gadai',
+                    'laporan.pelunasan-gadai',
+                    'laporan.lelang',
+                ];
+                $isLaporanActive = request()->routeIs(...$laporanRoutes);
+                $akuntansiRoutes = [
+                    'akuntansi.jurnal',
+                    'akuntansi.buku-besar',
+                    'akuntansi.neraca-percobaan',
+                    'akuntansi.laba-rugi',
+                    'akuntansi.neraca',
+                ];
+                $isAkuntansiActive = request()->routeIs(...$akuntansiRoutes);
                 $cicilEmasRoutes = ['cicil-emas.transaksi-emas', 'cicil-emas.daftar-cicilan'];
                 $isCicilEmasActive = request()->routeIs(...$cicilEmasRoutes);
                 $jualEmasRoutes = ['jual-emas.transaksi-penjualan', 'jual-emas.lihat-penjualan', 'jual-emas.batal-penjualan'];
@@ -155,6 +170,197 @@
                             ])
                         >
                             {{ __('Lihat Data Lelang') }}
+                        </a>
+                    </div>
+                </div>
+
+                <div>
+                    <button
+                        type="button"
+                        class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-neutral-700 transition-colors duration-200 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-700 dark:hover:text-white"
+                        data-accordion-toggle
+                        data-accordion-target="laporan-menu"
+                        aria-expanded="{{ $isLaporanActive ? 'true' : 'false' }}"
+                    >
+                        <span class="flex items-center gap-2">
+                            <svg
+                                class="size-5"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M3 4.5h18M3 9h18M9 13.5h12M9 18h12M3 13.5h3M3 18h3"
+                                />
+                            </svg>
+                            <span>{{ __('Laporan') }}</span>
+                        </span>
+                        <svg
+                            data-accordion-icon
+                            class="size-4 transform transition-transform duration-300 {{ $isLaporanActive ? 'rotate-90' : '' }}"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                        >
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                        </svg>
+                    </button>
+                    <div
+                        id="laporan-menu"
+                        class="ms-3 mt-1 space-y-1 overflow-hidden text-sm transition-all duration-300"
+                        style="max-height: {{ $isLaporanActive ? '500px' : '0px' }};"
+                    >
+                        <a
+                            href="{{ route('laporan.saldo-kas') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('laporan.saldo-kas'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('laporan.saldo-kas'),
+                            ])
+                        >
+                            {{ __('Laporan Saldo Kas') }}
+                        </a>
+                        <a
+                            href="{{ route('laporan.transaksi-gadai') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('laporan.transaksi-gadai'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('laporan.transaksi-gadai'),
+                            ])
+                        >
+                            {{ __('Laporan Transaksi Gadai') }}
+                        </a>
+                        <a
+                            href="{{ route('laporan.pelunasan-gadai') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('laporan.pelunasan-gadai'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('laporan.pelunasan-gadai'),
+                            ])
+                        >
+                            {{ __('Laporan Pelunasan Gadai') }}
+                        </a>
+                        <a
+                            href="{{ route('laporan.lelang') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('laporan.lelang'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('laporan.lelang'),
+                            ])
+                        >
+                            {{ __('Laporan Lelang') }}
+                        </a>
+                    </div>
+                </div>
+
+                <div>
+                    <button
+                        type="button"
+                        class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-neutral-700 transition-colors duration-200 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-700 dark:hover:text-white"
+                        data-accordion-toggle
+                        data-accordion-target="akuntansi-menu"
+                        aria-expanded="{{ $isAkuntansiActive ? 'true' : 'false' }}"
+                    >
+                        <span class="flex items-center gap-2">
+                            <svg
+                                class="size-5"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M12 3v18m-7.5-9h15M5.25 8.25h13.5m-13.5 7.5h13.5"
+                                />
+                            </svg>
+                            <span>{{ __('Akuntansi') }}</span>
+                        </span>
+                        <svg
+                            data-accordion-icon
+                            class="size-4 transform transition-transform duration-300 {{ $isAkuntansiActive ? 'rotate-90' : '' }}"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                        >
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                        </svg>
+                    </button>
+                    <div
+                        id="akuntansi-menu"
+                        class="ms-3 mt-1 space-y-1 overflow-hidden text-sm transition-all duration-300"
+                        style="max-height: {{ $isAkuntansiActive ? '500px' : '0px' }};"
+                    >
+                        <a
+                            href="{{ route('akuntansi.jurnal') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('akuntansi.jurnal'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('akuntansi.jurnal'),
+                            ])
+                        >
+                            {{ __('Jurnal') }}
+                        </a>
+                        <a
+                            href="{{ route('akuntansi.buku-besar') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('akuntansi.buku-besar'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('akuntansi.buku-besar'),
+                            ])
+                        >
+                            {{ __('Buku Besar') }}
+                        </a>
+                        <a
+                            href="{{ route('akuntansi.neraca-percobaan') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('akuntansi.neraca-percobaan'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('akuntansi.neraca-percobaan'),
+                            ])
+                        >
+                            {{ __('Neraca Percobaan') }}
+                        </a>
+                        <a
+                            href="{{ route('akuntansi.laba-rugi') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('akuntansi.laba-rugi'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('akuntansi.laba-rugi'),
+                            ])
+                        >
+                            {{ __('Laba Rugi') }}
+                        </a>
+                        <a
+                            href="{{ route('akuntansi.neraca') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('akuntansi.neraca'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('akuntansi.neraca'),
+                            ])
+                        >
+                            {{ __('Neraca') }}
                         </a>
                     </div>
                 </div>
