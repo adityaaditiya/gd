@@ -52,4 +52,9 @@ class Nasabah extends Model
 
         return $code;
     }
+
+    public function transaksiGadai()
+    {
+        return $this->hasMany(TransaksiGadai::class);
+    }
 }
