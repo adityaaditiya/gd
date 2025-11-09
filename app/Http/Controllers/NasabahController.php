@@ -86,7 +86,8 @@ class NasabahController extends Controller
                         }
                     });
                 })
-                ->latest()
+                ->latest('created_at')
+                ->limit(100)
                 ->get()
                 ->map($transform)
                 ->values();
@@ -97,7 +98,7 @@ class NasabahController extends Controller
         }
 
         $nasabahs = $query
-            ->latest()
+            ->latest('created_at')
             ->limit(100)
             ->get()
             ->map($transform)
