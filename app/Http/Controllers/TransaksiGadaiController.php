@@ -14,6 +14,19 @@ use Illuminate\Validation\Rule;
 
 class TransaksiGadaiController extends Controller
 {
+    public function index(): View
+    {
+        $transaksiGadai = TransaksiGadai::with([
+            'nasabah',
+            'kasir',
+            'barangJaminan',
+        ])->latest('tanggal_gadai')->paginate(15);
+
+        return view('gadai.lihat-gadai', [
+            'transaksiGadai' => $transaksiGadai,
+        ]);
+    }
+
     public function create(): View
     {
         $barangSiapGadai = BarangJaminan::query()
