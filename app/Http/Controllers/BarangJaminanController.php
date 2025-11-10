@@ -11,16 +11,45 @@ use Illuminate\Support\Facades\Storage;
 
 class BarangJaminanController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $barangJaminan = BarangJaminan::with([
+        $statusOptions = [
+            'Belum Aktif',
+            'Aktif',
+            'Lunas',
+            'Perpanjang',
+            'Lelang',
+        ];
+
+        $statusFilter = $request->query('status');
+
+        $barangJaminanQuery = BarangJaminan::with([
             'transaksi.nasabah',
             'transaksi.kasir',
             'penaksir',
-        ])->latest('created_at')->paginate(15);
+        ])->latest('created_at');
+
+        if ($statusFilter && in_array($statusFilter, $statusOptions, true)) {
+            if ($statusFilter === 'Belum Aktif') {
+                $barangJaminanQuery->where(function ($query) {
+                    $query->whereNull('transaksi_id')
+                        ->orWhereHas('transaksi', function ($subQuery) {
+                            $subQuery->whereNull('status_transaksi');
+                        });
+                });
+            } else {
+                $barangJaminanQuery->whereHas('transaksi', function ($query) use ($statusFilter) {
+                    $query->where('status_transaksi', $statusFilter);
+                });
+            }
+        }
+
+        $barangJaminan = $barangJaminanQuery->paginate(15)->withQueryString();
 
         return view('gadai.lihat-barang-gadai', [
             'barangJaminan' => $barangJaminan,
+            'statusOptions' => $statusOptions,
+            'statusFilter' => in_array($statusFilter, $statusOptions, true) ? $statusFilter : null,
         ]);
     }
 
