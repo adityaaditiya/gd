@@ -44,6 +44,7 @@
                         <th scope="col" class="px-4 py-3">{{ __('Petugas') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Tanggal Gadai') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Kondisi Fisik') }}</th>
+                        <th scope="col" class="px-4 py-3">{{ __('Kelengkapan') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Foto') }}</th>
                     </tr>
                 </thead>
@@ -91,7 +92,7 @@
                             <td class="whitespace-nowrap px-4 py-3">Rp {{ number_format((float) ($barang->transaksi?->total_bunga ?? 0), 0, ',', '.') }}</td>
                             <td class="px-4 py-3">
                                 <span class="inline-flex items-center rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-neutral-700 dark:bg-black-700/60 dark:text-black-100">
-                                    {{ __($barang->transaksi?->status_transaksi ?? 'Tidak Diketahui') }}
+                                    {{ __($barang->transaksi?->status_transaksi ?? 'Belum Aktif') }}
                                 </span>
                             </td>
                             <td class="px-4 py-3">
@@ -103,6 +104,9 @@
                             <td class="px-4 py-3">{{ optional($barang->transaksi?->tanggal_gadai)->format('d M Y') ?? '—' }}</td>
                             <td class="px-4 py-3 text-sm text-neutral-600 dark:text-neutral-300">
                                 <div class="max-w-xs whitespace-pre-line">{{ $barang->kondisi_fisik ?? '—' }}</div>
+                            </td>
+                            <td class="px-4 py-3 text-sm text-neutral-600 dark:text-neutral-300">
+                                <div class="max-w-xs whitespace-pre-line">{{ $barang->kelengkapan ?? '—' }}</div>
                             </td>
                             <td class="px-4 py-3">
                                 @php
@@ -142,7 +146,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="16" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-300">
+                            <td colspan="17" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-300">
                                 {{ __('Belum ada data barang jaminan yang tersimpan.') }}
                             </td>
                         </tr>

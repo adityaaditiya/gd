@@ -22,6 +22,7 @@ class BarangJaminan extends Model
         'hps',
         'nilai_taksiran',
         'kondisi_fisik',
+        'kelengkapan',
         'foto_1',
         'foto_2',
         'foto_3',
