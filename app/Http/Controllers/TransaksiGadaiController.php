@@ -53,6 +53,10 @@ class TransaksiGadaiController extends Controller
             'kasir',
             'barangJaminan',
         ])
+            ->where(function ($query) {
+                $query->whereNull('status_transaksi')
+                    ->orWhere('status_transaksi', '!=', 'Batal');
+            })
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($query) use ($search) {
                     $query->where('no_sbg', 'like', "%{$search}%")
