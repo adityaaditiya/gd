@@ -41,6 +41,7 @@
                                 type="date"
                                 value="{{ $tanggalDari }}"
                                 class="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-700 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-200 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
+                                onchange="this.form.requestSubmit()"
                             />
                         </label>
                         <label class="flex flex-col gap-2 text-sm text-neutral-600 dark:text-neutral-200">
@@ -51,6 +52,7 @@
                                 type="date"
                                 value="{{ $tanggalSampai }}"
                                 class="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-700 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-200 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
+                                onchange="this.form.requestSubmit()"
                             />
                         </label>
                         <div class="flex items-center gap-2">
