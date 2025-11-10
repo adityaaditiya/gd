@@ -13,57 +13,87 @@
             </div>
         @endif
 
-        <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
-                <div class="text-sm text-neutral-600 dark:text-neutral-300">
-                    {{ __('Total :count transaksi.', ['count' => number_format($transaksiGadai->total(), 0, ',', '.')]) }}
+        <div class="rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-800">
+            <div class="flex flex-col gap-4 border-b border-neutral-200 p-4 dark:border-neutral-700">
+                <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                    <div class="flex flex-col gap-1 text-sm text-neutral-600 dark:text-neutral-300">
+                        <span class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Transaksi') }}</span>
+                        <span class="text-base font-semibold text-neutral-900 dark:text-white">{{ number_format($transaksiGadai->total(), 0, ',', '.') }} {{ __('transaksi') }}</span>
+                    </div>
+                    <a
+                        href="{{ route('gadai.pemberian-kredit') }}"
+                        class="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-600 bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-400 dark:bg-emerald-500 dark:hover:border-emerald-300 dark:hover:bg-emerald-400"
+                    >
+                        <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                        <span>{{ __('Tambah Transaksi Gadai') }}</span>
+                    </a>
                 </div>
-                <form method="GET" action="{{ route('gadai.lihat-gadai') }}" class="relative">
-                    <label for="search-no-sbg" class="sr-only">{{ __('Cari No. SBG') }}</label>
-                    <div class="flex items-center gap-2">
-                    <div class="relative flex-1">
+                <form method="GET" action="{{ route('gadai.lihat-gadai') }}" class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                    <input type="hidden" name="per_page" value="{{ $perPage }}">
+                    <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:gap-4">
+                        <label class="flex flex-col gap-2 text-sm text-neutral-600 dark:text-neutral-200">
+                            <span class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Tanggal Dari') }}</span>
                             <input
-                                id="search-no-sbg"
+                                id="tanggal-dari"
+                                name="tanggal_dari"
+                                type="date"
+                                value="{{ $tanggalDari }}"
+                                class="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-700 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-200 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
+                                onchange="this.form.requestSubmit()"
+                            />
+                        </label>
+                        <label class="flex flex-col gap-2 text-sm text-neutral-600 dark:text-neutral-200">
+                            <span class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Tanggal Sampai') }}</span>
+                            <input
+                                id="tanggal-sampai"
+                                name="tanggal_sampai"
+                                type="date"
+                                value="{{ $tanggalSampai }}"
+                                class="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-700 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-200 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
+                                onchange="this.form.requestSubmit()"
+                            />
+                        </label>
+                        <div class="flex items-center gap-2">
+                            @if (!empty($search) || $tanggalDari || $tanggalSampai)
+                                <a
+                                    href="{{ route('gadai.lihat-gadai', ['per_page' => $perPage]) }}"
+                                    class="inline-flex items-center justify-center rounded-lg border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-700/60"
+                                >
+                                    {{ __('Reset') }}
+                                </a>
+                            @endif
+                            <button
+                                type="submit"
+                                class="inline-flex items-center justify-center rounded-lg border border-emerald-600 bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-400 dark:bg-emerald-500 dark:hover:border-emerald-300 dark:hover:bg-emerald-400"
+                            >
+                                {{ __('Terapkan') }}
+                            </button>
+                        </div>
+                    </div>
+                    <label class="flex w-full items-center gap-3 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-600 shadow-sm focus-within:border-emerald-500 focus-within:text-neutral-900 focus-within:ring-2 focus-within:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-300 dark:focus-within:border-emerald-400 dark:focus-within:text-white dark:focus-within:ring-emerald-500/40" for="search-transaksi">
+                        <svg class="size-5 text-neutral-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                        </svg>
+                        <div class="flex w-full flex-col">
+                            <input
+                                id="search-transaksi"
                                 name="search"
                                 type="search"
                                 value="{{ $search ?? '' }}"
-                                placeholder="{{ __('   Cari No. SBG…') }}"
-                                class="w-full rounded-lg border border-neutral-200 bg-white py-2 pl-9 pr-3 text-sm text-neutral-700 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
+                                placeholder="{{ __('Cari No. SBG, nama nasabah, kode member, atau telepon…') }}"
+                                class="w-full border-0 bg-transparent p-0 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-0 dark:text-white"
                             />
                         </div>
-                        @if (!empty($search))
-                            <a
-                                href="{{ route('gadai.lihat-gadai') }}"
-                                class="inline-flex items-center rounded-lg border border-neutral-200 px-3 py-2 text-xs font-semibold text-neutral-600 transition hover:bg-neutral-50 dark:border-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-700/60"
-                            >
-                                {{ __('Reset') }}
-                            </a>
-                        @endif
-                        <button
-                            type="submit"
-                            class="inline-flex items-center rounded-lg border border-emerald-600 bg-emerald-600 px-3 py-2 text-xs font-semibold text-red shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-400 dark:bg-emerald-500 dark:hover:border-emerald-300 dark:hover:bg-emerald-400"
-                        >
-                            {{ __('Cari') }}
-                        </button>
-                    </div>
+                    </label>
                 </form>
             </div>
-            <a
-                href="{{ route('gadai.pemberian-kredit') }}"
-                class="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-600 bg-emerald-600 px-4 py-2 text-sm font-semibold text-blue-600 shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-500 dark:bg-emerald-500 dark:hover:border-emerald-400 dark:hover:bg-emerald-400"
+            <div
+                class="overflow-x-auto"
+                data-transaksi-gadai-table
             >
-                <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-                <span>{{ __('Tambah Transaksi Gadai') }}</span>
-            </a>
-        </div>
-
-        <div
-            class="overflow-x-auto rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-800"
-            data-transaksi-gadai-table
-        >
-            <table class="min-w-full divide-y divide-neutral-200 text-left text-sm text-neutral-700 dark:divide-neutral-700 dark:text-neutral-200">
+                <table class="min-w-full divide-y divide-neutral-200 text-left text-sm text-neutral-700 dark:divide-neutral-700 dark:text-neutral-200">
                 <thead class="bg-neutral-50 text-xs uppercase tracking-wide text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
                     <tr>
                         <th scope="col" class="px-4 py-3">{{ __('No. SBG') }}</th>
@@ -103,6 +133,7 @@
                                             <li class="rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-700 dark:bg-neutral-900 dark:text-neutral-200">
                                                 <div class="font-semibold text-neutral-900 dark:text-white">{{ $barang->jenis_barang }} — {{ $barang->merek }}</div>
                                                 <div>Rp {{ number_format((float) $barang->nilai_taksiran, 0, ',', '.') }}</div>
+                                                <div class="text-[11px] text-neutral-500 dark:text-neutral-300">{{ __('Kelengkapan:') }} {{ $barang->kelengkapan ?? '—' }}</div>
                                             </li>
                                         @endforeach
                                     </ul>
@@ -184,10 +215,15 @@
                     @endforelse
                 </tbody>
             </table>
-        </div>
-
-        <div>
-            {{ $transaksiGadai->links() }}
+            </div>
+            <div class="border-t border-neutral-200 bg-neutral-50 px-4 py-3 dark:border-neutral-700 dark:bg-neutral-900">
+                <x-table.pagination-controls
+                    :paginator="$transaksiGadai"
+                    :per-page="$perPage"
+                    :per-page-options="$perPageOptions"
+                    :form-action="route('gadai.lihat-gadai')"
+                />
+            </div>
         </div>
     </div>
 
