@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BarangJaminan;
 use App\Models\Nasabah;
 use App\Models\TransaksiGadai;
+use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,6 +14,19 @@ use Illuminate\Validation\Rule;
 
 class TransaksiGadaiController extends Controller
 {
+    public function index(): View
+    {
+        $transaksiGadai = TransaksiGadai::with([
+            'nasabah',
+            'kasir',
+            'barangJaminan',
+        ])->latest('tanggal_gadai')->paginate(15);
+
+        return view('gadai.lihat-gadai', [
+            'transaksiGadai' => $transaksiGadai,
+        ]);
+    }
+
     public function create(): View
     {
         $barangSiapGadai = BarangJaminan::query()
@@ -22,7 +36,8 @@ class TransaksiGadaiController extends Controller
             ->get();
 
         $nasabahList = Nasabah::query()
-            ->orderBy('nama')
+            ->latest('created_at')
+            ->limit(100)
             ->get();
 
         return view('gadai.pemberian-kredit', [
@@ -35,11 +50,22 @@ class TransaksiGadaiController extends Controller
     {
         $data = $this->validateData($request);
 
-        $barang = BarangJaminan::query()
-            ->whereNull('transaksi_id')
-            ->findOrFail($data['barang_id']);
+        $barangIds = array_map('intval', $data['barang_ids']);
 
-        $nilaiTaksiran = (float) $barang->nilai_taksiran;
+        $barangCollection = BarangJaminan::query()
+            ->whereNull('transaksi_id')
+            ->whereIn('barang_id', $barangIds)
+            ->get();
+
+        if ($barangCollection->count() !== count($barangIds)) {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'barang_ids' => __('Salah satu barang yang dipilih tidak tersedia atau sudah terikat kontrak.'),
+                ]);
+        }
+
+        $nilaiTaksiran = (float) $barangCollection->sum('nilai_taksiran');
         $uangPinjaman = (float) $data['uang_pinjaman'];
         $maxPinjaman = round($nilaiTaksiran * 0.94, 2);
 
@@ -59,19 +85,31 @@ class TransaksiGadaiController extends Controller
             abort(403, 'Kasir tidak dikenali.');
         }
 
+        $tanggalGadai = Carbon::parse($data['tanggal_gadai']);
+        $jatuhTempo = Carbon::parse($data['jatuh_tempo_awal']);
+
+        $tenorHari = max(1, $tanggalGadai->diffInDays($jatuhTempo));
+        $tarifBungaHarian = 0.0015; // 0.15% per hari
+        $totalBunga = $this->formatDecimal($uangPinjaman * $tarifBungaHarian * $tenorHari);
+
         $transaksi = TransaksiGadai::create([
             'no_sbg' => $data['no_sbg'],
             'nasabah_id' => $data['nasabah_id'],
             'pegawai_kasir_id' => $kasirId,
             'tanggal_gadai' => $data['tanggal_gadai'],
             'jatuh_tempo_awal' => $data['jatuh_tempo_awal'],
+            'tenor_hari' => $tenorHari,
+            'tarif_bunga_harian' => $this->formatDecimal($tarifBungaHarian, 4),
+            'total_bunga' => $totalBunga,
             'uang_pinjaman' => $data['uang_pinjaman'],
             'biaya_admin' => $data['biaya_admin'],
             'status_transaksi' => 'Aktif',
         ]);
 
-        $barang->transaksi_id = $transaksi->transaksi_id;
-        $barang->save();
+        foreach ($barangCollection as $barang) {
+            $barang->transaksi_id = $transaksi->transaksi_id;
+            $barang->save();
+        }
 
         return redirect()
             ->route('gadai.lihat-gadai')
@@ -81,8 +119,10 @@ class TransaksiGadaiController extends Controller
     private function validateData(Request $request): array
     {
         $validated = $request->validate([
-            'barang_id' => [
+            'barang_ids' => ['required', 'array', 'min:1'],
+            'barang_ids.*' => [
                 'required',
+                'distinct',
                 Rule::exists('barang_jaminan', 'barang_id')->whereNull('transaksi_id'),
             ],
             'no_sbg' => ['required', 'string', 'max:50', 'unique:transaksi_gadai,no_sbg'],
@@ -93,6 +133,7 @@ class TransaksiGadaiController extends Controller
             'biaya_admin' => ['nullable', 'string'],
         ]);
 
+        $validated['barang_ids'] = array_values(array_map('strval', $validated['barang_ids']));
         $validated['uang_pinjaman'] = $this->toDecimalString($validated['uang_pinjaman']);
         $validated['biaya_admin'] = $this->toDecimalString($validated['biaya_admin'] ?? '0');
 
@@ -131,5 +172,10 @@ class TransaksiGadaiController extends Controller
     private function formatCurrency(float $value): string
     {
         return 'Rp ' . number_format($value, 2, ',', '.');
+    }
+
+    private function formatDecimal(float $value, int $precision = 2): string
+    {
+        return number_format($value, $precision, '.', '');
     }
 }
