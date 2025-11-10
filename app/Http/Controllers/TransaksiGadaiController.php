@@ -36,6 +36,17 @@ class TransaksiGadaiController extends Controller
         $tanggalDari = $filters['tanggal_dari'] ?? null;
         $tanggalSampai = $filters['tanggal_sampai'] ?? null;
 
+        $today = Carbon::today()->toDateString();
+        $shouldAutoSubmit = !$request->has('tanggal_dari') && !$request->has('tanggal_sampai');
+
+        if (!$tanggalDari) {
+            $tanggalDari = $today;
+        }
+
+        if (!$tanggalSampai) {
+            $tanggalSampai = $today;
+        }
+
         $transaksiGadai = TransaksiGadai::with([
             'nasabah',
             'kasir',
@@ -68,6 +79,7 @@ class TransaksiGadaiController extends Controller
             'tanggalSampai' => $tanggalSampai,
             'perPage' => $perPage,
             'perPageOptions' => $perPageOptions,
+            'shouldAutoSubmitFilters' => $shouldAutoSubmit,
         ]);
     }
 

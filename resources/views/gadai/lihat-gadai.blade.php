@@ -30,7 +30,13 @@
                         <span>{{ __('Tambah Transaksi Gadai') }}</span>
                     </a>
                 </div>
-                <form method="GET" action="{{ route('gadai.lihat-gadai') }}" class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <form
+                    method="GET"
+                    action="{{ route('gadai.lihat-gadai') }}"
+                    class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"
+                    data-filter-form
+                    data-auto-submit="{{ $shouldAutoSubmitFilters ? 'true' : 'false' }}"
+                >
                     <input type="hidden" name="per_page" value="{{ $perPage }}">
                     <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:gap-4">
                         <label class="flex flex-col gap-2 text-sm text-neutral-600 dark:text-neutral-200">
@@ -347,3 +353,15 @@
 @endonce
 
 </x-layouts.app>
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const filterForm = document.querySelector('[data-filter-form]');
+
+            if (filterForm && filterForm.dataset.autoSubmit === 'true') {
+                filterForm.requestSubmit();
+            }
+        });
+    </script>
+@endpush
