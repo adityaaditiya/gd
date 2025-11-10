@@ -202,6 +202,13 @@ class TransaksiGadaiController extends Controller
         }
 
         DB::transaction(function () use ($transaksi, $alasan, $pembatalId) {
+            $transaksi->loadMissing('barangJaminan');
+
+            foreach ($transaksi->barangJaminan as $barang) {
+                $barang->transaksi_id = null;
+                $barang->save();
+            }
+
             $transaksi->status_transaksi = 'Batal';
             $transaksi->tanggal_batal = Carbon::now();
             $transaksi->alasan_batal = $alasan;
