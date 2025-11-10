@@ -21,18 +21,13 @@
                 <form method="GET" action="{{ route('gadai.lihat-gadai') }}" class="relative">
                     <label for="search-no-sbg" class="sr-only">{{ __('Cari No. SBG') }}</label>
                     <div class="flex items-center gap-2">
-                        <div class="relative flex-1">
-                            <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-neutral-400 dark:text-neutral-500">
-                                <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 105.5 5.5a7.5 7.5 0 0011.15 11.15z" />
-                                </svg>
-                            </span>
+                    <div class="relative flex-1">
                             <input
                                 id="search-no-sbg"
                                 name="search"
                                 type="search"
                                 value="{{ $search ?? '' }}"
-                                placeholder="{{ __('Cari No. SBG…') }}"
+                                placeholder="{{ __('   Cari No. SBG…') }}"
                                 class="w-full rounded-lg border border-neutral-200 bg-white py-2 pl-9 pr-3 text-sm text-neutral-700 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
                             />
                         </div>
@@ -46,7 +41,7 @@
                         @endif
                         <button
                             type="submit"
-                            class="inline-flex items-center rounded-lg border border-emerald-600 bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-400 dark:bg-emerald-500 dark:hover:border-emerald-300 dark:hover:bg-emerald-400"
+                            class="inline-flex items-center rounded-lg border border-emerald-600 bg-emerald-600 px-3 py-2 text-xs font-semibold text-red shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-400 dark:bg-emerald-500 dark:hover:border-emerald-300 dark:hover:bg-emerald-400"
                         >
                             {{ __('Cari') }}
                         </button>
@@ -55,7 +50,7 @@
             </div>
             <a
                 href="{{ route('gadai.pemberian-kredit') }}"
-                class="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-600 bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-500 dark:bg-emerald-500 dark:hover:border-emerald-400 dark:hover:bg-emerald-400"
+                class="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-600 bg-emerald-600 px-4 py-2 text-sm font-semibold text-blue-600 shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-500 dark:bg-emerald-500 dark:hover:border-emerald-400 dark:hover:bg-emerald-400"
             >
                 <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -197,83 +192,122 @@
     </div>
 
     @once
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                const table = document.querySelector('[data-transaksi-gadai-table]');
+<script data-navigate-once>
+  window.KRESNO = window.KRESNO || {};
+  // Guard agar listener tabel tidak terpasang dua kali
+  if (!window.KRESNO.lihatGadaiBound) {
+    document.addEventListener('DOMContentLoaded', function () {
+      const table = document.querySelector('[data-transaksi-gadai-table]');
+      if (!table) return;
 
-                if (!table) {
-                    return;
-                }
+      let activeDropdown = null;
 
-                let activeDropdown = null;
+      const closeDropdown = () => {
+        if (!activeDropdown) return;
+        const { menu, toggle } = activeDropdown;
+        menu.classList.add('hidden');
+        toggle.setAttribute('aria-expanded', 'false');
+        activeDropdown = null;
+      };
 
-                const closeDropdown = () => {
-                    if (!activeDropdown) {
-                        return;
-                    }
+      table.addEventListener('click', function (event) {
+        const toggle = event.target.closest('[data-more-toggle]');
+        if (toggle) {
+          event.preventDefault();
+          const container = toggle.closest('[data-more-container]');
+          if (!container) return;
 
-                    const { menu, toggle } = activeDropdown;
-                    menu.classList.add('hidden');
-                    toggle.setAttribute('aria-expanded', 'false');
-                    activeDropdown = null;
-                };
+          const menu = container.querySelector('[data-more-menu]');
+          if (!menu) return;
 
-                table.addEventListener('click', function (event) {
-                    const toggle = event.target.closest('[data-more-toggle]');
+          if (activeDropdown && activeDropdown.menu === menu) {
+            closeDropdown();
+            return;
+          }
 
-                    if (toggle) {
-                        event.preventDefault();
-                        const container = toggle.closest('[data-more-container]');
+          closeDropdown();
+          menu.classList.remove('hidden');
+          toggle.setAttribute('aria-expanded', 'true');
+          activeDropdown = { menu, toggle };
+          return;
+        }
 
-                        if (!container) {
-                            return;
-                        }
+        if (event.target.closest('[data-more-menu]')) return;
+        closeDropdown();
+      });
 
-                        const menu = container.querySelector('[data-more-menu]');
+      document.addEventListener('click', function (event) {
+        if (!activeDropdown) return;
+        if (table.contains(event.target)) return;
+        closeDropdown();
+      });
 
-                        if (!menu) {
-                            return;
-                        }
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') closeDropdown();
+      });
+    });
 
-                        if (activeDropdown && activeDropdown.menu === menu) {
-                            closeDropdown();
-                            return;
-                        }
+    // Setelah Livewire navigasi, DOM baru → pasang ulang handler sekali
+    document.addEventListener('livewire:navigated', function () {
+      // biarkan event DOMContentLoaded di atas tidak jalan lagi;
+      // untuk rerender Livewire, kita pasang handler manual di sini:
+      const table = document.querySelector('[data-transaksi-gadai-table]');
+      if (!table) return;
 
-                        closeDropdown();
+      // Hindari double-bind pada navigasi berikutnya
+      if (table.dataset.bound === 'true') return;
+      table.dataset.bound = 'true';
 
-                        menu.classList.remove('hidden');
-                        toggle.setAttribute('aria-expanded', 'true');
-                        activeDropdown = { menu, toggle };
+      let activeDropdown = null;
 
-                        return;
-                    }
+      const closeDropdown = () => {
+        if (!activeDropdown) return;
+        const { menu, toggle } = activeDropdown;
+        menu.classList.add('hidden');
+        toggle.setAttribute('aria-expanded', 'false');
+        activeDropdown = null;
+      };
 
-                    if (event.target.closest('[data-more-menu]')) {
-                        return;
-                    }
+      table.addEventListener('click', function (event) {
+        const toggle = event.target.closest('[data-more-toggle]');
+        if (toggle) {
+          event.preventDefault();
+          const container = toggle.closest('[data-more-container]');
+          if (!container) return;
 
-                    closeDropdown();
-                });
+          const menu = container.querySelector('[data-more-menu]');
+          if (!menu) return;
 
-                document.addEventListener('click', function (event) {
-                    if (!activeDropdown) {
-                        return;
-                    }
+          if (activeDropdown && activeDropdown.menu === menu) {
+            closeDropdown();
+            return;
+          }
 
-                    if (table.contains(event.target)) {
-                        return;
-                    }
+          closeDropdown();
+          menu.classList.remove('hidden');
+          toggle.setAttribute('aria-expanded', 'true');
+          activeDropdown = { menu, toggle };
+          return;
+        }
 
-                    closeDropdown();
-                });
+        if (event.target.closest('[data-more-menu]')) return;
+        closeDropdown();
+      });
 
-                document.addEventListener('keydown', function (event) {
-                    if (event.key === 'Escape') {
-                        closeDropdown();
-                    }
-                });
-            });
-        </script>
-    @endonce
+      document.addEventListener('click', function (event) {
+        if (!activeDropdown) return;
+        if (table.contains(event.target)) return;
+        closeDropdown();
+      });
+
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') closeDropdown();
+      });
+    });
+
+    window.KRESNO.lihatGadaiBound = true;
+  }
+</script>
+@endonce
+
 </x-layouts.app>
