@@ -132,15 +132,21 @@
                             </td>
                             <td class="px-4 py-3">
                                 <div class="flex justify-center">
-                                    <a
-                                        href="{{ route('laporan.pelunasan-gadai', ['no_sbg' => $transaksi->no_sbg]) }}"
-                                        class="inline-flex items-center gap-2 rounded-lg border border-amber-500 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-700 transition hover:bg-amber-500 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500 dark:border-amber-400 dark:text-amber-300 dark:hover:bg-amber-400 dark:hover:text-neutral-900"
-                                    >
-                                        <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h10.5m-10.5 5.25h10.5M8.25 17.25h6m-9-12h.008v.008H5.25V5.25zm0 5.25h.008v.008H5.25V10.5zm0 5.25h.008v.008H5.25v-.008z" />
-                                        </svg>
-                                        <span>{{ __('Pelunasan') }}</span>
-                                    </a>
+                                    @if ($transaksi->status_transaksi === 'Lunas')
+                                        <a
+                                            href="{{ route('laporan.pelunasan-gadai', ['search' => $transaksi->no_sbg]) }}"
+                                            class="inline-flex items-center gap-2 rounded-lg border border-emerald-600 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:border-emerald-700 hover:bg-emerald-600 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-400 dark:bg-emerald-500/10 dark:text-emerald-200 dark:hover:bg-emerald-400 dark:hover:text-neutral-900"
+                                        >
+                                            <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 13.5l3 3 3-3m-3 3v-9" />
+                                            </svg>
+                                            <span>{{ __('Lihat Pelunasan') }}</span>
+                                        </a>
+                                    @else
+                                        <span class="inline-flex items-center rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-500 dark:bg-neutral-700/60 dark:text-neutral-200">
+                                            {{ __('Belum Lunas') }}
+                                        </span>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
