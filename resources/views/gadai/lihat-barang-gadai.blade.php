@@ -14,7 +14,40 @@
         @endif
 
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <a
+            <form
+                method="GET"
+                action="{{ route('gadai.lihat-barang-gadai') }}"
+                class="flex flex-wrap items-center gap-2 text-sm"
+            >
+                <label for="status" class="text-neutral-600 dark:text-neutral-300">{{ __('Filter Status') }}</label>
+                <select
+                    id="status"
+                    name="status"
+                    class="rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-700 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-200 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
+                >
+                    <option value="">{{ __('Semua Status') }}</option>
+                    @foreach ($statusOptions as $option)
+                        <option value="{{ $option }}" @selected($statusFilter === $option)>
+                            {{ __($option) }}
+                        </option>
+                    @endforeach
+                </select>
+                <button
+                    type="submit"
+                    class="inline-flex items-center justify-center rounded-lg border border-emerald-600 px-3 py-2 font-semibold text-emerald-700 transition hover:bg-emerald-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-400 dark:text-emerald-300 dark:hover:bg-emerald-500/10"
+                >
+                    {{ __('Terapkan') }}
+                </button>
+                @if ($statusFilter)
+                    <a
+                        href="{{ route('gadai.lihat-barang-gadai') }}"
+                        class="inline-flex items-center justify-center rounded-lg border border-neutral-300 px-3 py-2 font-semibold text-neutral-600 transition hover:bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-400 dark:border-neutral-500 dark:text-neutral-300 dark:hover:bg-neutral-700/60"
+                    >
+                        {{ __('Reset') }}
+                    </a>
+                @endif
+            </form>
+            <a
                 href="{{ route('gadai.barang-jaminan.create') }}"
                 class="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-600 bg-emerald-600 px-4 py-2 text-sm font-semibold text-blue-600 shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-500 dark:bg-emerald-500 dark:hover:border-emerald-400 dark:hover:bg-emerald-400"
             >
@@ -44,6 +77,7 @@
                         <th scope="col" class="px-4 py-3">{{ __('Petugas') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Tanggal Gadai') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Kondisi Fisik') }}</th>
+                        <th scope="col" class="px-4 py-3">{{ __('Kelengkapan') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Foto') }}</th>
                     </tr>
                 </thead>
@@ -91,7 +125,7 @@
                             <td class="whitespace-nowrap px-4 py-3">Rp {{ number_format((float) ($barang->transaksi?->total_bunga ?? 0), 0, ',', '.') }}</td>
                             <td class="px-4 py-3">
                                 <span class="inline-flex items-center rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-neutral-700 dark:bg-black-700/60 dark:text-black-100">
-                                    {{ __($barang->transaksi?->status_transaksi ?? 'Tidak Diketahui') }}
+                                    {{ __($barang->transaksi?->status_transaksi ?? 'Belum Aktif') }}
                                 </span>
                             </td>
                             <td class="px-4 py-3">
@@ -103,6 +137,9 @@
                             <td class="px-4 py-3">{{ optional($barang->transaksi?->tanggal_gadai)->format('d M Y') ?? '—' }}</td>
                             <td class="px-4 py-3 text-sm text-neutral-600 dark:text-neutral-300">
                                 <div class="max-w-xs whitespace-pre-line">{{ $barang->kondisi_fisik ?? '—' }}</div>
+                            </td>
+                            <td class="px-4 py-3 text-sm text-neutral-600 dark:text-neutral-300">
+                                <div class="max-w-xs whitespace-pre-line">{{ $barang->kelengkapan ?? '—' }}</div>
                             </td>
                             <td class="px-4 py-3">
                                 @php
@@ -142,7 +179,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="16" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-300">
+                            <td colspan="17" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-300">
                                 {{ __('Belum ada data barang jaminan yang tersimpan.') }}
                             </td>
                         </tr>
