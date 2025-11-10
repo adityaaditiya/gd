@@ -134,7 +134,7 @@
                                 </span>
                             </td>
                             <td class="px-4 py-3">
-                                <div class="relative flex justify-center">
+                                <div class="relative flex justify-center" data-more-container>
                                     <button
                                         type="button"
                                         class="inline-flex items-center rounded-full border border-neutral-200 bg-white p-2 text-neutral-500 transition hover:border-neutral-300 hover:text-neutral-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:border-neutral-500 dark:hover:text-white"
@@ -195,4 +195,85 @@
             {{ $transaksiGadai->links() }}
         </div>
     </div>
+
+    @once
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const table = document.querySelector('[data-transaksi-gadai-table]');
+
+                if (!table) {
+                    return;
+                }
+
+                let activeDropdown = null;
+
+                const closeDropdown = () => {
+                    if (!activeDropdown) {
+                        return;
+                    }
+
+                    const { menu, toggle } = activeDropdown;
+                    menu.classList.add('hidden');
+                    toggle.setAttribute('aria-expanded', 'false');
+                    activeDropdown = null;
+                };
+
+                table.addEventListener('click', function (event) {
+                    const toggle = event.target.closest('[data-more-toggle]');
+
+                    if (toggle) {
+                        event.preventDefault();
+                        const container = toggle.closest('[data-more-container]');
+
+                        if (!container) {
+                            return;
+                        }
+
+                        const menu = container.querySelector('[data-more-menu]');
+
+                        if (!menu) {
+                            return;
+                        }
+
+                        if (activeDropdown && activeDropdown.menu === menu) {
+                            closeDropdown();
+                            return;
+                        }
+
+                        closeDropdown();
+
+                        menu.classList.remove('hidden');
+                        toggle.setAttribute('aria-expanded', 'true');
+                        activeDropdown = { menu, toggle };
+
+                        return;
+                    }
+
+                    if (event.target.closest('[data-more-menu]')) {
+                        return;
+                    }
+
+                    closeDropdown();
+                });
+
+                document.addEventListener('click', function (event) {
+                    if (!activeDropdown) {
+                        return;
+                    }
+
+                    if (table.contains(event.target)) {
+                        return;
+                    }
+
+                    closeDropdown();
+                });
+
+                document.addEventListener('keydown', function (event) {
+                    if (event.key === 'Escape') {
+                        closeDropdown();
+                    }
+                });
+            });
+        </script>
+    @endonce
 </x-layouts.app>
