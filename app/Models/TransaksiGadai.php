@@ -19,6 +19,9 @@ class TransaksiGadai extends Model
         'pegawai_kasir_id',
         'tanggal_gadai',
         'jatuh_tempo_awal',
+        'tenor_hari',
+        'tarif_bunga_harian',
+        'total_bunga',
         'uang_pinjaman',
         'biaya_admin',
         'status_transaksi',
@@ -27,6 +30,9 @@ class TransaksiGadai extends Model
     protected $casts = [
         'tanggal_gadai' => 'date',
         'jatuh_tempo_awal' => 'date',
+        'tenor_hari' => 'integer',
+        'tarif_bunga_harian' => 'decimal:4',
+        'total_bunga' => 'decimal:2',
         'uang_pinjaman' => 'decimal:2',
         'biaya_admin' => 'decimal:2',
     ];
