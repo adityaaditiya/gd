@@ -27,43 +27,71 @@
 
                         <div class="grid gap-4 lg:grid-cols-2">
                             <div class="flex flex-col gap-2">
-                                <label for="barang_id" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Barang Jaminan') }}</label>
+                                <div class="flex items-center justify-between gap-2">
+                                    <label for="barang_ids" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Barang Jaminan') }}</label>
+                                    <label for="barang_search" class="sr-only">{{ __('Cari Barang Jaminan') }}</label>
+                                    <input
+                                        type="search"
+                                        id="barang_search"
+                                        placeholder="{{ __('Cari barang…') }}"
+                                        class="block w-48 rounded-lg border border-neutral-300 bg-white px-2 py-1 text-xs text-neutral-700 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-200 dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+                                    />
+                                </div>
+                                @php
+                                    $barangDipilih = collect(old('barang_ids', []))->map(fn ($id) => (string) $id)->all();
+                                @endphp
                                 <select
-                                    id="barang_id"
-                                    name="barang_id"
+                                    id="barang_ids"
+                                    name="barang_ids[]"
                                     required
+                                    multiple
+                                    size="6"
                                     class="block w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
                                 >
-                                    <option value="" disabled {{ old('barang_id') ? '' : 'selected' }}>{{ __('Pilih barang siap gadai') }}</option>
                                     @foreach ($barangSiapGadai as $barang)
                                         <option
                                             value="{{ $barang->barang_id }}"
                                             data-nilai="{{ $barang->nilai_taksiran }}"
                                             data-deskripsi="{{ $barang->jenis_barang }} — {{ $barang->merek }}"
-                                            {{ (string) old('barang_id') === (string) $barang->barang_id ? 'selected' : '' }}
+                                            data-search="{{ strtolower($barang->jenis_barang . ' ' . $barang->merek . ' ' . ($barang->kode_barang ?? '')) }}"
+                                            {{ in_array((string) $barang->barang_id, $barangDipilih, true) ? 'selected' : '' }}
                                         >
                                             {{ $barang->jenis_barang }} — {{ $barang->merek }} ({{ __('Taksiran: :amount', ['amount' => number_format((float) $barang->nilai_taksiran, 2, ',', '.')]) }})
                                         </option>
                                     @endforeach
                                 </select>
-                                @error('barang_id')
+                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Gunakan Ctrl/Cmd + klik untuk memilih lebih dari satu barang.') }}</p>
+                                @error('barang_ids')
                                     <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                 @enderror
+                                @if ($errors->has('barang_ids.*'))
+                                    <p class="text-sm text-red-600 dark:text-red-400">{{ $errors->first('barang_ids.*') }}</p>
+                                @endif
                             </div>
 
                             <div class="rounded-lg border border-dashed border-emerald-300 bg-emerald-50/70 p-4 text-sm text-emerald-900 dark:border-emerald-500 dark:bg-emerald-500/10 dark:text-emerald-200">
                                 <p class="font-semibold">{{ __('Ringkasan Barang Terpilih') }}</p>
-                                <dl class="mt-2 space-y-1">
+                                <dl class="mt-2 space-y-2 text-xs">
                                     <div class="flex justify-between gap-2">
-                                        <dt class="text-neutral-600 dark:text-neutral-300">{{ __('Deskripsi') }}</dt>
-                                        <dd id="ringkasan-deskripsi" class="font-medium text-neutral-900 dark:text-white">—</dd>
+                                        <dt class="text-neutral-600 dark:text-neutral-300">{{ __('Jumlah Barang') }}</dt>
+                                        <dd id="ringkasan-jumlah" class="font-semibold text-neutral-900 dark:text-white">0</dd>
                                     </div>
                                     <div class="flex justify-between gap-2">
-                                        <dt class="text-neutral-600 dark:text-neutral-300">{{ __('Nilai Taksiran') }}</dt>
-                                        <dd id="ringkasan-nilai" class="font-medium text-neutral-900 dark:text-white">—</dd>
+                                        <dt class="text-neutral-600 dark:text-neutral-300">{{ __('Total Nilai Taksiran') }}</dt>
+                                        <dd id="ringkasan-total-nilai" class="font-semibold text-neutral-900 dark:text-white">—</dd>
+                                    </div>
+                                    <div class="flex justify-between gap-2">
+                                        <dt class="text-neutral-600 dark:text-neutral-300">{{ __('Plafon Maksimal (94%)') }}</dt>
+                                        <dd id="ringkasan-plafon" class="font-semibold text-neutral-900 dark:text-white">—</dd>
                                     </div>
                                 </dl>
-                                <p class="mt-3 text-xs text-neutral-500 dark:text-neutral-400">{{ __('Nilai taksiran otomatis digunakan sebagai acuan batas plafon pinjaman.') }}</p>
+                                <div class="mt-3 rounded-lg bg-white/60 p-3 text-xs text-neutral-700 shadow-sm dark:bg-neutral-900/40 dark:text-neutral-200">
+                                    <p class="font-semibold">{{ __('Daftar Barang') }}</p>
+                                    <ul id="ringkasan-daftar" class="mt-2 space-y-1">
+                                        <li class="italic text-neutral-500 dark:text-neutral-400">{{ __('Belum ada barang dipilih.') }}</li>
+                                    </ul>
+                                </div>
+                                <p class="mt-3 text-xs text-neutral-500 dark:text-neutral-400">{{ __('Total nilai taksiran digunakan sebagai acuan batas plafon pinjaman 94%.') }}</p>
                             </div>
                         </div>
                     </section>
@@ -94,16 +122,29 @@
                             </div>
 
                             <div class="flex flex-col gap-2">
-                                <label for="nasabah_id" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Nasabah') }}</label>
+                                <div class="flex items-center justify-between gap-2">
+                                    <label for="nasabah_id" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Nasabah') }}</label>
+                                    <label for="nasabah_search" class="sr-only">{{ __('Cari Nasabah') }}</label>
+                                    <input
+                                        type="search"
+                                        id="nasabah_search"
+                                        placeholder="{{ __('Cari nasabah…') }}"
+                                        class="block w-48 rounded-lg border border-neutral-300 bg-white px-2 py-1 text-xs text-neutral-700 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-200 dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+                                    />
+                                </div>
                                 <select
                                     id="nasabah_id"
                                     name="nasabah_id"
                                     required
                                     class="block w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
                                 >
-                                    <option value="" disabled {{ old('nasabah_id') ? '' : 'selected' }}>{{ __('Pilih nasabah') }}</option>
+                                    <option value="" disabled {{ old('nasabah_id') ? '' : 'selected' }} data-placeholder="true">{{ __('Pilih nasabah') }}</option>
                                     @foreach ($nasabahList as $nasabah)
-                                        <option value="{{ $nasabah->id }}" {{ (string) old('nasabah_id') === (string) $nasabah->id ? 'selected' : '' }}>
+                                        <option
+                                            value="{{ $nasabah->id }}"
+                                            data-search="{{ strtolower($nasabah->nama . ' ' . $nasabah->kode_member) }}"
+                                            {{ (string) old('nasabah_id') === (string) $nasabah->id ? 'selected' : '' }}
+                                        >
                                             {{ $nasabah->nama }} — {{ $nasabah->kode_member }}
                                         </option>
                                     @endforeach
@@ -144,6 +185,18 @@
                             </div>
 
                             <div class="flex flex-col gap-2">
+                                <label for="tenor_display" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Tenor (Hari)') }}</label>
+                                <input
+                                    type="text"
+                                    id="tenor_display"
+                                    value="—"
+                                    readonly
+                                    class="block w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-neutral-300 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
+                                />
+                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Tenor dihitung otomatis dari tanggal gadai dan jatuh tempo.') }}</p>
+                            </div>
+
+                            <div class="flex flex-col gap-2">
                                 <label for="uang_pinjaman" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Nominal Pinjaman') }}</label>
                                 <input
                                     type="text"
@@ -172,6 +225,18 @@
                                 @error('biaya_admin')
                                     <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                 @enderror
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                                <label for="estimasi_bunga_display" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Estimasi Bunga (0,15%/hari)') }}</label>
+                                <input
+                                    type="text"
+                                    id="estimasi_bunga_display"
+                                    value="Rp 0,00"
+                                    readonly
+                                    class="block w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-neutral-300 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
+                                />
+                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Nilai bunga mengikuti tarif flat 0,15% per hari dikalikan dengan nominal pinjaman dan tenor.') }}</p>
                             </div>
                         </div>
                     </section>
@@ -223,14 +288,24 @@
                     if (!root || root.dataset.initialized === 'true') return;
                     root.dataset.initialized = 'true';
 
-                    const select = document.getElementById('barang_id');
-                    const ringkasanDeskripsi = document.getElementById('ringkasan-deskripsi');
-                    const ringkasanNilai = document.getElementById('ringkasan-nilai');
+                    const select = document.getElementById('barang_ids');
+                    const ringkasanJumlah = document.getElementById('ringkasan-jumlah');
+                    const ringkasanTotal = document.getElementById('ringkasan-total-nilai');
+                    const ringkasanPlafon = document.getElementById('ringkasan-plafon');
+                    const ringkasanDaftar = document.getElementById('ringkasan-daftar');
+                    const tanggalGadaiInput = document.getElementById('tanggal_gadai');
+                    const jatuhTempoInput = document.getElementById('jatuh_tempo_awal');
+                    const pinjamanInput = document.getElementById('uang_pinjaman');
+                    const tenorDisplay = document.getElementById('tenor_display');
+                    const bungaDisplay = document.getElementById('estimasi_bunga_display');
+                    const barangSearchInput = document.getElementById('barang_search');
+                    const nasabahSelect = document.getElementById('nasabah_id');
+                    const nasabahSearchInput = document.getElementById('nasabah_search');
 
                     if (!select) return;
 
                     const formatCurrency = (value) => {
-                        if (!value) return '—';
+                        if (value === null || value === undefined || value === '') return '—';
                         const number = Number.parseFloat(value);
                         if (Number.isNaN(number)) return '—';
                         return new Intl.NumberFormat('id-ID', {
@@ -240,19 +315,139 @@
                         }).format(number);
                     };
 
-                    const updateSummary = () => {
-                        const option = select.options[select.selectedIndex];
-                        if (!option || !option.value) {
-                            ringkasanDeskripsi.textContent = '—';
-                            ringkasanNilai.textContent = '—';
-                            return;
+                    const parseDecimal = (rawValue) => {
+                        if (rawValue === null || rawValue === undefined) return 0;
+                        if (typeof rawValue !== 'string') {
+                            const numeric = Number(rawValue);
+                            return Number.isNaN(numeric) ? 0 : numeric;
                         }
-                        ringkasanDeskripsi.textContent = option.dataset.deskripsi ?? '—';
-                        ringkasanNilai.textContent = formatCurrency(option.dataset.nilai);
+
+                        let value = rawValue.trim();
+                        if (value === '') return 0;
+
+                        value = value.replace(/[^0-9,.-]/g, '');
+                        const lastComma = value.lastIndexOf(',');
+                        const lastDot = value.lastIndexOf('.');
+
+                        if (lastComma !== -1 && lastDot !== -1) {
+                            if (lastComma > lastDot) {
+                                value = value.replace(/\./g, '');
+                                value = value.replace(/,/g, '.');
+                            } else {
+                                value = value.replace(/,/g, '');
+                            }
+                        } else if (lastComma !== -1) {
+                            value = value.replace(/\./g, '');
+                            value = value.replace(/,/g, '.');
+                        } else {
+                            value = value.replace(/,/g, '');
+                        }
+
+                        const parsed = Number.parseFloat(value);
+                        return Number.isNaN(parsed) ? 0 : parsed;
                     };
 
-                    select.addEventListener('change', updateSummary);
+                    let totalNilaiTerpilih = 0;
+                    const emptyListMessage = @json(__('Belum ada barang dipilih.'));
+
+                    const filterSelectOptions = (inputEl, selectEl) => {
+                        if (!inputEl || !selectEl) return;
+
+                        const term = inputEl.value.trim().toLowerCase();
+                        Array.from(selectEl.options).forEach((option) => {
+                            if (!option) return;
+
+                            if (!option.value && option.dataset.placeholder === 'true') {
+                                option.hidden = false;
+                                return;
+                            }
+
+                            const searchable = (option.dataset.search ?? option.textContent ?? '').toLowerCase();
+                            option.hidden = term !== '' && !searchable.includes(term);
+                        });
+                    };
+
+                    const updateSummary = () => {
+                        const options = Array.from(select?.selectedOptions ?? []).filter((option) => option.value);
+                        totalNilaiTerpilih = 0;
+
+                        if (!ringkasanJumlah || !ringkasanTotal || !ringkasanPlafon || !ringkasanDaftar) {
+                            return;
+                        }
+
+                        ringkasanJumlah.textContent = options.length.toString();
+
+                        if (options.length === 0) {
+                            ringkasanTotal.textContent = '—';
+                            ringkasanPlafon.textContent = '—';
+                            ringkasanDaftar.innerHTML = `<li class="italic text-neutral-500 dark:text-neutral-400">${emptyListMessage}</li>`;
+                            select?.setAttribute('data-total-nilai', '0');
+                            return;
+                        }
+
+                        ringkasanDaftar.innerHTML = '';
+
+                        options.forEach((option) => {
+                            const nilai = parseDecimal(option.dataset.nilai ?? '0');
+                            totalNilaiTerpilih += nilai;
+
+                            const item = document.createElement('li');
+                            item.className = 'rounded-md bg-emerald-100/70 px-3 py-2 text-neutral-700 dark:bg-emerald-500/10 dark:text-neutral-100';
+                            item.innerHTML = `<span class="font-semibold text-neutral-900 dark:text-white">${option.dataset.deskripsi ?? option.textContent ?? ''}</span><div>${formatCurrency(nilai)}</div>`;
+                            ringkasanDaftar.appendChild(item);
+                        });
+
+                        ringkasanTotal.textContent = formatCurrency(totalNilaiTerpilih);
+                        ringkasanPlafon.textContent = formatCurrency(totalNilaiTerpilih * 0.94);
+                        select?.setAttribute('data-total-nilai', totalNilaiTerpilih.toString());
+                    };
+
+                    const updateBunga = () => {
+                        if (!tenorDisplay || !bungaDisplay) return;
+
+                        const ratePerDay = 0.0015;
+                        const millisecondsPerDay = 24 * 60 * 60 * 1000;
+
+                        const tanggalGadai = tanggalGadaiInput?.value ? new Date(tanggalGadaiInput.value) : null;
+                        const jatuhTempo = jatuhTempoInput?.value ? new Date(jatuhTempoInput.value) : null;
+
+                        let tenor = 0;
+                        if (tanggalGadai instanceof Date && jatuhTempo instanceof Date) {
+                            const startTime = tanggalGadai.getTime();
+                            const endTime = jatuhTempo.getTime();
+
+                            if (!Number.isNaN(startTime) && !Number.isNaN(endTime) && endTime >= startTime) {
+                                const diffDays = Math.floor((endTime - startTime) / millisecondsPerDay);
+                                tenor = Math.max(1, diffDays);
+                            }
+                        }
+
+                        tenorDisplay.value = tenor > 0 ? `${tenor} hari` : '—';
+
+                        const pinjaman = parseDecimal(pinjamanInput?.value ?? '');
+                        const bunga = tenor > 0 && pinjaman > 0 ? pinjaman * ratePerDay * tenor : 0;
+
+                        bungaDisplay.value = tenor > 0 && pinjaman > 0 ? formatCurrency(bunga) : formatCurrency(0);
+                    };
+
+                    select.addEventListener('change', () => {
+                        updateSummary();
+                        updateBunga();
+                    });
+                    barangSearchInput?.addEventListener('input', () => {
+                        filterSelectOptions(barangSearchInput, select);
+                    });
+                    nasabahSearchInput?.addEventListener('input', () => {
+                        filterSelectOptions(nasabahSearchInput, nasabahSelect);
+                    });
+                    tanggalGadaiInput?.addEventListener('change', updateBunga);
+                    jatuhTempoInput?.addEventListener('change', updateBunga);
+                    pinjamanInput?.addEventListener('input', updateBunga);
+
                     updateSummary();
+                    updateBunga();
+                    filterSelectOptions(barangSearchInput, select);
+                    filterSelectOptions(nasabahSearchInput, nasabahSelect);
                 }
             };
 
