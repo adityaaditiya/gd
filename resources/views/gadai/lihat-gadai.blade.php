@@ -14,25 +14,54 @@
         @endif
 
         <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+            <div class="flex flex-col gap-3">
                 <div class="text-sm text-neutral-600 dark:text-neutral-300">
                     {{ __('Total :count transaksi.', ['count' => number_format($transaksiGadai->total(), 0, ',', '.')]) }}
                 </div>
-                <form method="GET" action="{{ route('gadai.lihat-gadai') }}" class="relative">
+                <form method="GET" action="{{ route('gadai.lihat-gadai') }}" class="space-y-3">
                     <input type="hidden" name="per_page" value="{{ $perPage }}">
-                    <label for="search-no-sbg" class="sr-only">{{ __('Cari No. SBG') }}</label>
-                    <div class="flex items-center gap-2">
-                    <div class="relative flex-1">
+                    <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                        <div class="md:col-span-2 xl:col-span-2">
+                            <label for="search-transaksi" class="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Cari Data Transaksi') }}</label>
+                            <div class="relative">
+                                <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-neutral-400">
+                                    <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-3.5-3.5M17 10.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z" />
+                                    </svg>
+                                </span>
+                                <input
+                                    id="search-transaksi"
+                                    name="search"
+                                    type="search"
+                                    value="{{ $search ?? '' }}"
+                                    placeholder="{{ __('Cari No. SBG, nama nasabah, kode member, atau telepon…') }}"
+                                    class="w-full rounded-lg border border-neutral-200 bg-white py-2 pl-9 pr-3 text-sm text-neutral-700 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label for="tanggal-dari" class="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Tanggal Dari') }}</label>
                             <input
-                                id="search-no-sbg"
-                                name="search"
-                                type="search"
-                                value="{{ $search ?? '' }}"
-                                placeholder="{{ __('   Cari No. SBG…') }}"
-                                class="w-full rounded-lg border border-neutral-200 bg-white py-2 pl-9 pr-3 text-sm text-neutral-700 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
+                                id="tanggal-dari"
+                                name="tanggal_dari"
+                                type="date"
+                                value="{{ $tanggalDari }}"
+                                class="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-700 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
                             />
                         </div>
-                        @if (!empty($search))
+                        <div>
+                            <label for="tanggal-sampai" class="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Tanggal Sampai') }}</label>
+                            <input
+                                id="tanggal-sampai"
+                                name="tanggal_sampai"
+                                type="date"
+                                value="{{ $tanggalSampai }}"
+                                class="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-700 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
+                            />
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        @if (!empty($search) || $tanggalDari || $tanggalSampai)
                             <a
                                 href="{{ route('gadai.lihat-gadai', ['per_page' => $perPage]) }}"
                                 class="inline-flex items-center rounded-lg border border-neutral-200 px-3 py-2 text-xs font-semibold text-neutral-600 transition hover:bg-neutral-50 dark:border-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-700/60"
@@ -42,9 +71,9 @@
                         @endif
                         <button
                             type="submit"
-                            class="inline-flex items-center rounded-lg border border-emerald-600 bg-emerald-600 px-3 py-2 text-xs font-semibold text-red shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-400 dark:bg-emerald-500 dark:hover:border-emerald-300 dark:hover:bg-emerald-400"
+                            class="inline-flex items-center rounded-lg border border-emerald-600 bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-400 dark:bg-emerald-500 dark:hover:border-emerald-300 dark:hover:bg-emerald-400"
                         >
-                            {{ __('Cari') }}
+                            {{ __('Terapkan') }}
                         </button>
                     </div>
                 </form>
