@@ -92,7 +92,7 @@
                             <td class="whitespace-nowrap px-4 py-3">Rp {{ number_format((float) ($barang->transaksi?->total_bunga ?? 0), 0, ',', '.') }}</td>
                             <td class="px-4 py-3">
                                 <span class="inline-flex items-center rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-neutral-700 dark:bg-black-700/60 dark:text-black-100">
-                                    {{ __($barang->transaksi?->status_transaksi ?? 'Tidak Diketahui') }}
+                                    {{ __($barang->transaksi?->status_transaksi ?? 'Belum Aktif') }}
                                 </span>
                             </td>
                             <td class="px-4 py-3">
