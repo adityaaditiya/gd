@@ -10,13 +10,43 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
 class TransaksiGadaiController extends Controller
 {
     public function index(Request $request): View
     {
-        $search = trim((string) $request->input('search'));
+        $perPageOptions = [10, 25, 50, 100];
+        $perPage = (int) $request->query('per_page', 10);
+
+        if (!in_array($perPage, $perPageOptions, true)) {
+            $perPage = 10;
+        }
+
+        $filterValidator = Validator::make($request->query(), [
+            'search' => ['nullable', 'string', 'max:255'],
+            'tanggal_dari' => ['nullable', 'date'],
+            'tanggal_sampai' => ['nullable', 'date', 'after_or_equal:tanggal_dari'],
+        ]);
+
+        $filters = $filterValidator->safe()->only(['search', 'tanggal_dari', 'tanggal_sampai']);
+
+        $search = trim((string) ($filters['search'] ?? ''));
+        $tanggalDari = $filters['tanggal_dari'] ?? null;
+        $tanggalSampai = $filters['tanggal_sampai'] ?? null;
+
+        $today = Carbon::today()->toDateString();
+        $shouldAutoSubmit = !$request->has('tanggal_dari') && !$request->has('tanggal_sampai');
+
+        if (!$tanggalDari) {
+            $tanggalDari = $today;
+        }
+
+        if (!$tanggalSampai) {
+            $tanggalSampai = $today;
+        }
 
         $transaksiGadai = TransaksiGadai::with([
             'nasabah',
@@ -24,15 +54,33 @@ class TransaksiGadaiController extends Controller
             'barangJaminan',
         ])
             ->when($search !== '', function ($query) use ($search) {
-                $query->where('no_sbg', 'like', "%{$search}%");
+                $query->where(function ($query) use ($search) {
+                    $query->where('no_sbg', 'like', "%{$search}%")
+                        ->orWhereHas('nasabah', function ($nasabahQuery) use ($search) {
+                            $nasabahQuery->where('nama', 'like', "%{$search}%")
+                                ->orWhere('kode_member', 'like', "%{$search}%")
+                                ->orWhere('telepon', 'like', "%{$search}%");
+                        });
+                });
+            })
+            ->when($tanggalDari, function ($query) use ($tanggalDari) {
+                $query->whereDate('tanggal_gadai', '>=', $tanggalDari);
+            })
+            ->when($tanggalSampai, function ($query) use ($tanggalSampai) {
+                $query->whereDate('tanggal_gadai', '<=', $tanggalSampai);
             })
             ->latest('tanggal_gadai')
-            ->paginate(15)
+            ->paginate($perPage > 0 ? $perPage : 10)
             ->withQueryString();
 
         return view('gadai.lihat-gadai', [
             'transaksiGadai' => $transaksiGadai,
             'search' => $search,
+            'tanggalDari' => $tanggalDari,
+            'tanggalSampai' => $tanggalSampai,
+            'perPage' => $perPage,
+            'perPageOptions' => $perPageOptions,
+            'shouldAutoSubmitFilters' => $shouldAutoSubmit,
         ]);
     }
 
@@ -123,6 +171,54 @@ class TransaksiGadaiController extends Controller
         return redirect()
             ->route('gadai.lihat-gadai')
             ->with('status', __('Kontrak gadai berhasil diterbitkan dan barang dikunci.'));
+    }
+
+    public function cancel(Request $request, TransaksiGadai $transaksi): RedirectResponse
+    {
+        $request->validate([
+            'alasan_batal' => ['required', 'string', 'max:1000'],
+        ]);
+
+        $status = $transaksi->status_transaksi;
+
+        if (in_array($status, ['Lunas', 'Perpanjang', 'Lelang', 'Batal'], true)) {
+            $message = __('Transaksi dengan status :status tidak dapat dibatalkan.', ['status' => $status ?? '—']);
+
+            return redirect()
+                ->back()
+                ->withInput($request->all())
+                ->withErrors([
+                    'alasan_batal' => $message,
+                ])
+                ->with('error', $message);
+        }
+
+        $alasan = trim((string) $request->input('alasan_batal'));
+
+        $pembatalId = Auth::id();
+
+        if (!$pembatalId) {
+            abort(403, 'Pengguna tidak dikenali.');
+        }
+
+        DB::transaction(function () use ($transaksi, $alasan, $pembatalId) {
+            $transaksi->loadMissing('barangJaminan');
+
+            foreach ($transaksi->barangJaminan as $barang) {
+                $barang->transaksi_id = null;
+                $barang->save();
+            }
+
+            $transaksi->status_transaksi = 'Batal';
+            $transaksi->tanggal_batal = Carbon::now();
+            $transaksi->alasan_batal = $alasan;
+            $transaksi->pegawai_pembatal_id = $pembatalId;
+            $transaksi->save();
+        });
+
+        return redirect()
+            ->route('gadai.lihat-gadai', $request->only(['search', 'tanggal_dari', 'tanggal_sampai', 'page', 'per_page']))
+            ->with('status', __('Transaksi gadai berhasil dibatalkan.'));
     }
 
     private function validateData(Request $request): array
