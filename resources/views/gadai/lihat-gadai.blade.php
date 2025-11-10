@@ -103,6 +103,7 @@
                                             <li class="rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-700 dark:bg-neutral-900 dark:text-neutral-200">
                                                 <div class="font-semibold text-neutral-900 dark:text-white">{{ $barang->jenis_barang }} — {{ $barang->merek }}</div>
                                                 <div>Rp {{ number_format((float) $barang->nilai_taksiran, 0, ',', '.') }}</div>
+                                                <div class="text-[11px] text-neutral-500 dark:text-neutral-300">{{ __('Kelengkapan:') }} {{ $barang->kelengkapan ?? '—' }}</div>
                                             </li>
                                         @endforeach
                                     </ul>

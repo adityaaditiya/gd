@@ -44,6 +44,7 @@
                         <th scope="col" class="px-4 py-3">{{ __('Petugas') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Tanggal Gadai') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Kondisi Fisik') }}</th>
+                        <th scope="col" class="px-4 py-3">{{ __('Kelengkapan') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Foto') }}</th>
                     </tr>
                 </thead>
@@ -104,6 +105,9 @@
                             <td class="px-4 py-3 text-sm text-neutral-600 dark:text-neutral-300">
                                 <div class="max-w-xs whitespace-pre-line">{{ $barang->kondisi_fisik ?? '—' }}</div>
                             </td>
+                            <td class="px-4 py-3 text-sm text-neutral-600 dark:text-neutral-300">
+                                <div class="max-w-xs whitespace-pre-line">{{ $barang->kelengkapan ?? '—' }}</div>
+                            </td>
                             <td class="px-4 py-3">
                                 @php
                                     $photos = collect([
@@ -142,7 +146,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="16" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-300">
+                            <td colspan="17" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-300">
                                 {{ __('Belum ada data barang jaminan yang tersimpan.') }}
                             </td>
                         </tr>
