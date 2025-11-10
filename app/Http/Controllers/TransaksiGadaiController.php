@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BarangJaminan;
 use App\Models\Nasabah;
 use App\Models\TransaksiGadai;
+use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,6 +14,19 @@ use Illuminate\Validation\Rule;
 
 class TransaksiGadaiController extends Controller
 {
+    public function index(): View
+    {
+        $transaksiGadai = TransaksiGadai::with([
+            'nasabah',
+            'kasir',
+            'barangJaminan',
+        ])->latest('tanggal_gadai')->paginate(15);
+
+        return view('gadai.lihat-gadai', [
+            'transaksiGadai' => $transaksiGadai,
+        ]);
+    }
+
     public function create(): View
     {
         $barangSiapGadai = BarangJaminan::query()
@@ -59,12 +73,22 @@ class TransaksiGadaiController extends Controller
             abort(403, 'Kasir tidak dikenali.');
         }
 
+        $tanggalGadai = Carbon::parse($data['tanggal_gadai']);
+        $jatuhTempo = Carbon::parse($data['jatuh_tempo_awal']);
+
+        $tenorHari = max(1, $tanggalGadai->diffInDays($jatuhTempo));
+        $tarifBungaHarian = 0.0015; // 0.15% per hari
+        $totalBunga = $this->formatDecimal($uangPinjaman * $tarifBungaHarian * $tenorHari);
+
         $transaksi = TransaksiGadai::create([
             'no_sbg' => $data['no_sbg'],
             'nasabah_id' => $data['nasabah_id'],
             'pegawai_kasir_id' => $kasirId,
             'tanggal_gadai' => $data['tanggal_gadai'],
             'jatuh_tempo_awal' => $data['jatuh_tempo_awal'],
+            'tenor_hari' => $tenorHari,
+            'tarif_bunga_harian' => $this->formatDecimal($tarifBungaHarian, 4),
+            'total_bunga' => $totalBunga,
             'uang_pinjaman' => $data['uang_pinjaman'],
             'biaya_admin' => $data['biaya_admin'],
             'status_transaksi' => 'Aktif',
@@ -131,5 +155,10 @@ class TransaksiGadaiController extends Controller
     private function formatCurrency(float $value): string
     {
         return 'Rp ' . number_format($value, 2, ',', '.');
+    }
+
+    private function formatDecimal(float $value, int $precision = 2): string
+    {
+        return number_format($value, $precision, '.', '');
     }
 }
