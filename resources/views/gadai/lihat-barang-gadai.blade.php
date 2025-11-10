@@ -19,6 +19,7 @@
                 action="{{ route('gadai.lihat-barang-gadai') }}"
                 class="flex flex-wrap items-center gap-2 text-sm"
             >
+                <input type="hidden" name="per_page" value="{{ $perPage }}">
                 <label for="status" class="text-neutral-600 dark:text-neutral-300">{{ __('Filter Status') }}</label>
                 <select
                     id="status"
@@ -41,7 +42,7 @@
                 </button>
                 @if ($statusFilter)
                     <a
-                        href="{{ route('gadai.lihat-barang-gadai') }}"
+                        href="{{ route('gadai.lihat-barang-gadai', ['per_page' => $perPage]) }}"
                         class="inline-flex items-center justify-center rounded-lg border border-neutral-300 px-3 py-2 font-semibold text-neutral-600 transition hover:bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-400 dark:border-neutral-500 dark:text-neutral-300 dark:hover:bg-neutral-700/60"
                     >
                         {{ __('Reset') }}
@@ -196,8 +197,11 @@
             </table>
         </div>
 
-        <div>
-            {{ $barangJaminan->links() }}
-        </div>
+        <x-table.pagination-controls
+            :paginator="$barangJaminan"
+            :per-page="$perPage"
+            :per-page-options="$perPageOptions"
+            :form-action="route('gadai.lihat-barang-gadai')"
+        />
     </div>
 </x-layouts.app>

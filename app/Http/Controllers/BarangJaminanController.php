@@ -20,8 +20,14 @@ class BarangJaminanController extends Controller
             'Perpanjang',
             'Lelang',
         ];
+        $perPageOptions = [10, 25, 50, 100];
 
         $statusFilter = $request->query('status');
+        $perPage = (int) $request->query('per_page', 10);
+
+        if (!in_array($perPage, $perPageOptions, true)) {
+            $perPage = 10;
+        }
 
         $barangJaminanQuery = BarangJaminan::with([
             'transaksi.nasabah',
@@ -44,12 +50,16 @@ class BarangJaminanController extends Controller
             }
         }
 
-        $barangJaminan = $barangJaminanQuery->paginate(15)->withQueryString();
+        $barangJaminan = $barangJaminanQuery
+            ->paginate($perPage > 0 ? $perPage : 10)
+            ->withQueryString();
 
         return view('gadai.lihat-barang-gadai', [
             'barangJaminan' => $barangJaminan,
             'statusOptions' => $statusOptions,
             'statusFilter' => in_array($statusFilter, $statusOptions, true) ? $statusFilter : null,
+            'perPage' => $perPage,
+            'perPageOptions' => $perPageOptions,
         ]);
     }
 
