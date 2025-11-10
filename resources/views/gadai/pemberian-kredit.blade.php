@@ -1,5 +1,5 @@
 <x-layouts.app :title="__('Pemberian Kredit Gadai')">
-    <div class="space-y-8">
+    <div class="space-y-8" id="pemberian-gadai-page" data-initialized="false">
         <div class="flex flex-col gap-2">
             <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white">{{ __('Pemberian Kredit Gadai') }}</h1>
             <p class="text-sm text-neutral-600 dark:text-neutral-300">
@@ -203,9 +203,9 @@
                         </a>
                         <button
                             type="submit"
-                            class="inline-flex items-center justify-center rounded-lg border border-emerald-600 bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-500 dark:bg-emerald-500 dark:hover:border-emerald-400 dark:hover:bg-emerald-400"
+                            class="inline-flex items-center justify-center rounded-lg border border-emerald-600 bg-emerald-600 px-4 py-2 text-sm font-semibold text-blue-600 shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-500 dark:bg-emerald-500 dark:hover:border-emerald-400 dark:hover:bg-emerald-400"
                         >
-                            {{ __('Terbitkan Kontrak') }}
+                            {{ __('Simpan Transaksi') }}
                         </button>
                     </div>
                 </form>
@@ -215,49 +215,62 @@
 
     @if (! $barangSiapGadai->isEmpty())
         <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                const select = document.getElementById('barang_id');
-                const ringkasanDeskripsi = document.getElementById('ringkasan-deskripsi');
-                const ringkasanNilai = document.getElementById('ringkasan-nilai');
+            // Namespace global aman (tanpa redeclare)
+            window.KRESNO = window.KRESNO || {};
+            window.KRESNO.gadaiPage ??= {
+                init() {
+                    const root = document.getElementById('pemberian-gadai-page');
+                    if (!root || root.dataset.initialized === 'true') return;
+                    root.dataset.initialized = 'true';
 
-                if (!select) {
-                    return;
+                    const select = document.getElementById('barang_id');
+                    const ringkasanDeskripsi = document.getElementById('ringkasan-deskripsi');
+                    const ringkasanNilai = document.getElementById('ringkasan-nilai');
+
+                    if (!select) return;
+
+                    const formatCurrency = (value) => {
+                        if (!value) return '—';
+                        const number = Number.parseFloat(value);
+                        if (Number.isNaN(number)) return '—';
+                        return new Intl.NumberFormat('id-ID', {
+                            style: 'currency',
+                            currency: 'IDR',
+                            minimumFractionDigits: 2,
+                        }).format(number);
+                    };
+
+                    const updateSummary = () => {
+                        const option = select.options[select.selectedIndex];
+                        if (!option || !option.value) {
+                            ringkasanDeskripsi.textContent = '—';
+                            ringkasanNilai.textContent = '—';
+                            return;
+                        }
+                        ringkasanDeskripsi.textContent = option.dataset.deskripsi ?? '—';
+                        ringkasanNilai.textContent = formatCurrency(option.dataset.nilai);
+                    };
+
+                    select.addEventListener('change', updateSummary);
+                    updateSummary();
                 }
+            };
 
-                const formatCurrency = (value) => {
-                    if (!value) {
-                        return '—';
-                    }
-
-                    const number = Number.parseFloat(value);
-
-                    if (Number.isNaN(number)) {
-                        return '—';
-                    }
-
-                    return new Intl.NumberFormat('id-ID', {
-                        style: 'currency',
-                        currency: 'IDR',
-                        minimumFractionDigits: 2,
-                    }).format(number);
-                };
-
-                const updateSummary = () => {
-                    const option = select.options[select.selectedIndex];
-
-                    if (!option || !option.value) {
-                        ringkasanDeskripsi.textContent = '—';
-                        ringkasanNilai.textContent = '—';
-                        return;
-                    }
-
-                    ringkasanDeskripsi.textContent = option.dataset.deskripsi ?? '—';
-                    ringkasanNilai.textContent = formatCurrency(option.dataset.nilai);
-                };
-
-                select.addEventListener('change', updateSummary);
-                updateSummary();
-            });
+            // Boot pertama + saat Livewire navigasi
+            (function bootGadaiPage() {
+                const run = () => window.KRESNO.gadaiPage.init?.();
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', run, { once: true });
+                } else {
+                    run();
+                }
+                document.addEventListener('livewire:navigated', () => {
+                    // reset guard agar halaman ini bisa re-init saat kembali dari halaman lain
+                    const root = document.getElementById('pemberian-gadai-page');
+                    if (root) root.dataset.initialized = 'false';
+                    run();
+                });
+            })();
         </script>
     @endif
 </x-layouts.app>

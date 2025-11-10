@@ -8,7 +8,7 @@
         </div>
 
         @if (session('status'))
-            <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 shadow-sm dark:border-emerald-500/60 dark:bg-emerald-500/10 dark:text-emerald-300">
+            <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-black-700 shadow-sm dark:border-black-500/60 dark:bg-black-500/10 dark:text-black">
                 {{ session('status') }}
             </div>
         @endif
@@ -86,7 +86,7 @@
                             <td class="whitespace-nowrap px-4 py-3 font-semibold text-emerald-600 dark:text-emerald-300">Rp {{ number_format((float) $barang->nilai_taksiran, 0, ',', '.') }}</td>
                             <td class="whitespace-nowrap px-4 py-3">Rp {{ number_format((float) ($barang->transaksi?->uang_pinjaman ?? 0), 0, ',', '.') }}</td>
                             <td class="px-4 py-3">
-                                <span class="inline-flex items-center rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-neutral-700 dark:bg-neutral-700/60 dark:text-neutral-100">
+                                <span class="inline-flex items-center rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-neutral-700 dark:bg-black-700/60 dark:text-black-100">
                                     {{ __($barang->transaksi?->status_transaksi ?? 'Tidak Diketahui') }}
                                 </span>
                             </td>
@@ -120,14 +120,14 @@
                                         });
                                 @endphp
                                 @if ($photos->isEmpty())
-                                    <span class="text-xs text-neutral-500 dark:text-neutral-300">{{ __('Tidak ada foto') }}</span>
+                                    <span class="text-xs text-neutral-500 dark:text-black-300">{{ __('Tidak ada foto') }}</span>
                                 @else
                                     <div class="flex flex-wrap gap-2">
                                         @foreach ($photos as $index => $path)
                                             <a
                                                 href="{{ $path }}"
                                                 target="_blank"
-                                                class="inline-flex size-9 items-center justify-center rounded-lg bg-neutral-100 text-xs font-semibold text-neutral-600 transition hover:bg-emerald-100 hover:text-emerald-700 dark:bg-neutral-700/60 dark:text-neutral-200 dark:hover:bg-emerald-500/20 dark:hover:text-emerald-300"
+                                                class="inline-flex size-9 items-center justify-center rounded-lg bg-neutral-100 text-xs font-semibold text-neutral-600 transition hover:bg-emerald-100 hover:text-emerald-700 dark:bg-neutral-700/60 dark:text-black-200 dark:hover:bg-emerald-500/20 dark:hover:text-emerald-300"
                                             >
                                                 {{ __('Foto') }} {{ $index + 1 }}
                                             </a>
