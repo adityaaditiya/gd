@@ -1,3 +1,9 @@
+@php
+    $pendingCancelTransaksiId = old('transaksi_id', session('show_cancel_modal'));
+    $pendingCancelTransaksiId = $pendingCancelTransaksiId ? (string) $pendingCancelTransaksiId : '';
+    $pendingCancelReason = old('alasan_batal', '');
+@endphp
+
 <x-layouts.app :title="__('Lihat Gadai')">
     <div class="space-y-6">
         <div class="flex flex-col gap-2">
@@ -13,10 +19,20 @@
             </div>
         @endif
 
+        @if (session('error'))
+            <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-sm dark:border-red-500/60 dark:bg-red-500/10 dark:text-red-200">
+                {{ session('error') }}
+            </div>
+        @endif
+
         <div class="rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-800">
             <div class="flex flex-col gap-4 border-b border-neutral-200 p-4 dark:border-neutral-700">
-                
-                    <!-- <a
+                <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                    <div class="flex flex-col gap-1 text-sm text-neutral-600 dark:text-neutral-300">
+                        <span class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Transaksi') }}</span>
+                        <span class="text-base font-semibold text-neutral-900 dark:text-white">{{ number_format($transaksiGadai->total(), 0, ',', '.') }} {{ __('transaksi') }}</span>
+                    </div>
+                    <a
                         href="{{ route('gadai.pemberian-kredit') }}"
                         class="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-600 bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-400 dark:bg-emerald-500 dark:hover:border-emerald-300 dark:hover:bg-emerald-400"
                     >
@@ -24,7 +40,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                         </svg>
                         <span>{{ __('Tambah Transaksi Gadai') }}</span>
-                    </a> -->
+                    </a>
+                </div>
                 <form
                     method="GET"
                     action="{{ route('gadai.lihat-gadai') }}"
@@ -56,10 +73,7 @@
                                 onchange="this.form.requestSubmit()"
                             />
                         </label>
-                        <div class="flex flex-col gap-2">
-                            <span></span>
-                            <span></span>
-                            <span></span>
+                        <div class="flex items-center gap-2">
                             @if (!empty($search) || $tanggalDari || $tanggalSampai)
                                 <a
                                     href="{{ route('gadai.lihat-gadai', ['per_page' => $perPage]) }}"
@@ -68,7 +82,12 @@
                                     {{ __('Reset') }}
                                 </a>
                             @endif
-                            
+                            <button
+                                type="submit"
+                                class="inline-flex items-center justify-center rounded-lg border border-emerald-600 bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-400 dark:bg-emerald-500 dark:hover:border-emerald-300 dark:hover:bg-emerald-400"
+                            >
+                                {{ __('Terapkan') }}
+                            </button>
                         </div>
                     </div>
                     <label class="flex w-full items-center gap-3 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-600 shadow-sm focus-within:border-emerald-500 focus-within:text-neutral-900 focus-within:ring-2 focus-within:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-300 dark:focus-within:border-emerald-400 dark:focus-within:text-white dark:focus-within:ring-emerald-500/40" for="search-transaksi">
@@ -182,7 +201,10 @@
                                             class="flex w-full items-center gap-2 px-4 py-2 text-left text-neutral-700 transition hover:bg-neutral-50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:text-neutral-200 dark:hover:bg-neutral-700/60"
                                             data-menu-item="cancel"
                                             data-transaksi-id="{{ $transaksi->transaksi_id }}"
-                                            {{ $transaksi->status_transaksi === 'Lunas' ? 'disabled' : '' }}
+                                            data-no-sbg="{{ $transaksi->no_sbg }}"
+                                            data-nasabah="{{ $transaksi->nasabah?->nama ?? '' }}"
+                                            data-uang-pinjaman="Rp {{ number_format((float) $transaksi->uang_pinjaman, 0, ',', '.') }}"
+                                            {{ in_array($transaksi->status_transaksi, ['Lunas', 'Perpanjang', 'Lelang', 'Batal'], true) ? 'disabled' : '' }}
                                             role="menuitem"
                                         >
                                             <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
@@ -229,81 +251,126 @@
     @once
 <script data-navigate-once>
   window.KRESNO = window.KRESNO || {};
-  // Guard agar listener tabel tidak terpasang dua kali
   if (!window.KRESNO.lihatGadaiBound) {
-    document.addEventListener('DOMContentLoaded', function () {
-      const table = document.querySelector('[data-transaksi-gadai-table]');
-      if (!table) return;
+    const state = {
+      activeDropdown: null,
+      table: null,
+    };
 
-      let activeDropdown = null;
+    const closeDropdown = () => {
+      if (!state.activeDropdown) return;
+      const { menu, toggle } = state.activeDropdown;
+      menu.classList.add('hidden');
+      toggle.setAttribute('aria-expanded', 'false');
+      state.activeDropdown = null;
+    };
 
-      const closeDropdown = () => {
-        if (!activeDropdown) return;
-        const { menu, toggle } = activeDropdown;
-        menu.classList.add('hidden');
-        toggle.setAttribute('aria-expanded', 'false');
-        activeDropdown = null;
+    const initCancelModal = () => {
+      const modal = document.getElementById('cancel-modal');
+      if (!modal) {
+        window.KRESNO.cancelModal = {
+          open: () => {},
+          close: () => {},
+        };
+        return;
+      }
+
+      const form = modal.querySelector('[data-cancel-form]');
+      const summary = modal.querySelector('[data-cancel-summary]');
+      const reasonField = modal.querySelector('[data-cancel-reason]');
+      const hiddenTransaksi = form?.querySelector('input[name="transaksi_id"]');
+      const actionTemplate = form?.dataset.actionTemplate ?? '';
+
+      const closeModal = () => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('overflow-hidden');
       };
 
-      table.addEventListener('click', function (event) {
-        const toggle = event.target.closest('[data-more-toggle]');
-        if (toggle) {
-          event.preventDefault();
-          const container = toggle.closest('[data-more-container]');
-          if (!container) return;
+      const openModal = (button, presetReason = '') => {
+        if (!form) return;
+        const transaksiId = button.dataset.transaksiId;
+        if (!transaksiId) return;
 
-          const menu = container.querySelector('[data-more-menu]');
-          if (!menu) return;
-
-          if (activeDropdown && activeDropdown.menu === menu) {
-            closeDropdown();
-            return;
-          }
-
-          closeDropdown();
-          menu.classList.remove('hidden');
-          toggle.setAttribute('aria-expanded', 'true');
-          activeDropdown = { menu, toggle };
-          return;
+        form.action = actionTemplate.replace('__TRANSAKSI__', transaksiId);
+        if (hiddenTransaksi) {
+          hiddenTransaksi.value = transaksiId;
         }
 
-        if (event.target.closest('[data-more-menu]')) return;
-        closeDropdown();
-      });
+        if (summary) {
+          const noSbg = button.dataset.noSbg || '';
+          const nasabah = button.dataset.nasabah || '';
+          const amount = button.dataset.uangPinjaman || '';
+          const parts = [noSbg, nasabah, amount].filter(Boolean);
+          summary.textContent = parts.join(' • ');
+        }
 
-      document.addEventListener('click', function (event) {
-        if (!activeDropdown) return;
-        if (table.contains(event.target)) return;
-        closeDropdown();
-      });
+        if (reasonField) {
+          reasonField.value = presetReason || '';
+        }
 
-      document.addEventListener('keydown', function (event) {
-        if (event.key === 'Escape') closeDropdown();
-      });
-    });
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('overflow-hidden');
 
-    // Setelah Livewire navigasi, DOM baru → pasang ulang handler sekali
-    document.addEventListener('livewire:navigated', function () {
-      // biarkan event DOMContentLoaded di atas tidak jalan lagi;
-      // untuk rerender Livewire, kita pasang handler manual di sini:
+        requestAnimationFrame(() => {
+          reasonField?.focus();
+          if (reasonField) {
+            const length = reasonField.value.length;
+            reasonField.setSelectionRange(length, length);
+          }
+        });
+      };
+
+      if (modal.dataset.bound !== 'true') {
+        modal.dataset.bound = 'true';
+
+        modal.querySelectorAll('[data-cancel-close]').forEach((element) => {
+          element.addEventListener('click', (event) => {
+            event.preventDefault();
+            closeModal();
+          });
+        });
+
+        modal.addEventListener('click', (event) => {
+          if (event.target === modal) {
+            closeModal();
+          }
+        });
+
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
+            closeModal();
+          }
+        });
+      }
+
+      window.KRESNO.cancelModal = { open: openModal, close: closeModal };
+
+      const initialTransaksi = modal.dataset.initialTransaksi || '';
+      const initialReason = modal.dataset.initialReason || '';
+      if (initialTransaksi) {
+        const trigger = document.querySelector(`[data-menu-item="cancel"][data-transaksi-id="${initialTransaksi}"]`);
+        if (trigger) {
+          openModal(trigger, initialReason);
+        }
+        modal.dataset.initialTransaksi = '';
+        modal.dataset.initialReason = '';
+      }
+    };
+
+    const bindTable = () => {
       const table = document.querySelector('[data-transaksi-gadai-table]');
-      if (!table) return;
+      if (!table || table.dataset.bound === 'true') {
+        return;
+      }
 
-      // Hindari double-bind pada navigasi berikutnya
-      if (table.dataset.bound === 'true') return;
       table.dataset.bound = 'true';
+      state.table = table;
 
-      let activeDropdown = null;
-
-      const closeDropdown = () => {
-        if (!activeDropdown) return;
-        const { menu, toggle } = activeDropdown;
-        menu.classList.add('hidden');
-        toggle.setAttribute('aria-expanded', 'false');
-        activeDropdown = null;
-      };
-
-      table.addEventListener('click', function (event) {
+      table.addEventListener('click', (event) => {
         const toggle = event.target.closest('[data-more-toggle]');
         if (toggle) {
           event.preventDefault();
@@ -313,7 +380,7 @@
           const menu = container.querySelector('[data-more-menu]');
           if (!menu) return;
 
-          if (activeDropdown && activeDropdown.menu === menu) {
+          if (state.activeDropdown && state.activeDropdown.menu === menu) {
             closeDropdown();
             return;
           }
@@ -321,30 +388,126 @@
           closeDropdown();
           menu.classList.remove('hidden');
           toggle.setAttribute('aria-expanded', 'true');
-          activeDropdown = { menu, toggle };
+          state.activeDropdown = { menu, toggle };
           return;
         }
 
-        if (event.target.closest('[data-more-menu]')) return;
+        const cancelButton = event.target.closest('[data-menu-item="cancel"]');
+        if (cancelButton) {
+          event.preventDefault();
+          if (cancelButton.disabled) {
+            return;
+          }
+          closeDropdown();
+          (window.KRESNO.cancelModal || { open: () => {} }).open(cancelButton);
+          return;
+        }
+
+        if (event.target.closest('[data-more-menu]')) {
+          return;
+        }
+
         closeDropdown();
       });
+    };
 
-      document.addEventListener('click', function (event) {
-        if (!activeDropdown) return;
-        if (table.contains(event.target)) return;
-        closeDropdown();
-      });
-
-      document.addEventListener('keydown', function (event) {
-        if (event.key === 'Escape') closeDropdown();
-      });
+    document.addEventListener('click', (event) => {
+      if (!state.activeDropdown) return;
+      if (state.table && state.table.contains(event.target)) return;
+      closeDropdown();
     });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        closeDropdown();
+      }
+    });
+
+    const bootstrap = () => {
+      initCancelModal();
+      bindTable();
+    };
+
+    document.addEventListener('DOMContentLoaded', bootstrap);
+    document.addEventListener('livewire:navigated', bootstrap);
 
     window.KRESNO.lihatGadaiBound = true;
   }
 </script>
 @endonce
 
+    <div
+        id="cancel-modal"
+        class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 px-4 py-6 backdrop-blur-sm"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cancel-modal-title"
+        data-initial-transaksi="{{ $pendingCancelTransaksiId }}"
+        data-initial-reason="{{ e($pendingCancelReason) }}"
+    >
+        <div class="mx-auto w-full max-w-lg rounded-2xl bg-white shadow-xl dark:bg-neutral-900">
+            <div class="flex items-center justify-between border-b border-neutral-200 px-6 py-4 dark:border-neutral-700">
+                <div>
+                    <h2 id="cancel-modal-title" class="text-lg font-semibold text-neutral-900 dark:text-white">
+                        {{ __('Batalkan Transaksi Gadai') }}
+                    </h2>
+                    <p class="text-sm text-neutral-500 dark:text-neutral-300" data-cancel-summary></p>
+                </div>
+                <button type="button" class="text-neutral-400 transition hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300" data-cancel-close>
+                    <span class="sr-only">{{ __('Tutup modal') }}</span>
+                    <svg class="size-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <form
+                method="POST"
+                class="space-y-4 px-6 py-5"
+                data-cancel-form
+                data-action-template="{{ route('gadai.transaksi-gadai.cancel', ['transaksi' => '__TRANSAKSI__']) }}"
+            >
+                @csrf
+                <input type="hidden" name="transaksi_id" value="">
+                <input type="hidden" name="search" value="{{ $search }}">
+                <input type="hidden" name="tanggal_dari" value="{{ $tanggalDari }}">
+                <input type="hidden" name="tanggal_sampai" value="{{ $tanggalSampai }}">
+                <input type="hidden" name="per_page" value="{{ $perPage }}">
+                <input type="hidden" name="page" value="{{ $transaksiGadai->currentPage() }}">
+                <label class="flex flex-col gap-2 text-sm text-neutral-700 dark:text-neutral-200">
+                    <span class="font-medium">{{ __('Alasan Pembatalan') }}</span>
+                    <textarea
+                        name="alasan_batal"
+                        rows="4"
+                        required
+                        class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-red-400 dark:focus:ring-red-500/40"
+                        placeholder="{{ __('Jelaskan mengapa transaksi ini dibatalkan…') }}"
+                        data-cancel-reason
+                    >{{ old('alasan_batal') }}</textarea>
+                    @error('alasan_batal')
+                        <span class="text-xs text-red-600 dark:text-red-400">{{ $message }}</span>
+                    @enderror
+                </label>
+                <div class="flex items-center justify-between gap-3">
+                    <button
+                        type="button"
+                        class="inline-flex items-center justify-center rounded-lg border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-600 transition hover:bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-400 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800/70"
+                        data-cancel-close
+                    >
+                        {{ __('Batal') }}
+                    </button>
+                    <button
+                        type="submit"
+                        class="inline-flex items-center justify-center gap-2 rounded-lg border border-red-600 bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:border-red-700 hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500 dark:border-red-500 dark:bg-red-500 dark:hover:border-red-400 dark:hover:bg-red-400"
+                    >
+                        <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        </svg>
+                        <span>{{ __('Konfirmasi Batal') }}</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </x-layouts.app>
 
 @push('scripts')

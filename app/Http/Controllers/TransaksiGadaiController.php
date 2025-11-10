@@ -10,6 +10,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
@@ -170,6 +171,47 @@ class TransaksiGadaiController extends Controller
         return redirect()
             ->route('gadai.lihat-gadai')
             ->with('status', __('Kontrak gadai berhasil diterbitkan dan barang dikunci.'));
+    }
+
+    public function cancel(Request $request, TransaksiGadai $transaksi): RedirectResponse
+    {
+        $request->validate([
+            'alasan_batal' => ['required', 'string', 'max:1000'],
+        ]);
+
+        $status = $transaksi->status_transaksi;
+
+        if (in_array($status, ['Lunas', 'Perpanjang', 'Lelang', 'Batal'], true)) {
+            $message = __('Transaksi dengan status :status tidak dapat dibatalkan.', ['status' => $status ?? '—']);
+
+            return redirect()
+                ->back()
+                ->withInput($request->all())
+                ->withErrors([
+                    'alasan_batal' => $message,
+                ])
+                ->with('error', $message);
+        }
+
+        $alasan = trim((string) $request->input('alasan_batal'));
+
+        $pembatalId = Auth::id();
+
+        if (!$pembatalId) {
+            abort(403, 'Pengguna tidak dikenali.');
+        }
+
+        DB::transaction(function () use ($transaksi, $alasan, $pembatalId) {
+            $transaksi->status_transaksi = 'Batal';
+            $transaksi->tanggal_batal = Carbon::now();
+            $transaksi->alasan_batal = $alasan;
+            $transaksi->pegawai_pembatal_id = $pembatalId;
+            $transaksi->save();
+        });
+
+        return redirect()
+            ->route('gadai.lihat-gadai', $request->only(['search', 'tanggal_dari', 'tanggal_sampai', 'page', 'per_page']))
+            ->with('status', __('Transaksi gadai berhasil dibatalkan.'));
     }
 
     private function validateData(Request $request): array
