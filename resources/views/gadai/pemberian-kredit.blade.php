@@ -228,6 +228,21 @@
                             </div>
 
                             <div class="flex flex-col gap-2">
+                                <label for="premi" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Premi') }}</label>
+                                <input
+                                    type="text"
+                                    inputmode="decimal"
+                                    id="premi"
+                                    name="premi"
+                                    value="{{ old('premi') }}"
+                                    class="block w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+                                />
+                                @error('premi')
+                                    <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="flex flex-col gap-2">
                                 <label for="estimasi_bunga_display" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Estimasi Bunga (0,15%/hari)') }}</label>
                                 <input
                                     type="text"

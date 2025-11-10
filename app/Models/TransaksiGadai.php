@@ -24,6 +24,7 @@ class TransaksiGadai extends Model
         'total_bunga',
         'uang_pinjaman',
         'biaya_admin',
+        'premi',
         'status_transaksi',
         'tanggal_batal',
         'alasan_batal',
@@ -39,6 +40,7 @@ class TransaksiGadai extends Model
         'total_bunga' => 'decimal:2',
         'uang_pinjaman' => 'decimal:2',
         'biaya_admin' => 'decimal:2',
+        'premi' => 'decimal:2',
     ];
 
     public function nasabah()

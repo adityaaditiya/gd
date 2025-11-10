@@ -118,12 +118,12 @@
                         <th scope="col" class="px-4 py-3">{{ __('Nasabah') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Barang Jaminan') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Pinjaman') }}</th>
+                        <th scope="col" class="px-4 py-3">{{ __('Premi') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Tenor') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Bunga Terakumulasi') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Tarif Bunga Harian') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Jatuh Tempo') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Kasir') }}</th>
-                        <th scope="col" class="px-4 py-3">{{ __('Status') }}</th>
                         <th scope="col" class="px-4 py-3 text-center">{{ __('Aksi') }}</th>
                     </tr>
                 </thead>
@@ -163,6 +163,9 @@
                                     <div class="text-xs text-neutral-500 dark:text-neutral-300">{{ __('Biaya admin: Rp :amount', ['amount' => number_format((float) $transaksi->biaya_admin, 0, ',', '.')]) }}</div>
                                 @endif
                             </td>
+                            <td class="whitespace-nowrap px-4 py-3">
+                                <div class="font-semibold text-neutral-900 dark:text-white">Rp {{ number_format((float) $transaksi->premi, 0, ',', '.') }}</div>
+                            </td>
                             <td class="whitespace-nowrap px-4 py-3">{{ $transaksi->tenor_hari ? $transaksi->tenor_hari . ' ' . __('hari') : '—' }}</td>
                             <td class="whitespace-nowrap px-4 py-3">Rp {{ number_format((float) $transaksi->total_bunga, 0, ',', '.') }}</td>
                             <td class="whitespace-nowrap px-4 py-3">{{ number_format((float) $transaksi->tarif_bunga_harian * 100, 2, ',', '.') }}%</td>
@@ -171,11 +174,6 @@
                                 <div class="flex flex-col text-xs text-neutral-600 dark:text-neutral-300">
                                     <span>{{ __('Kasir:') }} {{ $transaksi->kasir?->name ?? '—' }}</span>
                                 </div>
-                            </td>
-                            <td class="px-4 py-3">
-                                <span class="inline-flex items-center rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-neutral-700 dark:bg-neutral-700/60 dark:text-neutral-100">
-                                    {{ __($transaksi->status_transaksi ?? 'Tidak diketahui') }}
-                                </span>
                             </td>
                             <td class="px-4 py-3">
                                 <div class="relative flex justify-center" data-more-container>

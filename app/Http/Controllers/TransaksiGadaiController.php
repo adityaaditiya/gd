@@ -164,6 +164,7 @@ class TransaksiGadaiController extends Controller
             'total_bunga' => $totalBunga,
             'uang_pinjaman' => $data['uang_pinjaman'],
             'biaya_admin' => $data['biaya_admin'],
+            'premi' => $data['premi'],
             'status_transaksi' => 'Aktif',
         ]);
 
@@ -240,11 +241,13 @@ class TransaksiGadaiController extends Controller
             'jatuh_tempo_awal' => ['required', 'date', 'after_or_equal:tanggal_gadai'],
             'uang_pinjaman' => ['required', 'string'],
             'biaya_admin' => ['nullable', 'string'],
+            'premi' => ['nullable', 'string'],
         ]);
 
         $validated['barang_ids'] = array_values(array_map('strval', $validated['barang_ids']));
         $validated['uang_pinjaman'] = $this->toDecimalString($validated['uang_pinjaman']);
         $validated['biaya_admin'] = $this->toDecimalString($validated['biaya_admin'] ?? '0');
+        $validated['premi'] = $this->toDecimalString($validated['premi'] ?? '0');
 
         return $validated;
     }
