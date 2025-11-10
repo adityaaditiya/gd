@@ -144,6 +144,18 @@
                             </div>
 
                             <div class="flex flex-col gap-2">
+                                <label for="tenor_display" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Tenor (Hari)') }}</label>
+                                <input
+                                    type="text"
+                                    id="tenor_display"
+                                    value="—"
+                                    readonly
+                                    class="block w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-neutral-300 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
+                                />
+                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Tenor dihitung otomatis dari tanggal gadai dan jatuh tempo.') }}</p>
+                            </div>
+
+                            <div class="flex flex-col gap-2">
                                 <label for="uang_pinjaman" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Nominal Pinjaman') }}</label>
                                 <input
                                     type="text"
@@ -172,6 +184,18 @@
                                 @error('biaya_admin')
                                     <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                 @enderror
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                                <label for="estimasi_bunga_display" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Estimasi Bunga (0,15%/hari)') }}</label>
+                                <input
+                                    type="text"
+                                    id="estimasi_bunga_display"
+                                    value="Rp 0,00"
+                                    readonly
+                                    class="block w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-neutral-300 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
+                                />
+                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Nilai bunga mengikuti tarif flat 0,15% per hari dikalikan dengan nominal pinjaman dan tenor.') }}</p>
                             </div>
                         </div>
                     </section>
@@ -226,11 +250,16 @@
                     const select = document.getElementById('barang_id');
                     const ringkasanDeskripsi = document.getElementById('ringkasan-deskripsi');
                     const ringkasanNilai = document.getElementById('ringkasan-nilai');
+                    const tanggalGadaiInput = document.getElementById('tanggal_gadai');
+                    const jatuhTempoInput = document.getElementById('jatuh_tempo_awal');
+                    const pinjamanInput = document.getElementById('uang_pinjaman');
+                    const tenorDisplay = document.getElementById('tenor_display');
+                    const bungaDisplay = document.getElementById('estimasi_bunga_display');
 
                     if (!select) return;
 
                     const formatCurrency = (value) => {
-                        if (!value) return '—';
+                        if (value === null || value === undefined || value === '') return '—';
                         const number = Number.parseFloat(value);
                         if (Number.isNaN(number)) return '—';
                         return new Intl.NumberFormat('id-ID', {
@@ -238,6 +267,38 @@
                             currency: 'IDR',
                             minimumFractionDigits: 2,
                         }).format(number);
+                    };
+
+                    const parseDecimal = (rawValue) => {
+                        if (rawValue === null || rawValue === undefined) return 0;
+                        if (typeof rawValue !== 'string') {
+                            const numeric = Number(rawValue);
+                            return Number.isNaN(numeric) ? 0 : numeric;
+                        }
+
+                        let value = rawValue.trim();
+                        if (value === '') return 0;
+
+                        value = value.replace(/[^0-9,.-]/g, '');
+                        const lastComma = value.lastIndexOf(',');
+                        const lastDot = value.lastIndexOf('.');
+
+                        if (lastComma !== -1 && lastDot !== -1) {
+                            if (lastComma > lastDot) {
+                                value = value.replace(/\./g, '');
+                                value = value.replace(/,/g, '.');
+                            } else {
+                                value = value.replace(/,/g, '');
+                            }
+                        } else if (lastComma !== -1) {
+                            value = value.replace(/\./g, '');
+                            value = value.replace(/,/g, '.');
+                        } else {
+                            value = value.replace(/,/g, '');
+                        }
+
+                        const parsed = Number.parseFloat(value);
+                        return Number.isNaN(parsed) ? 0 : parsed;
                     };
 
                     const updateSummary = () => {
@@ -251,8 +312,41 @@
                         ringkasanNilai.textContent = formatCurrency(option.dataset.nilai);
                     };
 
+                    const updateBunga = () => {
+                        if (!tenorDisplay || !bungaDisplay) return;
+
+                        const ratePerDay = 0.0015;
+                        const millisecondsPerDay = 24 * 60 * 60 * 1000;
+
+                        const tanggalGadai = tanggalGadaiInput?.value ? new Date(tanggalGadaiInput.value) : null;
+                        const jatuhTempo = jatuhTempoInput?.value ? new Date(jatuhTempoInput.value) : null;
+
+                        let tenor = 0;
+                        if (tanggalGadai instanceof Date && jatuhTempo instanceof Date) {
+                            const startTime = tanggalGadai.getTime();
+                            const endTime = jatuhTempo.getTime();
+
+                            if (!Number.isNaN(startTime) && !Number.isNaN(endTime) && endTime >= startTime) {
+                                const diffDays = Math.floor((endTime - startTime) / millisecondsPerDay);
+                                tenor = Math.max(1, diffDays);
+                            }
+                        }
+
+                        tenorDisplay.value = tenor > 0 ? `${tenor} hari` : '—';
+
+                        const pinjaman = parseDecimal(pinjamanInput?.value ?? '');
+                        const bunga = tenor > 0 && pinjaman > 0 ? pinjaman * ratePerDay * tenor : 0;
+
+                        bungaDisplay.value = tenor > 0 && pinjaman > 0 ? formatCurrency(bunga) : formatCurrency(0);
+                    };
+
                     select.addEventListener('change', updateSummary);
+                    tanggalGadaiInput?.addEventListener('change', updateBunga);
+                    jatuhTempoInput?.addEventListener('change', updateBunga);
+                    pinjamanInput?.addEventListener('input', updateBunga);
+
                     updateSummary();
+                    updateBunga();
                 }
             };
 
