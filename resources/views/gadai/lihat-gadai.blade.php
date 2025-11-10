@@ -19,6 +19,7 @@
                     {{ __('Total :count transaksi.', ['count' => number_format($transaksiGadai->total(), 0, ',', '.')]) }}
                 </div>
                 <form method="GET" action="{{ route('gadai.lihat-gadai') }}" class="relative">
+                    <input type="hidden" name="per_page" value="{{ $perPage }}">
                     <label for="search-no-sbg" class="sr-only">{{ __('Cari No. SBG') }}</label>
                     <div class="flex items-center gap-2">
                     <div class="relative flex-1">
@@ -33,7 +34,7 @@
                         </div>
                         @if (!empty($search))
                             <a
-                                href="{{ route('gadai.lihat-gadai') }}"
+                                href="{{ route('gadai.lihat-gadai', ['per_page' => $perPage]) }}"
                                 class="inline-flex items-center rounded-lg border border-neutral-200 px-3 py-2 text-xs font-semibold text-neutral-600 transition hover:bg-neutral-50 dark:border-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-700/60"
                             >
                                 {{ __('Reset') }}
@@ -103,6 +104,7 @@
                                             <li class="rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-700 dark:bg-neutral-900 dark:text-neutral-200">
                                                 <div class="font-semibold text-neutral-900 dark:text-white">{{ $barang->jenis_barang }} — {{ $barang->merek }}</div>
                                                 <div>Rp {{ number_format((float) $barang->nilai_taksiran, 0, ',', '.') }}</div>
+                                                <div class="text-[11px] text-neutral-500 dark:text-neutral-300">{{ __('Kelengkapan:') }} {{ $barang->kelengkapan ?? '—' }}</div>
                                             </li>
                                         @endforeach
                                     </ul>
@@ -186,9 +188,12 @@
             </table>
         </div>
 
-        <div>
-            {{ $transaksiGadai->links() }}
-        </div>
+        <x-table.pagination-controls
+            :paginator="$transaksiGadai"
+            :per-page="$perPage"
+            :per-page-options="$perPageOptions"
+            :form-action="route('gadai.lihat-gadai')"
+        />
     </div>
 
     @once

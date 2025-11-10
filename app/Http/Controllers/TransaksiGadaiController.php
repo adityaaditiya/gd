@@ -17,6 +17,12 @@ class TransaksiGadaiController extends Controller
     public function index(Request $request): View
     {
         $search = trim((string) $request->input('search'));
+        $perPageOptions = [10, 25, 50, 100];
+        $perPage = (int) $request->query('per_page', 10);
+
+        if (!in_array($perPage, $perPageOptions, true)) {
+            $perPage = 10;
+        }
 
         $transaksiGadai = TransaksiGadai::with([
             'nasabah',
@@ -27,12 +33,14 @@ class TransaksiGadaiController extends Controller
                 $query->where('no_sbg', 'like', "%{$search}%");
             })
             ->latest('tanggal_gadai')
-            ->paginate(15)
+            ->paginate($perPage > 0 ? $perPage : 10)
             ->withQueryString();
 
         return view('gadai.lihat-gadai', [
             'transaksiGadai' => $transaksiGadai,
             'search' => $search,
+            'perPage' => $perPage,
+            'perPageOptions' => $perPageOptions,
         ]);
     }
 
