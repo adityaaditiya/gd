@@ -49,11 +49,22 @@ class TransaksiGadaiController extends Controller
     {
         $data = $this->validateData($request);
 
-        $barang = BarangJaminan::query()
-            ->whereNull('transaksi_id')
-            ->findOrFail($data['barang_id']);
+        $barangIds = array_map('intval', $data['barang_ids']);
 
-        $nilaiTaksiran = (float) $barang->nilai_taksiran;
+        $barangCollection = BarangJaminan::query()
+            ->whereNull('transaksi_id')
+            ->whereIn('barang_id', $barangIds)
+            ->get();
+
+        if ($barangCollection->count() !== count($barangIds)) {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'barang_ids' => __('Salah satu barang yang dipilih tidak tersedia atau sudah terikat kontrak.'),
+                ]);
+        }
+
+        $nilaiTaksiran = (float) $barangCollection->sum('nilai_taksiran');
         $uangPinjaman = (float) $data['uang_pinjaman'];
         $maxPinjaman = round($nilaiTaksiran * 0.94, 2);
 
@@ -94,8 +105,10 @@ class TransaksiGadaiController extends Controller
             'status_transaksi' => 'Aktif',
         ]);
 
-        $barang->transaksi_id = $transaksi->transaksi_id;
-        $barang->save();
+        foreach ($barangCollection as $barang) {
+            $barang->transaksi_id = $transaksi->transaksi_id;
+            $barang->save();
+        }
 
         return redirect()
             ->route('gadai.lihat-gadai')
@@ -105,8 +118,10 @@ class TransaksiGadaiController extends Controller
     private function validateData(Request $request): array
     {
         $validated = $request->validate([
-            'barang_id' => [
+            'barang_ids' => ['required', 'array', 'min:1'],
+            'barang_ids.*' => [
                 'required',
+                'distinct',
                 Rule::exists('barang_jaminan', 'barang_id')->whereNull('transaksi_id'),
             ],
             'no_sbg' => ['required', 'string', 'max:50', 'unique:transaksi_gadai,no_sbg'],
@@ -117,6 +132,7 @@ class TransaksiGadaiController extends Controller
             'biaya_admin' => ['nullable', 'string'],
         ]);
 
+        $validated['barang_ids'] = array_values(array_map('strval', $validated['barang_ids']));
         $validated['uang_pinjaman'] = $this->toDecimalString($validated['uang_pinjaman']);
         $validated['biaya_admin'] = $this->toDecimalString($validated['biaya_admin'] ?? '0');
 

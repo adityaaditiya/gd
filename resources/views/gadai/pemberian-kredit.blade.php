@@ -27,43 +27,61 @@
 
                         <div class="grid gap-4 lg:grid-cols-2">
                             <div class="flex flex-col gap-2">
-                                <label for="barang_id" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Barang Jaminan') }}</label>
+                                <label for="barang_ids" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Barang Jaminan') }}</label>
+                                @php
+                                    $barangDipilih = collect(old('barang_ids', []))->map(fn ($id) => (string) $id)->all();
+                                @endphp
                                 <select
-                                    id="barang_id"
-                                    name="barang_id"
+                                    id="barang_ids"
+                                    name="barang_ids[]"
                                     required
+                                    multiple
+                                    size="6"
                                     class="block w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
                                 >
-                                    <option value="" disabled {{ old('barang_id') ? '' : 'selected' }}>{{ __('Pilih barang siap gadai') }}</option>
                                     @foreach ($barangSiapGadai as $barang)
                                         <option
                                             value="{{ $barang->barang_id }}"
                                             data-nilai="{{ $barang->nilai_taksiran }}"
                                             data-deskripsi="{{ $barang->jenis_barang }} — {{ $barang->merek }}"
-                                            {{ (string) old('barang_id') === (string) $barang->barang_id ? 'selected' : '' }}
+                                            {{ in_array((string) $barang->barang_id, $barangDipilih, true) ? 'selected' : '' }}
                                         >
                                             {{ $barang->jenis_barang }} — {{ $barang->merek }} ({{ __('Taksiran: :amount', ['amount' => number_format((float) $barang->nilai_taksiran, 2, ',', '.')]) }})
                                         </option>
                                     @endforeach
                                 </select>
-                                @error('barang_id')
+                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Gunakan Ctrl/Cmd + klik untuk memilih lebih dari satu barang.') }}</p>
+                                @error('barang_ids')
                                     <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                 @enderror
+                                @if ($errors->has('barang_ids.*'))
+                                    <p class="text-sm text-red-600 dark:text-red-400">{{ $errors->first('barang_ids.*') }}</p>
+                                @endif
                             </div>
 
                             <div class="rounded-lg border border-dashed border-emerald-300 bg-emerald-50/70 p-4 text-sm text-emerald-900 dark:border-emerald-500 dark:bg-emerald-500/10 dark:text-emerald-200">
                                 <p class="font-semibold">{{ __('Ringkasan Barang Terpilih') }}</p>
-                                <dl class="mt-2 space-y-1">
+                                <dl class="mt-2 space-y-2 text-xs">
                                     <div class="flex justify-between gap-2">
-                                        <dt class="text-neutral-600 dark:text-neutral-300">{{ __('Deskripsi') }}</dt>
-                                        <dd id="ringkasan-deskripsi" class="font-medium text-neutral-900 dark:text-white">—</dd>
+                                        <dt class="text-neutral-600 dark:text-neutral-300">{{ __('Jumlah Barang') }}</dt>
+                                        <dd id="ringkasan-jumlah" class="font-semibold text-neutral-900 dark:text-white">0</dd>
                                     </div>
                                     <div class="flex justify-between gap-2">
-                                        <dt class="text-neutral-600 dark:text-neutral-300">{{ __('Nilai Taksiran') }}</dt>
-                                        <dd id="ringkasan-nilai" class="font-medium text-neutral-900 dark:text-white">—</dd>
+                                        <dt class="text-neutral-600 dark:text-neutral-300">{{ __('Total Nilai Taksiran') }}</dt>
+                                        <dd id="ringkasan-total-nilai" class="font-semibold text-neutral-900 dark:text-white">—</dd>
+                                    </div>
+                                    <div class="flex justify-between gap-2">
+                                        <dt class="text-neutral-600 dark:text-neutral-300">{{ __('Plafon Maksimal (94%)') }}</dt>
+                                        <dd id="ringkasan-plafon" class="font-semibold text-neutral-900 dark:text-white">—</dd>
                                     </div>
                                 </dl>
-                                <p class="mt-3 text-xs text-neutral-500 dark:text-neutral-400">{{ __('Nilai taksiran otomatis digunakan sebagai acuan batas plafon pinjaman.') }}</p>
+                                <div class="mt-3 rounded-lg bg-white/60 p-3 text-xs text-neutral-700 shadow-sm dark:bg-neutral-900/40 dark:text-neutral-200">
+                                    <p class="font-semibold">{{ __('Daftar Barang') }}</p>
+                                    <ul id="ringkasan-daftar" class="mt-2 space-y-1">
+                                        <li class="italic text-neutral-500 dark:text-neutral-400">{{ __('Belum ada barang dipilih.') }}</li>
+                                    </ul>
+                                </div>
+                                <p class="mt-3 text-xs text-neutral-500 dark:text-neutral-400">{{ __('Total nilai taksiran digunakan sebagai acuan batas plafon pinjaman 94%.') }}</p>
                             </div>
                         </div>
                     </section>
@@ -247,9 +265,11 @@
                     if (!root || root.dataset.initialized === 'true') return;
                     root.dataset.initialized = 'true';
 
-                    const select = document.getElementById('barang_id');
-                    const ringkasanDeskripsi = document.getElementById('ringkasan-deskripsi');
-                    const ringkasanNilai = document.getElementById('ringkasan-nilai');
+                    const select = document.getElementById('barang_ids');
+                    const ringkasanJumlah = document.getElementById('ringkasan-jumlah');
+                    const ringkasanTotal = document.getElementById('ringkasan-total-nilai');
+                    const ringkasanPlafon = document.getElementById('ringkasan-plafon');
+                    const ringkasanDaftar = document.getElementById('ringkasan-daftar');
                     const tanggalGadaiInput = document.getElementById('tanggal_gadai');
                     const jatuhTempoInput = document.getElementById('jatuh_tempo_awal');
                     const pinjamanInput = document.getElementById('uang_pinjaman');
@@ -301,15 +321,42 @@
                         return Number.isNaN(parsed) ? 0 : parsed;
                     };
 
+                    let totalNilaiTerpilih = 0;
+                    const emptyListMessage = @json(__('Belum ada barang dipilih.'));
+
                     const updateSummary = () => {
-                        const option = select.options[select.selectedIndex];
-                        if (!option || !option.value) {
-                            ringkasanDeskripsi.textContent = '—';
-                            ringkasanNilai.textContent = '—';
+                        const options = Array.from(select?.selectedOptions ?? []).filter((option) => option.value);
+                        totalNilaiTerpilih = 0;
+
+                        if (!ringkasanJumlah || !ringkasanTotal || !ringkasanPlafon || !ringkasanDaftar) {
                             return;
                         }
-                        ringkasanDeskripsi.textContent = option.dataset.deskripsi ?? '—';
-                        ringkasanNilai.textContent = formatCurrency(option.dataset.nilai);
+
+                        ringkasanJumlah.textContent = options.length.toString();
+
+                        if (options.length === 0) {
+                            ringkasanTotal.textContent = '—';
+                            ringkasanPlafon.textContent = '—';
+                            ringkasanDaftar.innerHTML = `<li class="italic text-neutral-500 dark:text-neutral-400">${emptyListMessage}</li>`;
+                            select?.setAttribute('data-total-nilai', '0');
+                            return;
+                        }
+
+                        ringkasanDaftar.innerHTML = '';
+
+                        options.forEach((option) => {
+                            const nilai = parseDecimal(option.dataset.nilai ?? '0');
+                            totalNilaiTerpilih += nilai;
+
+                            const item = document.createElement('li');
+                            item.className = 'rounded-md bg-emerald-100/70 px-3 py-2 text-neutral-700 dark:bg-emerald-500/10 dark:text-neutral-100';
+                            item.innerHTML = `<span class="font-semibold text-neutral-900 dark:text-white">${option.dataset.deskripsi ?? option.textContent ?? ''}</span><div>${formatCurrency(nilai)}</div>`;
+                            ringkasanDaftar.appendChild(item);
+                        });
+
+                        ringkasanTotal.textContent = formatCurrency(totalNilaiTerpilih);
+                        ringkasanPlafon.textContent = formatCurrency(totalNilaiTerpilih * 0.94);
+                        select?.setAttribute('data-total-nilai', totalNilaiTerpilih.toString());
                     };
 
                     const updateBunga = () => {
@@ -340,7 +387,10 @@
                         bungaDisplay.value = tenor > 0 && pinjaman > 0 ? formatCurrency(bunga) : formatCurrency(0);
                     };
 
-                    select.addEventListener('change', updateSummary);
+                    select.addEventListener('change', () => {
+                        updateSummary();
+                        updateBunga();
+                    });
                     tanggalGadaiInput?.addEventListener('change', updateBunga);
                     jatuhTempoInput?.addEventListener('change', updateBunga);
                     pinjamanInput?.addEventListener('input', updateBunga);
