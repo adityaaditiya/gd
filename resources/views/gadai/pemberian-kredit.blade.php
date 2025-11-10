@@ -27,7 +27,16 @@
 
                         <div class="grid gap-4 lg:grid-cols-2">
                             <div class="flex flex-col gap-2">
-                                <label for="barang_ids" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Barang Jaminan') }}</label>
+                                <div class="flex items-center justify-between gap-2">
+                                    <label for="barang_ids" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Barang Jaminan') }}</label>
+                                    <label for="barang_search" class="sr-only">{{ __('Cari Barang Jaminan') }}</label>
+                                    <input
+                                        type="search"
+                                        id="barang_search"
+                                        placeholder="{{ __('Cari barang…') }}"
+                                        class="block w-48 rounded-lg border border-neutral-300 bg-white px-2 py-1 text-xs text-neutral-700 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-200 dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+                                    />
+                                </div>
                                 @php
                                     $barangDipilih = collect(old('barang_ids', []))->map(fn ($id) => (string) $id)->all();
                                 @endphp
@@ -44,6 +53,7 @@
                                             value="{{ $barang->barang_id }}"
                                             data-nilai="{{ $barang->nilai_taksiran }}"
                                             data-deskripsi="{{ $barang->jenis_barang }} — {{ $barang->merek }}"
+                                            data-search="{{ strtolower($barang->jenis_barang . ' ' . $barang->merek . ' ' . ($barang->kode_barang ?? '')) }}"
                                             {{ in_array((string) $barang->barang_id, $barangDipilih, true) ? 'selected' : '' }}
                                         >
                                             {{ $barang->jenis_barang }} — {{ $barang->merek }} ({{ __('Taksiran: :amount', ['amount' => number_format((float) $barang->nilai_taksiran, 2, ',', '.')]) }})
@@ -112,16 +122,29 @@
                             </div>
 
                             <div class="flex flex-col gap-2">
-                                <label for="nasabah_id" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Nasabah') }}</label>
+                                <div class="flex items-center justify-between gap-2">
+                                    <label for="nasabah_id" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Nasabah') }}</label>
+                                    <label for="nasabah_search" class="sr-only">{{ __('Cari Nasabah') }}</label>
+                                    <input
+                                        type="search"
+                                        id="nasabah_search"
+                                        placeholder="{{ __('Cari nasabah…') }}"
+                                        class="block w-48 rounded-lg border border-neutral-300 bg-white px-2 py-1 text-xs text-neutral-700 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-200 dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+                                    />
+                                </div>
                                 <select
                                     id="nasabah_id"
                                     name="nasabah_id"
                                     required
                                     class="block w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
                                 >
-                                    <option value="" disabled {{ old('nasabah_id') ? '' : 'selected' }}>{{ __('Pilih nasabah') }}</option>
+                                    <option value="" disabled {{ old('nasabah_id') ? '' : 'selected' }} data-placeholder="true">{{ __('Pilih nasabah') }}</option>
                                     @foreach ($nasabahList as $nasabah)
-                                        <option value="{{ $nasabah->id }}" {{ (string) old('nasabah_id') === (string) $nasabah->id ? 'selected' : '' }}>
+                                        <option
+                                            value="{{ $nasabah->id }}"
+                                            data-search="{{ strtolower($nasabah->nama . ' ' . $nasabah->kode_member) }}"
+                                            {{ (string) old('nasabah_id') === (string) $nasabah->id ? 'selected' : '' }}
+                                        >
                                             {{ $nasabah->nama }} — {{ $nasabah->kode_member }}
                                         </option>
                                     @endforeach
@@ -275,6 +298,9 @@
                     const pinjamanInput = document.getElementById('uang_pinjaman');
                     const tenorDisplay = document.getElementById('tenor_display');
                     const bungaDisplay = document.getElementById('estimasi_bunga_display');
+                    const barangSearchInput = document.getElementById('barang_search');
+                    const nasabahSelect = document.getElementById('nasabah_id');
+                    const nasabahSearchInput = document.getElementById('nasabah_search');
 
                     if (!select) return;
 
@@ -323,6 +349,23 @@
 
                     let totalNilaiTerpilih = 0;
                     const emptyListMessage = @json(__('Belum ada barang dipilih.'));
+
+                    const filterSelectOptions = (inputEl, selectEl) => {
+                        if (!inputEl || !selectEl) return;
+
+                        const term = inputEl.value.trim().toLowerCase();
+                        Array.from(selectEl.options).forEach((option) => {
+                            if (!option) return;
+
+                            if (!option.value && option.dataset.placeholder === 'true') {
+                                option.hidden = false;
+                                return;
+                            }
+
+                            const searchable = (option.dataset.search ?? option.textContent ?? '').toLowerCase();
+                            option.hidden = term !== '' && !searchable.includes(term);
+                        });
+                    };
 
                     const updateSummary = () => {
                         const options = Array.from(select?.selectedOptions ?? []).filter((option) => option.value);
@@ -391,12 +434,20 @@
                         updateSummary();
                         updateBunga();
                     });
+                    barangSearchInput?.addEventListener('input', () => {
+                        filterSelectOptions(barangSearchInput, select);
+                    });
+                    nasabahSearchInput?.addEventListener('input', () => {
+                        filterSelectOptions(nasabahSearchInput, nasabahSelect);
+                    });
                     tanggalGadaiInput?.addEventListener('change', updateBunga);
                     jatuhTempoInput?.addEventListener('change', updateBunga);
                     pinjamanInput?.addEventListener('input', updateBunga);
 
                     updateSummary();
                     updateBunga();
+                    filterSelectOptions(barangSearchInput, select);
+                    filterSelectOptions(nasabahSearchInput, nasabahSelect);
                 }
             };
 
