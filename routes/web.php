@@ -32,6 +32,9 @@ Route::middleware(['auth'])->group(function () {
             Route::get('pemberian-kredit', [TransaksiGadaiController::class, 'create'])->name('pemberian-kredit');
             Route::post('pemberian-kredit', [TransaksiGadaiController::class, 'store'])->name('transaksi-gadai.store');
             Route::get('lihat-gadai', [TransaksiGadaiController::class, 'index'])->name('lihat-gadai');
+            Route::post('transaksi-gadai/{transaksi}/batal', [TransaksiGadaiController::class, 'cancel'])
+                ->whereNumber('transaksi')
+                ->name('transaksi-gadai.cancel');
             Route::get('lihat-barang-gadai', [BarangJaminanController::class, 'index'])->name('lihat-barang-gadai');
             Route::get('barang-gadai/tambah', [BarangJaminanController::class, 'create'])->name('barang-jaminan.create');
             Route::post('barang-gadai', [BarangJaminanController::class, 'store'])->name('barang-jaminan.store');
