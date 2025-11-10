@@ -12,17 +12,17 @@
                 <label for="search-no-sbg" class="sr-only">{{ __('Cari No. SBG') }}</label>
                 <div class="flex items-center gap-2">
                     <div class="relative flex-1">
-                        <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-neutral-400 dark:text-neutral-500">
+                        <!-- <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-neutral-400 dark:text-neutral-500">
                             <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 105.5 5.5a7.5 7.5 0 0011.15 11.15z" />
                             </svg>
-                        </span>
+                        </span> -->
                         <input
                             id="search-no-sbg"
                             name="search"
                             type="search"
                             value="{{ $search ?? '' }}"
-                            placeholder="{{ __('Cari No. SBG…') }}"
+                            placeholder="{{ __('   Cari No. SBG…') }}"
                             class="w-full rounded-lg border border-neutral-200 bg-white py-2 pl-9 pr-3 text-sm text-neutral-700 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
                         />
                     </div>
@@ -36,16 +36,14 @@
                     @endif
                     <button
                         type="submit"
-                        class="inline-flex items-center rounded-lg border border-emerald-600 bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-400 dark:bg-emerald-500 dark:hover:border-emerald-300 dark:hover:bg-emerald-400"
+                        class="inline-flex items-center rounded-lg border border-emerald-600 bg-emerald-600 px-3 py-2 text-xs font-semibold text-red shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-400 dark:bg-emerald-500 dark:hover:border-emerald-300 dark:hover:bg-emerald-400"
                     >
                         {{ __('Cari') }}
                     </button>
                 </div>
             </form>
 
-            <div class="text-sm text-neutral-600 dark:text-neutral-300">
-                {{ __('Total :count pelunasan.', ['count' => number_format($transaksiLunas->total(), 0, ',', '.')]) }}
-            </div>
+            
         </div>
 
         <div class="overflow-x-auto rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-800">

@@ -15,12 +15,8 @@
 
         <div class="rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-800">
             <div class="flex flex-col gap-4 border-b border-neutral-200 p-4 dark:border-neutral-700">
-                <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                    <div class="flex flex-col gap-1 text-sm text-neutral-600 dark:text-neutral-300">
-                        <span class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Transaksi') }}</span>
-                        <span class="text-base font-semibold text-neutral-900 dark:text-white">{{ number_format($transaksiGadai->total(), 0, ',', '.') }} {{ __('transaksi') }}</span>
-                    </div>
-                    <a
+                
+                    <!-- <a
                         href="{{ route('gadai.pemberian-kredit') }}"
                         class="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-600 bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-400 dark:bg-emerald-500 dark:hover:border-emerald-300 dark:hover:bg-emerald-400"
                     >
@@ -28,8 +24,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                         </svg>
                         <span>{{ __('Tambah Transaksi Gadai') }}</span>
-                    </a>
-                </div>
+                    </a> -->
                 <form
                     method="GET"
                     action="{{ route('gadai.lihat-gadai') }}"
@@ -61,7 +56,10 @@
                                 onchange="this.form.requestSubmit()"
                             />
                         </label>
-                        <div class="flex items-center gap-2">
+                        <div class="flex flex-col gap-2">
+                            <span></span>
+                            <span></span>
+                            <span></span>
                             @if (!empty($search) || $tanggalDari || $tanggalSampai)
                                 <a
                                     href="{{ route('gadai.lihat-gadai', ['per_page' => $perPage]) }}"
@@ -70,12 +68,7 @@
                                     {{ __('Reset') }}
                                 </a>
                             @endif
-                            <button
-                                type="submit"
-                                class="inline-flex items-center justify-center rounded-lg border border-emerald-600 bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-400 dark:bg-emerald-500 dark:hover:border-emerald-300 dark:hover:bg-emerald-400"
-                            >
-                                {{ __('Terapkan') }}
-                            </button>
+                            
                         </div>
                     </div>
                     <label class="flex w-full items-center gap-3 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-600 shadow-sm focus-within:border-emerald-500 focus-within:text-neutral-900 focus-within:ring-2 focus-within:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-300 dark:focus-within:border-emerald-400 dark:focus-within:text-white dark:focus-within:ring-emerald-500/40" for="search-transaksi">
