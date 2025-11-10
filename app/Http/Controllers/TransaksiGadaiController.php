@@ -14,16 +14,25 @@ use Illuminate\Validation\Rule;
 
 class TransaksiGadaiController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        $search = trim((string) $request->input('search'));
+
         $transaksiGadai = TransaksiGadai::with([
             'nasabah',
             'kasir',
             'barangJaminan',
-        ])->latest('tanggal_gadai')->paginate(15);
+        ])
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where('no_sbg', 'like', "%{$search}%");
+            })
+            ->latest('tanggal_gadai')
+            ->paginate(15)
+            ->withQueryString();
 
         return view('gadai.lihat-gadai', [
             'transaksiGadai' => $transaksiGadai,
+            'search' => $search,
         ]);
     }
 
