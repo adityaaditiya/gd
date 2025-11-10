@@ -142,10 +142,10 @@
                                     @foreach ($nasabahList as $nasabah)
                                         <option
                                             value="{{ $nasabah->id }}"
-                                            data-search="{{ strtolower($nasabah->nama . ' ' . $nasabah->kode_member) }}"
+                                            data-search="{{ strtolower($nasabah->nama . ' ' . $nasabah->kode_member . ' ' . ($nasabah->kelurahan ?? '') . ' ' . $nasabah->alamat) }}"
                                             {{ (string) old('nasabah_id') === (string) $nasabah->id ? 'selected' : '' }}
                                         >
-                                            {{ $nasabah->nama }} — {{ $nasabah->kode_member }}
+                                            {{ $nasabah->nama }} — {{ $nasabah->kode_member }} ({{ $nasabah->kelurahan ?? '-' }}) — {{ $nasabah->alamat }}
                                         </option>
                                     @endforeach
                                 </select>

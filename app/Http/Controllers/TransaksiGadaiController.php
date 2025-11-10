@@ -36,7 +36,8 @@ class TransaksiGadaiController extends Controller
             ->get();
 
         $nasabahList = Nasabah::query()
-            ->orderBy('nama')
+            ->latest('created_at')
+            ->limit(100)
             ->get();
 
         return view('gadai.pemberian-kredit', [
