@@ -24,6 +24,7 @@
                     id="status"
                     name="status"
                     class="rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-700 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-200 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
+                    onchange="this.form.requestSubmit()"
                 >
                     <option value="">{{ __('Semua Status') }}</option>
                     @foreach ($statusOptions as $option)
