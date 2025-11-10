@@ -25,11 +25,15 @@ class TransaksiGadai extends Model
         'uang_pinjaman',
         'biaya_admin',
         'status_transaksi',
+        'tanggal_batal',
+        'alasan_batal',
+        'pegawai_pembatal_id',
     ];
 
     protected $casts = [
         'tanggal_gadai' => 'date',
         'jatuh_tempo_awal' => 'date',
+        'tanggal_batal' => 'datetime',
         'tenor_hari' => 'integer',
         'tarif_bunga_harian' => 'decimal:4',
         'total_bunga' => 'decimal:2',
@@ -45,6 +49,11 @@ class TransaksiGadai extends Model
     public function kasir()
     {
         return $this->belongsTo(User::class, 'pegawai_kasir_id');
+    }
+
+    public function pembatal()
+    {
+        return $this->belongsTo(User::class, 'pegawai_pembatal_id');
     }
 
     public function barangJaminan()

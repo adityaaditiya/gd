@@ -11,16 +11,56 @@ use Illuminate\Support\Facades\Storage;
 
 class BarangJaminanController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $barangJaminan = BarangJaminan::with([
+        $statusOptions = [
+            'Belum Aktif',
+            'Aktif',
+            'Lunas',
+            'Perpanjang',
+            'Lelang',
+            'Batal',
+        ];
+        $perPageOptions = [10, 25, 50, 100];
+
+        $statusFilter = $request->query('status');
+        $perPage = (int) $request->query('per_page', 10);
+
+        if (!in_array($perPage, $perPageOptions, true)) {
+            $perPage = 10;
+        }
+
+        $barangJaminanQuery = BarangJaminan::with([
             'transaksi.nasabah',
             'transaksi.kasir',
             'penaksir',
-        ])->latest('created_at')->paginate(15);
+        ])->latest('created_at');
+
+        if ($statusFilter && in_array($statusFilter, $statusOptions, true)) {
+            if ($statusFilter === 'Belum Aktif') {
+                $barangJaminanQuery->where(function ($query) {
+                    $query->whereNull('transaksi_id')
+                        ->orWhereHas('transaksi', function ($subQuery) {
+                            $subQuery->whereNull('status_transaksi');
+                        });
+                });
+            } else {
+                $barangJaminanQuery->whereHas('transaksi', function ($query) use ($statusFilter) {
+                    $query->where('status_transaksi', $statusFilter);
+                });
+            }
+        }
+
+        $barangJaminan = $barangJaminanQuery
+            ->paginate($perPage > 0 ? $perPage : 10)
+            ->withQueryString();
 
         return view('gadai.lihat-barang-gadai', [
             'barangJaminan' => $barangJaminan,
+            'statusOptions' => $statusOptions,
+            'statusFilter' => in_array($statusFilter, $statusOptions, true) ? $statusFilter : null,
+            'perPage' => $perPage,
+            'perPageOptions' => $perPageOptions,
         ]);
     }
 
@@ -85,6 +125,7 @@ class BarangJaminanController extends Controller
             'hps' => ['required', 'string'],
             'nilai_taksiran' => ['required', 'string'],
             'kondisi_fisik' => ['nullable', 'string'],
+            'kelengkapan' => ['nullable', 'string'],
             'foto_1' => ['nullable', 'image', 'max:2048'],
             'foto_2' => ['nullable', 'image', 'max:2048'],
             'foto_3' => ['nullable', 'image', 'max:2048'],
@@ -98,6 +139,10 @@ class BarangJaminanController extends Controller
 
         if (($validated['pegawai_penaksir_id'] ?? null) === '') {
             $validated['pegawai_penaksir_id'] = null;
+        }
+
+        if (($validated['kelengkapan'] ?? null) === '') {
+            $validated['kelengkapan'] = null;
         }
 
         foreach (range(1, 6) as $index) {
