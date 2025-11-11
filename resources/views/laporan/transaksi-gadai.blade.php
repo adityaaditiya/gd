@@ -47,6 +47,8 @@
                         <th scope="col" class="px-4 py-3">{{ __('Nasabah') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Barang Jaminan') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Pinjaman') }}</th>
+                        <th scope="col" class="px-4 py-3">{{ __('Bunga Maksimum') }}</th>
+                        <th scope="col" class="px-4 py-3">{{ __('Bunga Terhutang Riil') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Status') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Tanggal') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Petugas') }}</th>
@@ -164,14 +166,32 @@
                                         {{ __('Tenor: —') }}
                                     @endif
                                 </div>
-                                @if ($transaksi->actual_days)
-                                    <div class="text-xs text-neutral-500 dark:text-neutral-300">
-                                        {{ __('Hari berjalan: :days hari', ['days' => $transaksi->actual_days]) }}
-                                    </div>
-                                @endif
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="font-semibold text-emerald-600 dark:text-emerald-300">
+                                    @if ((float) $transaksi->total_bunga > 0)
+                                        Rp {{ number_format((float) $transaksi->total_bunga, 0, ',', '.') }}
+                                    @else
+                                        —
+                                    @endif
+                                </div>
                                 @if ((float) $transaksi->tarif_bunga_harian > 0)
                                     <div class="text-xs text-neutral-500 dark:text-neutral-300">
                                         {{ __('Tarif bunga harian: :rate%', ['rate' => rtrim(rtrim(number_format((float) $transaksi->tarif_bunga_harian, 2, '.', ''), '0'), '.')]) }}
+                                    </div>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="font-semibold text-emerald-600 dark:text-emerald-300">
+                                    @if ((float) $transaksi->bunga_terutang_riil > 0)
+                                        Rp {{ number_format((float) $transaksi->bunga_terutang_riil, 0, ',', '.') }}
+                                    @else
+                                        —
+                                    @endif
+                                </div>
+                                @if ($transaksi->actual_days)
+                                    <div class="text-xs text-neutral-500 dark:text-neutral-300">
+                                        {{ __('Hari berjalan: :days hari', ['days' => $transaksi->actual_days]) }}
                                     </div>
                                 @endif
                             </td>
@@ -190,7 +210,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-300">
+                            <td colspan="9" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-300">
                                 {{ __('Belum ada transaksi gadai yang tercatat.') }}
                             </td>
                         </tr>
