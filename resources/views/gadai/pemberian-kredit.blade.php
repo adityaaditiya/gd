@@ -117,13 +117,11 @@
                                     type="text"
                                     id="no_sbg"
                                     name="no_sbg"
-                                    value="{{ old('no_sbg') }}"
-                                    required
-                                    class="block w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+                                    value="{{ old('no_sbg', $defaultNoSbg) }}"
+                                    readonly
+                                    class="block w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm font-semibold text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
                                 />
-                                @error('no_sbg')
-                                    <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                                @enderror
+                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Nomor SBG dibuat otomatis dan mengikuti format GE02 + tanggal (YYMMDD) + urutan harian tiga digit.') }}</p>
                             </div>
 
                             <div class="flex flex-col gap-2">
@@ -441,7 +439,7 @@
 
                             if (!Number.isNaN(startTime) && !Number.isNaN(endTime) && endTime >= startTime) {
                                 const diffDays = Math.floor((endTime - startTime) / millisecondsPerDay);
-                                tenor = Math.max(1, diffDays);
+                                tenor = Math.max(1, diffDays + 1);
                             }
                         }
 
