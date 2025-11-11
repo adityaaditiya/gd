@@ -146,38 +146,15 @@
                                 @if ($transaksi->barangJaminan->isEmpty())
                                     <span class="text-xs text-neutral-500 dark:text-neutral-300">{{ __('Belum ada barang terhubung') }}</span>
                                 @else
-                                    <div class="space-y-2">
+                                    <ul class="space-y-1">
                                         @foreach ($transaksi->barangJaminan as $barang)
-                                            <details class="group overflow-hidden rounded-lg border border-neutral-200 bg-neutral-50 text-xs text-neutral-700 shadow-sm transition dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200">
-                                                <summary class="flex cursor-pointer items-center justify-between gap-2 px-3 py-2 text-sm font-semibold text-neutral-900 outline-none marker:hidden dark:text-white">
-                                                    <span>
-                                                        {{ __('Barang :number', ['number' => $loop->iteration]) }} — {{ $barang->jenis_barang }}@if ($barang->merek)
-                                                            · {{ $barang->merek }}
-                                                        @endif
-                                                    </span>
-                                                    <svg class="size-4 shrink-0 text-neutral-500 transition group-open:rotate-180 dark:text-neutral-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                                                    </svg>
-                                                </summary>
-                                                <div class="space-y-2 border-t border-neutral-200 bg-white px-3 py-3 text-xs leading-relaxed dark:border-neutral-700 dark:bg-neutral-950">
-                                                    <div class="flex items-center justify-between text-[11px] uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
-                                                        <span>{{ __('Nilai Taksiran') }}</span>
-                                                        <span class="text-sm font-semibold text-emerald-600 dark:text-emerald-300">Rp {{ number_format((float) $barang->nilai_taksiran, 0, ',', '.') }}</span>
-                                                    </div>
-                                                    <div class="grid grid-cols-1 gap-2 text-[13px] text-neutral-600 dark:text-neutral-300">
-                                                        <div>
-                                                            <span class="block text-[11px] font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Kelengkapan') }}</span>
-                                                            <span>{{ $barang->kelengkapan ?? '—' }}</span>
-                                                        </div>
-                                                        <div>
-                                                            <span class="block text-[11px] font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Keterangan') }}</span>
-                                                            <span>{{ $barang->keterangan ?? '—' }}</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </details>
+                                            <li class="rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-700 dark:bg-neutral-900 dark:text-neutral-200">
+                                                <div class="font-semibold text-neutral-900 dark:text-white">{{ $barang->jenis_barang }} — {{ $barang->merek }}</div>
+                                                <div>Rp {{ number_format((float) $barang->nilai_taksiran, 0, ',', '.') }}</div>
+                                                <div class="text-[11px] text-neutral-500 dark:text-neutral-300">{{ __('Kelengkapan:') }} {{ $barang->kelengkapan ?? '—' }}</div>
+                                            </li>
                                         @endforeach
-                                    </div>
+                                    </ul>
                                 @endif
                             </td>
                             <td class="whitespace-nowrap px-4 py-3">
