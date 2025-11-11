@@ -36,6 +36,9 @@ Route::middleware(['auth'])->group(function () {
             Route::post('transaksi-gadai/{transaksi}/batal', [TransaksiGadaiController::class, 'cancel'])
                 ->whereNumber('transaksi')
                 ->name('transaksi-gadai.cancel');
+            Route::get('transaksi-gadai/{transaksi}/pelunasan', [TransaksiGadaiController::class, 'showSettlementForm'])
+                ->whereNumber('transaksi')
+                ->name('transaksi-gadai.settle-form');
             Route::post('transaksi-gadai/{transaksi}/pelunasan', [TransaksiGadaiController::class, 'settle'])
                 ->whereNumber('transaksi')
                 ->name('transaksi-gadai.settle');
