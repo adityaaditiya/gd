@@ -294,7 +294,7 @@
                                             data-no-sbg="{{ $transaksi->no_sbg }}"
                                             data-nasabah="{{ $transaksi->nasabah?->nama ?? '' }}"
                                             data-uang-pinjaman="Rp {{ number_format((float) $transaksi->uang_pinjaman, 0, ',', '.') }}"
-                                            {{ in_array($transaksi->status_transaksi, ['Lunas', 'Perpanjang', 'Lelang', 'Batal'], true) ? 'disabled' : '' }}
+                                            {{ in_array($transaksi->status_transaksi, ['Lunas', 'Perpanjang', 'Siap Lelang', 'Lelang', 'Batal'], true) ? 'disabled' : '' }}
                                             role="menuitem"
                                         >
                                             <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
@@ -303,7 +303,7 @@
                                             <span>{{ __('Batal Gadai') }}</span>
                                         </button>
                                         @php
-                                            $canSettle = !in_array($transaksi->status_transaksi, ['Lunas', 'Lelang', 'Batal'], true);
+                                            $canSettle = !in_array($transaksi->status_transaksi, ['Lunas', 'Siap Lelang', 'Lelang', 'Batal'], true);
                                             $settleQuery = collect([
                                                 'search' => $search,
                                                 'tanggal_dari' => $tanggalDari,

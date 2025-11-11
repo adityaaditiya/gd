@@ -6,6 +6,9 @@ use App\Http\Controllers\BarangJaminanController;
 use App\Http\Controllers\LaporanPelunasanGadaiController;
 use App\Http\Controllers\LaporanTransaksiGadaiController;
 use App\Http\Controllers\LaporanPembatalanGadaiController;
+use App\Http\Controllers\LaporanLelangController;
+use App\Http\Controllers\LaporanSaldoKasController;
+use App\Http\Controllers\LelangController;
 use App\Http\Controllers\NasabahController;
 use App\Http\Controllers\TransaksiGadaiController;
 use Illuminate\Support\Facades\Auth;
@@ -49,17 +52,23 @@ Route::middleware(['auth'])->group(function () {
             Route::get('barang-gadai/{barangJaminan}/edit', [BarangJaminanController::class, 'edit'])->name('barang-jaminan.edit');
             Route::put('barang-gadai/{barangJaminan}', [BarangJaminanController::class, 'update'])->name('barang-jaminan.update');
             Route::delete('barang-gadai/{barangJaminan}', [BarangJaminanController::class, 'destroy'])->name('barang-jaminan.destroy');
-            Route::view('lihat-data-lelang', 'gadai.lihat-data-lelang')->name('lihat-data-lelang');
+            Route::get('lihat-data-lelang', [LelangController::class, 'index'])->name('lihat-data-lelang');
+            Route::put('jadwal-lelang/{jadwalLelang}', [LelangController::class, 'updateSchedule'])
+                ->whereNumber('jadwalLelang')
+                ->name('jadwal-lelang.update');
+            Route::post('jadwal-lelang/{jadwalLelang}/finalisasi', [LelangController::class, 'finalize'])
+                ->whereNumber('jadwalLelang')
+                ->name('jadwal-lelang.finalize');
         });
 
     Route::prefix('laporan')
         ->as('laporan.')
         ->group(function () {
-            Route::view('saldo-kas', 'laporan.saldo-kas')->name('saldo-kas');
+            Route::get('saldo-kas', [LaporanSaldoKasController::class, 'index'])->name('saldo-kas');
             Route::get('transaksi-gadai', [LaporanTransaksiGadaiController::class, 'index'])->name('transaksi-gadai');
             Route::get('pelunasan-gadai', [LaporanPelunasanGadaiController::class, 'index'])->name('pelunasan-gadai');
             Route::get('batal-gadai', [LaporanPembatalanGadaiController::class, 'index'])->name('batal-gadai');
-            Route::view('lelang', 'laporan.lelang')->name('lelang');
+            Route::get('lelang', [LaporanLelangController::class, 'index'])->name('lelang');
         });
 
     Route::prefix('akuntansi')

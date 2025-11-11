@@ -18,6 +18,7 @@ class BarangJaminanController extends Controller
             'Aktif',
             'Lunas',
             'Perpanjang',
+            'Siap Lelang',
             'Lelang',
         ];
         $perPageOptions = [10, 25, 50, 100];

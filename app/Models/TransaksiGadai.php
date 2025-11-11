@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 class TransaksiGadai extends Model
@@ -84,6 +85,11 @@ class TransaksiGadai extends Model
     public function barangJaminan()
     {
         return $this->hasMany(BarangJaminan::class, 'transaksi_id', 'transaksi_id');
+    }
+
+    public function jadwalLelang(): HasMany
+    {
+        return $this->hasMany(JadwalLelang::class, 'transaksi_id', 'transaksi_id');
     }
 
     public function getActualDaysAttribute(): ?int
@@ -175,6 +181,15 @@ class TransaksiGadai extends Model
         }
 
         return round($principal * $dailyRate * $days, 2);
+    }
+
+    public function hitungKewajibanLelang(?float $biayaLelang = null, ?Carbon $referenceDate = null): float
+    {
+        $principal = (float) ($this->uang_pinjaman ?? 0);
+        $interest = (float) ($this->computeBungaTerutangRiil($referenceDate) ?? 0);
+        $biaya = max(0, (float) ($biayaLelang ?? 0));
+
+        return round($principal + $interest + $biaya, 2);
     }
 
     public function refreshBungaTerutangRiil(?Carbon $referenceDate = null): void

@@ -45,4 +45,9 @@ class BarangJaminan extends Model
     {
         return $this->belongsTo(User::class, 'pegawai_penaksir_id');
     }
+
+    public function jadwalLelang()
+    {
+        return $this->hasMany(JadwalLelang::class, 'barang_id', 'barang_id');
+    }
 }
