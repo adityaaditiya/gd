@@ -34,12 +34,7 @@
                         </option>
                     @endforeach
                 </select>
-                <button
-                    type="submit"
-                    class="inline-flex items-center justify-center rounded-lg border border-emerald-600 px-3 py-2 font-semibold text-emerald-700 transition hover:bg-emerald-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-400 dark:text-emerald-300 dark:hover:bg-emerald-500/10"
-                >
-                    {{ __('Terapkan') }}
-                </button>
+                
                 @if ($statusFilter)
                     <a
                         href="{{ route('gadai.lihat-barang-gadai', ['per_page' => $perPage]) }}"
