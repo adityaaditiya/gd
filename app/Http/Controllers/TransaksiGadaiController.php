@@ -77,6 +77,29 @@ class TransaksiGadaiController extends Controller
             ->paginate($perPage > 0 ? $perPage : 10)
             ->withQueryString();
 
+        $todayDate = Carbon::today();
+
+        $transaksiGadai->getCollection()->transform(function ($transaksi) use ($todayDate) {
+            $tanggalGadai = $transaksi->tanggal_gadai ? Carbon::parse($transaksi->tanggal_gadai) : null;
+            $hariBerjalan = $tanggalGadai ? max(0, $tanggalGadai->diffInDays($todayDate, false)) : 0;
+            $tenor = is_numeric($transaksi->tenor_hari) ? (int) $transaksi->tenor_hari : 0;
+            $tarif = is_numeric($transaksi->tarif_bunga_harian) ? (float) $transaksi->tarif_bunga_harian : 0.0;
+            $pinjaman = is_numeric($transaksi->uang_pinjaman) ? (float) $transaksi->uang_pinjaman : 0.0;
+
+            $hariEfektif = $tenor > 0 ? min($hariBerjalan, $tenor) : $hariBerjalan;
+            $bungaTerhitung = $pinjaman * $tarif * $hariEfektif;
+
+            $totalBungaTersimpan = is_numeric($transaksi->total_bunga) ? (float) $transaksi->total_bunga : null;
+
+            if ($totalBungaTersimpan !== null) {
+                $bungaTerhitung = min($bungaTerhitung, $totalBungaTersimpan);
+            }
+
+            $transaksi->setAttribute('bunga_terakumulasi_harian', $bungaTerhitung);
+
+            return $transaksi;
+        });
+
         return view('gadai.lihat-gadai', [
             'transaksiGadai' => $transaksiGadai,
             'search' => $search,
