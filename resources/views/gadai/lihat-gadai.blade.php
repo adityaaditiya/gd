@@ -349,7 +349,7 @@
         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" data-collateral-overlay></div>
         <div class="absolute inset-y-0 right-0 flex max-w-full pl-10">
             <div
-                class="pointer-events-auto flex h-full w-screen max-w-md flex-col bg-white shadow-xl transition dark:bg-neutral-900"
+                class="pointer-events-auto flex h-full w-screen max-w-md min-h-0 flex-col overflow-hidden bg-white shadow-xl transition dark:bg-neutral-900"
                 data-collateral-dialog
                 tabindex="-1"
             >
