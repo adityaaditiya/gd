@@ -77,6 +77,10 @@ class TransaksiGadaiController extends Controller
             ->paginate($perPage > 0 ? $perPage : 10)
             ->withQueryString();
 
+        $transaksiGadai->getCollection()->each(function (TransaksiGadai $transaksi) {
+            $transaksi->refreshBungaTerutangRiil();
+        });
+
         return view('gadai.lihat-gadai', [
             'transaksiGadai' => $transaksiGadai,
             'search' => $search,
@@ -105,6 +109,7 @@ class TransaksiGadaiController extends Controller
             'barangSiapGadai' => $barangSiapGadai,
             'nasabahList' => $nasabahList,
             'today' => Carbon::today()->toDateString(),
+            'defaultNoSbg' => $this->nextNoSbg(Carbon::today()),
         ]);
     }
 
@@ -133,6 +138,9 @@ class TransaksiGadaiController extends Controller
 
         $nilaiTaksiran = (float) $barangCollection->sum('nilai_taksiran');
         $uangPinjaman = (float) $data['uang_pinjaman'];
+        $biayaAdmin = (float) $data['biaya_admin'];
+        $biayaPremi = (float) $data['premi'];
+        $totalPotongan = $biayaAdmin + $biayaPremi;
         $maxPinjaman = round($nilaiTaksiran * 0.94, 2);
 
         if ($nilaiTaksiran > 0 && $uangPinjaman - $maxPinjaman > 0.00001) {
@@ -145,6 +153,20 @@ class TransaksiGadaiController extends Controller
                 ]);
         }
 
+        if ($totalPotongan - $uangPinjaman > 0.00001) {
+            $message = __('Total potongan biaya (:potongan) tidak boleh melebihi plafon pinjaman (:plafon).', [
+                'potongan' => $this->formatCurrency($totalPotongan),
+                'plafon' => $this->formatCurrency($uangPinjaman),
+            ]);
+
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'biaya_admin' => $message,
+                    'premi' => $message,
+                ]);
+        }
+
         $kasirId = Auth::id();
 
         if (!$kasirId) {
@@ -154,29 +176,50 @@ class TransaksiGadaiController extends Controller
         $tanggalGadai = Carbon::parse($data['tanggal_gadai']);
         $jatuhTempo = Carbon::parse($data['jatuh_tempo_awal']);
 
-        $tenorHari = max(1, $tanggalGadai->diffInDays($jatuhTempo));
+        $tenorHari = max(1, $tanggalGadai->diffInDays($jatuhTempo) + 1);
         $tarifBungaHarian = 0.0015; // 0.15% per hari
         $totalBunga = $this->formatDecimal($uangPinjaman * $tarifBungaHarian * $tenorHari);
+        $hariBerjalan = $this->calculateActualDays($tanggalGadai, Carbon::today());
+        $bungaTerutangRiil = $this->formatDecimal(
+            $this->calculateSewaModal($uangPinjaman, $tarifBungaHarian, $hariBerjalan)
+        );
+        $uangCair = $this->formatDecimal(max(0, $uangPinjaman - $totalPotongan));
 
-        $transaksi = TransaksiGadai::create([
-            'no_sbg' => $data['no_sbg'],
-            'nasabah_id' => $data['nasabah_id'],
-            'pegawai_kasir_id' => $kasirId,
-            'tanggal_gadai' => $data['tanggal_gadai'],
-            'jatuh_tempo_awal' => $data['jatuh_tempo_awal'],
-            'tenor_hari' => $tenorHari,
-            'tarif_bunga_harian' => $this->formatDecimal($tarifBungaHarian, 4),
-            'total_bunga' => $totalBunga,
-            'uang_pinjaman' => $data['uang_pinjaman'],
-            'biaya_admin' => $data['biaya_admin'],
-            'premi' => $data['premi'],
-            'status_transaksi' => 'Aktif',
-        ]);
+        DB::transaction(function () use (
+            $barangCollection,
+            $kasirId,
+            $data,
+            $tenorHari,
+            $tarifBungaHarian,
+            $totalBunga,
+            $tanggalGadai,
+            $bungaTerutangRiil,
+            $uangCair
+        ) {
+            $noSbg = $this->nextNoSbg($tanggalGadai, true);
 
-        foreach ($barangCollection as $barang) {
-            $barang->transaksi_id = $transaksi->transaksi_id;
-            $barang->save();
-        }
+            $transaksi = TransaksiGadai::create([
+                'no_sbg' => $noSbg,
+                'nasabah_id' => $data['nasabah_id'],
+                'pegawai_kasir_id' => $kasirId,
+                'tanggal_gadai' => $data['tanggal_gadai'],
+                'jatuh_tempo_awal' => $data['jatuh_tempo_awal'],
+                'tenor_hari' => $tenorHari,
+                'tarif_bunga_harian' => $this->formatDecimal($tarifBungaHarian, 4),
+                'total_bunga' => $totalBunga,
+                'bunga_terutang_riil' => $bungaTerutangRiil,
+                'uang_pinjaman' => $data['uang_pinjaman'],
+                'uang_cair' => $uangCair,
+                'biaya_admin' => $data['biaya_admin'],
+                'premi' => $data['premi'],
+                'status_transaksi' => 'Aktif',
+            ]);
+
+            foreach ($barangCollection as $barang) {
+                $barang->transaksi_id = $transaksi->transaksi_id;
+                $barang->save();
+            }
+        });
 
         return redirect()
             ->route('gadai.lihat-gadai')
@@ -231,6 +274,50 @@ class TransaksiGadaiController extends Controller
             ->with('status', __('Transaksi gadai berhasil dibatalkan.'));
     }
 
+    public function showSettlementForm(Request $request, TransaksiGadai $transaksi): View
+    {
+        $status = $transaksi->status_transaksi;
+
+        if (in_array($status, ['Lunas', 'Lelang', 'Batal'], true)) {
+            $message = __('Transaksi dengan status :status tidak dapat dilunasi.', ['status' => $status ?? '—']);
+
+            return redirect()
+                ->route('gadai.lihat-gadai', $this->extractListingQuery($request))
+                ->with('error', $message);
+        }
+
+        $transaksi->loadMissing(['nasabah', 'kasir', 'barangJaminan']);
+
+        $today = Carbon::today();
+        $tarifBungaHarian = $this->resolveTarifBunga($transaksi);
+        $pokokPinjaman = (float) $transaksi->uang_pinjaman;
+        $actualDays = $this->calculateActualDays($transaksi->tanggal_gadai, $today);
+        $sewaModalTerutang = $this->calculateSewaModal($pokokPinjaman, $tarifBungaHarian, $actualDays);
+        $biayaAdminAwal = (float) $transaksi->biaya_admin;
+        $totalTagihanPelunasan = $pokokPinjaman + $sewaModalTerutang + $biayaAdminAwal;
+
+        return view('gadai.pelunasan', [
+            'transaksi' => $transaksi,
+            'query' => $this->extractListingQuery($request),
+            'defaults' => [
+                'tanggal_pelunasan' => $today->toDateString(),
+                'metode_pembayaran' => __('Tunai'),
+                'pokok_dibayar' => number_format($pokokPinjaman, 2, '.', ''),
+                'bunga_dibayar' => number_format($sewaModalTerutang, 2, '.', ''),
+                'biaya_lain_dibayar' => number_format($biayaAdminAwal, 2, '.', ''),
+                'total_pelunasan' => number_format($totalTagihanPelunasan, 2, '.', ''),
+            ],
+            'perhitunganPelunasan' => [
+                'tarif_bunga' => $tarifBungaHarian,
+                'actual_days' => $actualDays,
+                'pokok' => $pokokPinjaman,
+                'sewa_modal' => $sewaModalTerutang,
+                'biaya_admin' => $biayaAdminAwal,
+                'total_tagihan' => $totalTagihanPelunasan,
+            ],
+        ]);
+    }
+
     public function settle(Request $request, TransaksiGadai $transaksi): RedirectResponse
     {
         $status = $transaksi->status_transaksi;
@@ -239,39 +326,35 @@ class TransaksiGadaiController extends Controller
             $message = __('Transaksi dengan status :status tidak dapat dilunasi.', ['status' => $status ?? '—']);
 
             return redirect()
-                ->back()
-                ->withInput(array_merge($request->all(), [
-                    'settle_transaksi_id' => $transaksi->transaksi_id,
-                ]))
-                ->withErrors([
-                    'total_pelunasan' => $message,
-                ])
-                ->with('error', $message)
-                ->with('show_settle_modal', $transaksi->transaksi_id);
+                ->route('gadai.lihat-gadai', $this->extractListingQuery($request))
+                ->with('error', $message);
         }
-
-        $request->merge([
-            'settle_transaksi_id' => $transaksi->transaksi_id,
-        ]);
 
         $data = $this->validateSettlementData($request);
 
-        $pokok = (float) $data['pokok_dibayar'];
-        $bunga = (float) $data['bunga_dibayar'];
-        $biayaLain = (float) $data['biaya_lain_dibayar'];
+        $tarifBungaHarian = $this->resolveTarifBunga($transaksi);
+        $pokokPinjaman = (float) $transaksi->uang_pinjaman;
+        $tanggalPelunasan = Carbon::parse($data['tanggal_pelunasan']);
+        $actualDays = $this->calculateActualDays($transaksi->tanggal_gadai, $tanggalPelunasan);
+        $sewaModalTerutang = $this->calculateSewaModal($pokokPinjaman, $tarifBungaHarian, $actualDays);
+        $biayaAdminAwal = (float) $transaksi->biaya_admin;
+        $minimalPelunasan = $pokokPinjaman + $sewaModalTerutang + $biayaAdminAwal;
+
         $total = (float) $data['total_pelunasan'];
 
-        if ($total + 0.00001 < $pokok + $bunga + $biayaLain) {
-            $message = __('Total pelunasan harus sama atau lebih besar dari komponen pembayaran.');
+        if ($total + 0.00001 < $minimalPelunasan) {
+            $message = __('Total pelunasan minimal adalah :amount berdasarkan pemakaian :days hari.', [
+                'amount' => $this->formatCurrency($minimalPelunasan),
+                'days' => $actualDays,
+            ]);
 
             return redirect()
                 ->back()
-                ->withInput($request->all())
+                ->withInput($request->except('_token'))
                 ->withErrors([
                     'total_pelunasan' => $message,
                 ])
-                ->with('error', $message)
-                ->with('show_settle_modal', $transaksi->transaksi_id);
+                ->with('error', $message);
         }
 
         $kasirId = Auth::id();
@@ -280,16 +363,26 @@ class TransaksiGadaiController extends Controller
             abort(403, 'Kasir tidak dikenali.');
         }
 
-        $tanggalPelunasan = Carbon::parse($data['tanggal_pelunasan'])
+        $tanggalPelunasan = $tanggalPelunasan
             ->setTimeFromTimeString(Carbon::now()->toTimeString());
 
-        DB::transaction(function () use ($transaksi, $kasirId, $data, $tanggalPelunasan, $pokok, $bunga, $biayaLain, $total) {
+        DB::transaction(function () use (
+            $transaksi,
+            $kasirId,
+            $data,
+            $tanggalPelunasan,
+            $pokokPinjaman,
+            $sewaModalTerutang,
+            $biayaAdminAwal,
+            $total
+        ) {
             $transaksi->status_transaksi = 'Lunas';
             $transaksi->tanggal_pelunasan = $tanggalPelunasan;
-            $transaksi->pokok_dibayar = $this->formatDecimal($pokok);
-            $transaksi->bunga_dibayar = $this->formatDecimal($bunga);
-            $transaksi->biaya_lain_dibayar = $this->formatDecimal($biayaLain);
+            $transaksi->pokok_dibayar = $this->formatDecimal($pokokPinjaman);
+            $transaksi->bunga_dibayar = $this->formatDecimal($sewaModalTerutang);
+            $transaksi->biaya_lain_dibayar = $this->formatDecimal($biayaAdminAwal);
             $transaksi->total_pelunasan = $this->formatDecimal($total);
+            $transaksi->bunga_terutang_riil = $this->formatDecimal($sewaModalTerutang);
             $transaksi->metode_pembayaran = $data['metode_pembayaran'];
             $transaksi->catatan_pelunasan = $data['catatan_pelunasan'] ?: null;
             $transaksi->pegawai_pelunasan_id = $kasirId;
@@ -297,8 +390,16 @@ class TransaksiGadaiController extends Controller
         });
 
         return redirect()
-            ->route('gadai.lihat-gadai', $request->only(['search', 'tanggal_dari', 'tanggal_sampai', 'page', 'per_page']))
+            ->route('gadai.lihat-gadai', $this->extractListingQuery($request))
             ->with('status', __('Transaksi gadai berhasil dilunasi.'));
+    }
+
+    private function extractListingQuery(Request $request): array
+    {
+        return array_filter(
+            $request->only(['search', 'tanggal_dari', 'tanggal_sampai', 'per_page', 'page']),
+            static fn ($value) => $value !== null && $value !== ''
+        );
     }
 
     private function validateData(Request $request): array
@@ -310,7 +411,6 @@ class TransaksiGadaiController extends Controller
                 'distinct',
                 Rule::exists('barang_jaminan', 'barang_id')->whereNull('transaksi_id'),
             ],
-            'no_sbg' => ['required', 'string', 'max:50', 'unique:transaksi_gadai,no_sbg'],
             'nasabah_id' => ['required', 'exists:nasabahs,id'],
             'tanggal_gadai' => ['required', 'date'],
             'jatuh_tempo_awal' => ['required', 'date', 'after_or_equal:tanggal_gadai'],
@@ -388,5 +488,56 @@ class TransaksiGadaiController extends Controller
     private function formatDecimal(float $value, int $precision = 2): string
     {
         return number_format($value, $precision, '.', '');
+    }
+
+    private function calculateActualDays($tanggalGadai, Carbon $tanggalPelunasan): int
+    {
+        if (!$tanggalGadai) {
+            return 1;
+        }
+
+        $mulai = $tanggalGadai instanceof Carbon
+            ? $tanggalGadai->copy()->startOfDay()
+            : Carbon::parse($tanggalGadai)->startOfDay();
+        $selesai = $tanggalPelunasan->copy()->startOfDay();
+
+        return max(1, $mulai->diffInDays($selesai) + 1);
+    }
+
+    private function calculateSewaModal(float $pokokPinjaman, float $tarifBunga, int $actualDays): float
+    {
+        $pokokPinjaman = max(0, $pokokPinjaman);
+        $tarifBunga = max(0, $tarifBunga);
+        $actualDays = max(0, $actualDays);
+
+        return $pokokPinjaman * $tarifBunga * $actualDays;
+    }
+
+    private function resolveTarifBunga(TransaksiGadai $transaksi): float
+    {
+        $tarif = (float) $transaksi->tarif_bunga_harian;
+
+        return $tarif > 0 ? $tarif : 0.0015;
+    }
+
+    private function nextNoSbg(Carbon $tanggalGadai, bool $lock = false): string
+    {
+        $prefix = 'GE02' . $tanggalGadai->format('ymd');
+
+        $query = TransaksiGadai::where('no_sbg', 'like', $prefix . '%');
+
+        if ($lock) {
+            $query->lockForUpdate();
+        }
+
+        $latest = $query->orderByDesc('no_sbg')->value('no_sbg');
+
+        if ($latest && preg_match('/(\d+)$/', $latest, $matches)) {
+            $sequence = (int) $matches[1] + 1;
+        } else {
+            $sequence = 1;
+        }
+
+        return $prefix . str_pad((string) $sequence, 3, '0', STR_PAD_LEFT);
     }
 }

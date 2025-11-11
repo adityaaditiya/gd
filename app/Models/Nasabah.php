@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 
 class Nasabah extends Model
 {
@@ -46,11 +45,21 @@ class Nasabah extends Model
      */
     public static function generateKodeMember(): string
     {
-        do {
-            $code = 'MBR-' . Str::upper(Str::random(6));
-        } while (static::where('kode_member', $code)->exists());
+        $areaCode = str_pad(config('app.branch_code', '01'), 2, '0', STR_PAD_LEFT);
+        $year = now()->format('y');
+        $prefix = $areaCode . $year;
 
-        return $code;
+        $lastCode = static::where('kode_member', 'like', $prefix . '%')
+            ->orderByDesc('kode_member')
+            ->value('kode_member');
+
+        $lastSequence = $lastCode
+            ? (int) substr($lastCode, -6)
+            : 0;
+
+        $nextSequence = $lastSequence + 1;
+
+        return $prefix . str_pad((string) $nextSequence, 6, '0', STR_PAD_LEFT);
     }
 
     public function transaksiGadai()
