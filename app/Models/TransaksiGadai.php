@@ -25,6 +25,7 @@ class TransaksiGadai extends Model
         'total_bunga',
         'bunga_terutang_riil',
         'uang_pinjaman',
+        'uang_cair',
         'biaya_admin',
         'premi',
         'status_transaksi',
@@ -51,6 +52,7 @@ class TransaksiGadai extends Model
         'total_bunga' => 'decimal:2',
         'bunga_terutang_riil' => 'decimal:2',
         'uang_pinjaman' => 'decimal:2',
+        'uang_cair' => 'decimal:2',
         'biaya_admin' => 'decimal:2',
         'premi' => 'decimal:2',
         'pokok_dibayar' => 'decimal:2',
@@ -113,6 +115,10 @@ class TransaksiGadai extends Model
     public function getUangCairAttribute(): ?float
     {
         if (array_key_exists('uang_cair', $this->attributes)) {
+            if ($this->attributes['uang_cair'] === null) {
+                return null;
+            }
+
             return round((float) $this->attributes['uang_cair'], 2);
         }
 
@@ -188,5 +194,34 @@ class TransaksiGadai extends Model
         }
 
         $this->bunga_terutang_riil = $formatted;
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (self $transaksi) {
+            if (
+                !$transaksi->isDirty(['uang_pinjaman', 'biaya_admin', 'premi', 'uang_cair'])
+                && $transaksi->uang_cair !== null
+            ) {
+                return;
+            }
+
+            if ($transaksi->uang_pinjaman === null) {
+                $transaksi->setAttribute('uang_cair', null);
+
+                return;
+            }
+
+            $principal = (float) $transaksi->uang_pinjaman;
+            $admin = (float) ($transaksi->biaya_admin ?? 0);
+            $premi = (float) ($transaksi->premi ?? 0);
+
+            $net = max(0, $principal - ($admin + $premi));
+            $formatted = number_format($net, 2, '.', '');
+
+            if ($transaksi->getOriginal('uang_cair') !== $formatted) {
+                $transaksi->setAttribute('uang_cair', $formatted);
+            }
+        });
     }
 }

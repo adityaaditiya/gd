@@ -209,12 +209,11 @@ class TransaksiGadaiController extends Controller
                 'total_bunga' => $totalBunga,
                 'bunga_terutang_riil' => $bungaTerutangRiil,
                 'uang_pinjaman' => $data['uang_pinjaman'],
+                'uang_cair' => $uangCair,
                 'biaya_admin' => $data['biaya_admin'],
                 'premi' => $data['premi'],
                 'status_transaksi' => 'Aktif',
             ]);
-
-            $transaksi->setAttribute('uang_cair', $uangCair);
 
             foreach ($barangCollection as $barang) {
                 $barang->transaksi_id = $transaksi->transaksi_id;
