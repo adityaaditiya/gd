@@ -232,7 +232,10 @@
                                 <div class="font-semibold text-neutral-900 dark:text-white">Rp {{ number_format((float) $transaksi->premi, 0, ',', '.') }}</div>
                             </td>
                             <td class="whitespace-nowrap px-4 py-3">{{ $transaksi->tenor_hari ? $transaksi->tenor_hari . ' ' . __('hari') : '—' }}</td>
-                            <td class="whitespace-nowrap px-4 py-3">Rp {{ number_format((float) $transaksi->total_bunga, 0, ',', '.') }}</td>
+                            @php
+                                $bungaTerakumulasiHarian = (float) ($transaksi->bunga_terakumulasi_harian ?? 0);
+                            @endphp
+                            <td class="whitespace-nowrap px-4 py-3">Rp {{ number_format($bungaTerakumulasiHarian, 0, ',', '.') }}</td>
                             <td class="whitespace-nowrap px-4 py-3">{{ number_format((float) $transaksi->tarif_bunga_harian * 100, 2, ',', '.') }}%</td>
                             <td class="whitespace-nowrap px-4 py-3">{{ optional($transaksi->jatuh_tempo_awal)->format('d M Y') ?? '—' }}</td>
                             <td class="px-4 py-3">
