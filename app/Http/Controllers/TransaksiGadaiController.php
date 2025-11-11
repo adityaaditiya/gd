@@ -138,6 +138,9 @@ class TransaksiGadaiController extends Controller
 
         $nilaiTaksiran = (float) $barangCollection->sum('nilai_taksiran');
         $uangPinjaman = (float) $data['uang_pinjaman'];
+        $biayaAdmin = (float) $data['biaya_admin'];
+        $biayaPremi = (float) $data['premi'];
+        $totalPotongan = $biayaAdmin + $biayaPremi;
         $maxPinjaman = round($nilaiTaksiran * 0.94, 2);
 
         if ($nilaiTaksiran > 0 && $uangPinjaman - $maxPinjaman > 0.00001) {
@@ -147,6 +150,20 @@ class TransaksiGadaiController extends Controller
                     'uang_pinjaman' => __('Nominal pinjaman melebihi batas 94% dari nilai taksiran barang (maksimal :amount).', [
                         'amount' => $this->formatCurrency($maxPinjaman),
                     ]),
+                ]);
+        }
+
+        if ($totalPotongan - $uangPinjaman > 0.00001) {
+            $message = __('Total potongan biaya (:potongan) tidak boleh melebihi plafon pinjaman (:plafon).', [
+                'potongan' => $this->formatCurrency($totalPotongan),
+                'plafon' => $this->formatCurrency($uangPinjaman),
+            ]);
+
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'biaya_admin' => $message,
+                    'premi' => $message,
                 ]);
         }
 
@@ -166,6 +183,7 @@ class TransaksiGadaiController extends Controller
         $bungaTerutangRiil = $this->formatDecimal(
             $this->calculateSewaModal($uangPinjaman, $tarifBungaHarian, $hariBerjalan)
         );
+        $uangCair = $this->formatDecimal(max(0, $uangPinjaman - $totalPotongan));
 
         DB::transaction(function () use (
             $barangCollection,
@@ -175,7 +193,8 @@ class TransaksiGadaiController extends Controller
             $tarifBungaHarian,
             $totalBunga,
             $tanggalGadai,
-            $bungaTerutangRiil
+            $bungaTerutangRiil,
+            $uangCair
         ) {
             $noSbg = $this->nextNoSbg($tanggalGadai, true);
 
@@ -194,6 +213,8 @@ class TransaksiGadaiController extends Controller
                 'premi' => $data['premi'],
                 'status_transaksi' => 'Aktif',
             ]);
+
+            $transaksi->setAttribute('uang_cair', $uangCair);
 
             foreach ($barangCollection as $barang) {
                 $barang->transaksi_id = $transaksi->transaksi_id;

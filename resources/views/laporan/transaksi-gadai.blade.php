@@ -159,6 +159,12 @@
                                 @if ((float) $transaksi->premi > 0)
                                     <div class="text-xs text-neutral-500 dark:text-neutral-300">{{ __('Premi: Rp :amount', ['amount' => number_format((float) $transaksi->premi, 0, ',', '.')]) }}</div>
                                 @endif
+                                @if ($transaksi->total_potongan > 0)
+                                    <div class="text-xs text-neutral-500 dark:text-neutral-300">{{ __('Total potongan: Rp :amount', ['amount' => number_format($transaksi->total_potongan, 0, ',', '.')]) }}</div>
+                                @endif
+                                @if ($transaksi->uang_cair !== null)
+                                    <div class="text-xs font-semibold text-neutral-700 dark:text-neutral-200">{{ __('Uang cair: Rp :amount', ['amount' => number_format($transaksi->uang_cair, 0, ',', '.')]) }}</div>
+                                @endif
                                 <div class="text-xs text-neutral-500 dark:text-neutral-300">
                                     @if ($transaksi->tenor_hari)
                                         {{ __('Tenor: :days hari', ['days' => $transaksi->tenor_hari]) }}

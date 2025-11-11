@@ -100,6 +100,29 @@ class TransaksiGadai extends Model
         return $computed !== null ? round($computed, 2) : null;
     }
 
+    public function getTotalPotonganAttribute(): float
+    {
+        $admin = (float) ($this->biaya_admin ?? 0);
+        $premi = (float) ($this->premi ?? 0);
+
+        $potongan = $admin + $premi;
+
+        return round(max(0, $potongan), 2);
+    }
+
+    public function getUangCairAttribute(): ?float
+    {
+        if (array_key_exists('uang_cair', $this->attributes)) {
+            return round((float) $this->attributes['uang_cair'], 2);
+        }
+
+        if ($this->uang_pinjaman === null) {
+            return null;
+        }
+
+        return round(max(0, (float) $this->uang_pinjaman - $this->total_potongan), 2);
+    }
+
     public function calculateActualDays(?Carbon $referenceDate = null): ?int
     {
         if (!$this->tanggal_gadai) {

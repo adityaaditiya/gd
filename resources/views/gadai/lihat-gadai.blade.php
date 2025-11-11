@@ -227,6 +227,12 @@
                                 @if ((float) $transaksi->biaya_admin > 0)
                                     <div class="text-xs text-neutral-500 dark:text-neutral-300">{{ __('Biaya admin: Rp :amount', ['amount' => number_format((float) $transaksi->biaya_admin, 0, ',', '.')]) }}</div>
                                 @endif
+                                @if ($transaksi->total_potongan > 0)
+                                    <div class="text-xs text-neutral-500 dark:text-neutral-300">{{ __('Total potongan: Rp :amount', ['amount' => number_format($transaksi->total_potongan, 0, ',', '.')]) }}</div>
+                                @endif
+                                @if ($transaksi->uang_cair !== null)
+                                    <div class="text-xs font-semibold text-neutral-700 dark:text-neutral-200">{{ __('Uang cair: Rp :amount', ['amount' => number_format($transaksi->uang_cair, 0, ',', '.')]) }}</div>
+                                @endif
                             </td>
                             <td class="whitespace-nowrap px-4 py-3">
                                 <div class="font-semibold text-neutral-900 dark:text-white">Rp {{ number_format((float) $transaksi->premi, 0, ',', '.') }}</div>

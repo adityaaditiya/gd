@@ -249,6 +249,29 @@
                             </div>
 
                             <div class="flex flex-col gap-2">
+                                <label for="total_potongan_display" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Total Potongan (Admin + Premi)') }}</label>
+                                <input
+                                    type="text"
+                                    id="total_potongan_display"
+                                    value="Rp 0,00"
+                                    readonly
+                                    class="block w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-neutral-300 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
+                                />
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                                <label for="uang_cair_display" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Uang Cair (Diterima Nasabah)') }}</label>
+                                <input
+                                    type="text"
+                                    id="uang_cair_display"
+                                    value="Rp 0,00"
+                                    readonly
+                                    class="block w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-neutral-300 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
+                                />
+                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Nilai ini otomatis muncul di nota kontrak sebagai dana bersih yang diterima nasabah.') }}</p>
+                            </div>
+
+                            <div class="flex flex-col gap-2">
                                 <label for="estimasi_bunga_display" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Estimasi Bunga (0,15%/hari)') }}</label>
                                 <input
                                     type="text"
@@ -317,8 +340,12 @@
                     const tanggalGadaiInput = document.getElementById('tanggal_gadai');
                     const jatuhTempoInput = document.getElementById('jatuh_tempo_awal');
                     const pinjamanInput = document.getElementById('uang_pinjaman');
+                    const biayaAdminInput = document.getElementById('biaya_admin');
+                    const premiInput = document.getElementById('premi');
                     const tenorDisplay = document.getElementById('tenor_display');
                     const bungaDisplay = document.getElementById('estimasi_bunga_display');
+                    const totalPotonganDisplay = document.getElementById('total_potongan_display');
+                    const uangCairDisplay = document.getElementById('uang_cair_display');
                     const barangSearchInput = document.getElementById('barang_search');
                     const nasabahSelect = document.getElementById('nasabah_id');
                     const nasabahSearchInput = document.getElementById('nasabah_search');
@@ -462,9 +489,19 @@
                         tenorDisplay.value = tenor > 0 ? `${tenor} hari` : '—';
 
                         const pinjaman = parseDecimal(pinjamanInput?.value ?? '');
+                        const adminCost = parseDecimal(biayaAdminInput?.value ?? '');
+                        const premiCost = parseDecimal(premiInput?.value ?? '');
+                        const totalPotongan = Math.max(0, adminCost + premiCost);
+                        const uangCair = Math.max(0, pinjaman - totalPotongan);
                         const bunga = tenor > 0 && pinjaman > 0 ? pinjaman * ratePerDay * tenor : 0;
 
                         bungaDisplay.value = tenor > 0 && pinjaman > 0 ? formatCurrency(bunga) : formatCurrency(0);
+                        if (totalPotonganDisplay) {
+                            totalPotonganDisplay.value = formatCurrency(totalPotongan);
+                        }
+                        if (uangCairDisplay) {
+                            uangCairDisplay.value = formatCurrency(uangCair);
+                        }
                     };
 
                     select.addEventListener('change', () => {
@@ -480,6 +517,8 @@
                     tanggalGadaiInput?.addEventListener('change', updateBunga);
                     jatuhTempoInput?.addEventListener('change', updateBunga);
                     pinjamanInput?.addEventListener('input', updateBunga);
+                    biayaAdminInput?.addEventListener('input', updateBunga);
+                    premiInput?.addEventListener('input', updateBunga);
 
                     updateSummary();
                     updateBunga();
