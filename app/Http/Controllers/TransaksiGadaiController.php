@@ -504,8 +504,7 @@ class TransaksiGadaiController extends Controller
     {
         $prefix = 'GE02' . $tanggalGadai->format('ymd');
 
-        $query = TransaksiGadai::whereDate('tanggal_gadai', $tanggalGadai->toDateString())
-            ->where('no_sbg', 'like', $prefix . '%');
+        $query = TransaksiGadai::where('no_sbg', 'like', $prefix . '%');
 
         if ($lock) {
             $query->lockForUpdate();
@@ -513,7 +512,7 @@ class TransaksiGadaiController extends Controller
 
         $latest = $query->orderByDesc('no_sbg')->value('no_sbg');
 
-        if ($latest && preg_match('/(\d{3})$/', $latest, $matches)) {
+        if ($latest && preg_match('/(\d+)$/', $latest, $matches)) {
             $sequence = (int) $matches[1] + 1;
         } else {
             $sequence = 1;
