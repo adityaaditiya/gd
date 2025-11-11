@@ -178,7 +178,7 @@ class TransaksiGadaiController extends Controller
         $tanggalGadai = Carbon::parse($data['tanggal_gadai']);
         $jatuhTempo = Carbon::parse($data['jatuh_tempo_awal']);
 
-        $tenorHari = max(1, $tanggalGadai->diffInDays($jatuhTempo));
+        $tenorHari = max(1, $tanggalGadai->diffInDays($jatuhTempo) + 1);
         $tarifBungaHarian = 0.0015; // 0.15% per hari
         $totalBunga = $this->formatDecimal($uangPinjaman * $tarifBungaHarian * $tenorHari);
 
