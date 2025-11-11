@@ -103,4 +103,22 @@ class TransaksiGadai extends Model
 
         return max(1, $start->diffInDays($end) + 1);
     }
+
+    public function getAccruedInterestAttribute(): ?float
+    {
+        if ($this->uang_pinjaman === null || $this->tarif_bunga_harian === null) {
+            return null;
+        }
+
+        $days = $this->actual_days;
+
+        if ($days === null) {
+            return null;
+        }
+
+        $principal = (float) $this->uang_pinjaman;
+        $dailyRate = (float) $this->tarif_bunga_harian;
+
+        return round($principal * $dailyRate * $days, 2);
+    }
 }

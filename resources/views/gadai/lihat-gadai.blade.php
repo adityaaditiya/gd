@@ -241,7 +241,16 @@
                                     </div>
                                 @endif
                             </td>
-                            <td class="whitespace-nowrap px-4 py-3">Rp {{ number_format((float) $transaksi->total_bunga, 0, ',', '.') }}</td>
+                            <td class="whitespace-nowrap px-4 py-3">
+                                @php
+                                    $accruedInterest = $transaksi->accrued_interest;
+                                @endphp
+                                @if ($accruedInterest !== null)
+                                    Rp {{ number_format($accruedInterest, 0, ',', '.') }}
+                                @else
+                                    —
+                                @endif
+                            </td>
                             <td class="whitespace-nowrap px-4 py-3">{{ number_format((float) $transaksi->tarif_bunga_harian * 100, 2, ',', '.') }}%</td>
                             <td class="whitespace-nowrap px-4 py-3">{{ optional($transaksi->jatuh_tempo_awal)->format('d M Y') ?? '—' }}</td>
                             <td class="px-4 py-3">
