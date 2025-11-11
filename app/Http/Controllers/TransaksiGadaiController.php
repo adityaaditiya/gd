@@ -128,6 +128,7 @@ class TransaksiGadaiController extends Controller
             'barangSiapGadai' => $barangSiapGadai,
             'nasabahList' => $nasabahList,
             'today' => Carbon::today()->toDateString(),
+            'defaultNoSbg' => $this->nextNoSbg(Carbon::today()),
         ]);
     }
 
@@ -181,25 +182,29 @@ class TransaksiGadaiController extends Controller
         $tarifBungaHarian = 0.0015; // 0.15% per hari
         $totalBunga = $this->formatDecimal($uangPinjaman * $tarifBungaHarian * $tenorHari);
 
-        $transaksi = TransaksiGadai::create([
-            'no_sbg' => $data['no_sbg'],
-            'nasabah_id' => $data['nasabah_id'],
-            'pegawai_kasir_id' => $kasirId,
-            'tanggal_gadai' => $data['tanggal_gadai'],
-            'jatuh_tempo_awal' => $data['jatuh_tempo_awal'],
-            'tenor_hari' => $tenorHari,
-            'tarif_bunga_harian' => $this->formatDecimal($tarifBungaHarian, 4),
-            'total_bunga' => $totalBunga,
-            'uang_pinjaman' => $data['uang_pinjaman'],
-            'biaya_admin' => $data['biaya_admin'],
-            'premi' => $data['premi'],
-            'status_transaksi' => 'Aktif',
-        ]);
+        DB::transaction(function () use ($barangCollection, $kasirId, $data, $tenorHari, $tarifBungaHarian, $totalBunga, $tanggalGadai) {
+            $noSbg = $this->nextNoSbg($tanggalGadai, true);
 
-        foreach ($barangCollection as $barang) {
-            $barang->transaksi_id = $transaksi->transaksi_id;
-            $barang->save();
-        }
+            $transaksi = TransaksiGadai::create([
+                'no_sbg' => $noSbg,
+                'nasabah_id' => $data['nasabah_id'],
+                'pegawai_kasir_id' => $kasirId,
+                'tanggal_gadai' => $data['tanggal_gadai'],
+                'jatuh_tempo_awal' => $data['jatuh_tempo_awal'],
+                'tenor_hari' => $tenorHari,
+                'tarif_bunga_harian' => $this->formatDecimal($tarifBungaHarian, 4),
+                'total_bunga' => $totalBunga,
+                'uang_pinjaman' => $data['uang_pinjaman'],
+                'biaya_admin' => $data['biaya_admin'],
+                'premi' => $data['premi'],
+                'status_transaksi' => 'Aktif',
+            ]);
+
+            foreach ($barangCollection as $barang) {
+                $barang->transaksi_id = $transaksi->transaksi_id;
+                $barang->save();
+            }
+        });
 
         return redirect()
             ->route('gadai.lihat-gadai')
@@ -362,7 +367,6 @@ class TransaksiGadaiController extends Controller
                 'distinct',
                 Rule::exists('barang_jaminan', 'barang_id')->whereNull('transaksi_id'),
             ],
-            'no_sbg' => ['required', 'string', 'max:50', 'unique:transaksi_gadai,no_sbg'],
             'nasabah_id' => ['required', 'exists:nasabahs,id'],
             'tanggal_gadai' => ['required', 'date'],
             'jatuh_tempo_awal' => ['required', 'date', 'after_or_equal:tanggal_gadai'],
@@ -440,5 +444,27 @@ class TransaksiGadaiController extends Controller
     private function formatDecimal(float $value, int $precision = 2): string
     {
         return number_format($value, $precision, '.', '');
+    }
+
+    private function nextNoSbg(Carbon $tanggalGadai, bool $lock = false): string
+    {
+        $prefix = 'GE02' . $tanggalGadai->format('ymd');
+
+        $query = TransaksiGadai::whereDate('tanggal_gadai', $tanggalGadai->toDateString())
+            ->where('no_sbg', 'like', $prefix . '%');
+
+        if ($lock) {
+            $query->lockForUpdate();
+        }
+
+        $latest = $query->orderByDesc('no_sbg')->value('no_sbg');
+
+        if ($latest && preg_match('/(\d{3})$/', $latest, $matches)) {
+            $sequence = (int) $matches[1] + 1;
+        } else {
+            $sequence = 1;
+        }
+
+        return $prefix . str_pad((string) $sequence, 3, '0', STR_PAD_LEFT);
     }
 }
