@@ -231,6 +231,39 @@ class TransaksiGadaiController extends Controller
             ->with('status', __('Transaksi gadai berhasil dibatalkan.'));
     }
 
+    public function showSettlementForm(Request $request, TransaksiGadai $transaksi): View
+    {
+        $status = $transaksi->status_transaksi;
+
+        if (in_array($status, ['Lunas', 'Lelang', 'Batal'], true)) {
+            $message = __('Transaksi dengan status :status tidak dapat dilunasi.', ['status' => $status ?? '—']);
+
+            return redirect()
+                ->route('gadai.lihat-gadai', $this->extractListingQuery($request))
+                ->with('error', $message);
+        }
+
+        $transaksi->loadMissing(['nasabah', 'kasir', 'barangJaminan']);
+
+        $pelunasanBiayaSaran = (float) $transaksi->biaya_admin + (float) $transaksi->premi;
+        $pelunasanTotalSaran = (float) $transaksi->uang_pinjaman + (float) $transaksi->total_bunga + $pelunasanBiayaSaran;
+
+        return view('gadai.pelunasan', [
+            'transaksi' => $transaksi,
+            'query' => $this->extractListingQuery($request),
+            'defaults' => [
+                'tanggal_pelunasan' => Carbon::today()->toDateString(),
+                'metode_pembayaran' => __('Tunai'),
+                'pokok_dibayar' => number_format((float) $transaksi->uang_pinjaman, 2, '.', ''),
+                'bunga_dibayar' => number_format((float) $transaksi->total_bunga, 2, '.', ''),
+                'biaya_lain_dibayar' => number_format($pelunasanBiayaSaran, 2, '.', ''),
+                'total_pelunasan' => number_format($pelunasanTotalSaran, 2, '.', ''),
+            ],
+            'pelunasanBiayaSaran' => $pelunasanBiayaSaran,
+            'pelunasanTotalSaran' => $pelunasanTotalSaran,
+        ]);
+    }
+
     public function settle(Request $request, TransaksiGadai $transaksi): RedirectResponse
     {
         $status = $transaksi->status_transaksi;
@@ -239,20 +272,9 @@ class TransaksiGadaiController extends Controller
             $message = __('Transaksi dengan status :status tidak dapat dilunasi.', ['status' => $status ?? '—']);
 
             return redirect()
-                ->back()
-                ->withInput(array_merge($request->all(), [
-                    'settle_transaksi_id' => $transaksi->transaksi_id,
-                ]))
-                ->withErrors([
-                    'total_pelunasan' => $message,
-                ])
-                ->with('error', $message)
-                ->with('show_settle_modal', $transaksi->transaksi_id);
+                ->route('gadai.lihat-gadai', $this->extractListingQuery($request))
+                ->with('error', $message);
         }
-
-        $request->merge([
-            'settle_transaksi_id' => $transaksi->transaksi_id,
-        ]);
 
         $data = $this->validateSettlementData($request);
 
@@ -266,12 +288,11 @@ class TransaksiGadaiController extends Controller
 
             return redirect()
                 ->back()
-                ->withInput($request->all())
+                ->withInput($request->except('_token'))
                 ->withErrors([
                     'total_pelunasan' => $message,
                 ])
-                ->with('error', $message)
-                ->with('show_settle_modal', $transaksi->transaksi_id);
+                ->with('error', $message);
         }
 
         $kasirId = Auth::id();
@@ -297,8 +318,16 @@ class TransaksiGadaiController extends Controller
         });
 
         return redirect()
-            ->route('gadai.lihat-gadai', $request->only(['search', 'tanggal_dari', 'tanggal_sampai', 'page', 'per_page']))
+            ->route('gadai.lihat-gadai', $this->extractListingQuery($request))
             ->with('status', __('Transaksi gadai berhasil dilunasi.'));
+    }
+
+    private function extractListingQuery(Request $request): array
+    {
+        return array_filter(
+            $request->only(['search', 'tanggal_dari', 'tanggal_sampai', 'per_page', 'page']),
+            static fn ($value) => $value !== null && $value !== ''
+        );
     }
 
     private function validateData(Request $request): array

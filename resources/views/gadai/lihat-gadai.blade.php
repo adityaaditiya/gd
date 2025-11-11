@@ -2,8 +2,6 @@
     $pendingCancelTransaksiId = old('transaksi_id', session('show_cancel_modal'));
     $pendingCancelTransaksiId = $pendingCancelTransaksiId ? (string) $pendingCancelTransaksiId : '';
     $pendingCancelReason = old('alasan_batal', '');
-    $pendingSettleTransaksiId = old('settle_transaksi_id', session('show_settle_modal'));
-    $pendingSettleTransaksiId = $pendingSettleTransaksiId ? (string) $pendingSettleTransaksiId : '';
 @endphp
 
 <x-layouts.app :title="__('Lihat Gadai')">
@@ -212,28 +210,41 @@
                                             </svg>
                                             <span>{{ __('Batal Gadai') }}</span>
                                         </button>
-                                        <button
-                                            type="button"
-                                            class="flex w-full items-center gap-2 px-4 py-2 text-left text-neutral-700 transition hover:bg-neutral-50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:text-neutral-200 dark:hover:bg-neutral-700/60"
-                                            data-menu-item="settle"
-                                            data-transaksi-id="{{ $transaksi->transaksi_id }}"
-                                            data-no-sbg="{{ $transaksi->no_sbg }}"
-                                            data-nasabah="{{ $transaksi->nasabah?->nama ?? '' }}"
-                                            data-pinjaman="{{ number_format((float) $transaksi->uang_pinjaman, 2, '.', '') }}"
-                                            data-pinjaman-display="Rp {{ number_format((float) $transaksi->uang_pinjaman, 0, ',', '.') }}"
-                                            data-bunga="{{ number_format((float) $transaksi->total_bunga, 2, '.', '') }}"
-                                            data-biaya-lain="{{ number_format($pelunasanBiayaSaran, 2, '.', '') }}"
-                                            data-total="{{ number_format($pelunasanTotalSaran, 2, '.', '') }}"
-                                            data-metode-default="{{ __('Tunai') }}"
-                                            data-tanggal-default="{{ now()->toDateString() }}"
-                                            {{ in_array($transaksi->status_transaksi, ['Lunas', 'Lelang', 'Batal'], true) ? 'disabled' : '' }}
-                                            role="menuitem"
-                                        >
-                                            <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m6 .75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                                            </svg>
-                                            <span>{{ __('Pelunasan Gadai') }}</span>
-                                        </button>
+                                        @php
+                                            $canSettle = !in_array($transaksi->status_transaksi, ['Lunas', 'Lelang', 'Batal'], true);
+                                            $settleQuery = collect([
+                                                'search' => $search,
+                                                'tanggal_dari' => $tanggalDari,
+                                                'tanggal_sampai' => $tanggalSampai,
+                                                'per_page' => $perPage,
+                                                'page' => $transaksiGadai->currentPage(),
+                                            ])->filter(fn ($value) => $value !== null && $value !== '')->all();
+                                            $settleUrl = $canSettle
+                                                ? route('gadai.transaksi-gadai.settle-form', array_merge(['transaksi' => $transaksi->transaksi_id], $settleQuery))
+                                                : null;
+                                        @endphp
+                                        @if ($canSettle)
+                                            <a
+                                                href="{{ $settleUrl }}"
+                                                class="flex w-full items-center gap-2 px-4 py-2 text-left text-neutral-700 transition hover:bg-neutral-50 focus:outline-none dark:text-neutral-200 dark:hover:bg-neutral-700/60"
+                                                role="menuitem"
+                                            >
+                                        @else
+                                            <span
+                                                class="flex w-full items-center gap-2 px-4 py-2 text-left text-neutral-400 opacity-50 cursor-not-allowed dark:text-neutral-500"
+                                                aria-disabled="true"
+                                                role="menuitem"
+                                            >
+                                        @endif
+                                                <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m6 .75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                                </svg>
+                                                <span>{{ __('Pelunasan Gadai') }}</span>
+                                        @if ($canSettle)
+                                            </a>
+                                        @else
+                                            </span>
+                                        @endif
                                     </div>
                                 </div>
                             </td>
@@ -372,133 +383,6 @@
       }
     };
 
-    const initSettleModal = () => {
-      const modal = document.getElementById('settle-modal');
-      if (!modal) {
-        window.KRESNO.settleModal = { open: () => {}, close: () => {} };
-        return;
-      }
-
-      const form = modal.querySelector('[data-settle-form]');
-      const summary = modal.querySelector('[data-settle-summary]');
-      const actionTemplate = form?.dataset.actionTemplate ?? '';
-      const hiddenTransaksi = form?.querySelector('input[name="settle_transaksi_id"]');
-      const fields = {
-        tanggal: form?.querySelector('[data-settle-field="tanggal"]'),
-        metode: form?.querySelector('[data-settle-field="metode"]'),
-        pokok: form?.querySelector('[data-settle-field="pokok"]'),
-        bunga: form?.querySelector('[data-settle-field="bunga"]'),
-        biaya: form?.querySelector('[data-settle-field="biaya"]'),
-        total: form?.querySelector('[data-settle-field="total"]'),
-        catatan: form?.querySelector('[data-settle-field="catatan"]'),
-      };
-
-      const closeModal = () => {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-        modal.setAttribute('aria-hidden', 'true');
-        document.body.classList.remove('overflow-hidden');
-      };
-
-      const fillIfEmpty = (input, value) => {
-        if (!input) return;
-        if (!input.value || input.value.trim() === '') {
-          input.value = value ?? '';
-        }
-      };
-
-      const formatCurrency = (value) => {
-        const numeric = Number.parseFloat(value ?? '');
-        if (Number.isNaN(numeric)) {
-          return new Intl.NumberFormat('id-ID', {
-            style: 'currency',
-            currency: 'IDR',
-            minimumFractionDigits: 0,
-          }).format(0);
-        }
-
-        return new Intl.NumberFormat('id-ID', {
-          style: 'currency',
-          currency: 'IDR',
-          minimumFractionDigits: 0,
-        }).format(numeric);
-      };
-
-      const openModal = (button) => {
-        if (!form) return;
-        const transaksiId = button.dataset.transaksiId;
-        if (!transaksiId) return;
-
-        form.action = actionTemplate.replace('__TRANSAKSI__', transaksiId);
-        if (hiddenTransaksi) {
-          hiddenTransaksi.value = transaksiId;
-        }
-
-        if (summary) {
-          const parts = [
-            button.dataset.noSbg || '',
-            button.dataset.nasabah || '',
-            button.dataset.pinjamanDisplay || formatCurrency(button.dataset.pinjaman),
-          ].filter(Boolean);
-          summary.textContent = parts.join(' • ');
-        }
-
-        fillIfEmpty(fields.tanggal, button.dataset.tanggalDefault || '');
-        fillIfEmpty(fields.metode, button.dataset.metodeDefault || '');
-        fillIfEmpty(fields.pokok, button.dataset.pinjaman || '');
-        fillIfEmpty(fields.bunga, button.dataset.bunga || '');
-        fillIfEmpty(fields.biaya, button.dataset.biayaLain || '');
-        fillIfEmpty(fields.total, button.dataset.total || '');
-
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        modal.setAttribute('aria-hidden', 'false');
-        document.body.classList.add('overflow-hidden');
-
-        requestAnimationFrame(() => {
-          if (fields.pokok) {
-            fields.pokok.focus();
-            const length = fields.pokok.value.length;
-            fields.pokok.setSelectionRange(length, length);
-          }
-        });
-      };
-
-      if (modal.dataset.bound !== 'true') {
-        modal.dataset.bound = 'true';
-
-        modal.querySelectorAll('[data-settle-close]').forEach((element) => {
-          element.addEventListener('click', (event) => {
-            event.preventDefault();
-            closeModal();
-          });
-        });
-
-        modal.addEventListener('click', (event) => {
-          if (event.target === modal) {
-            closeModal();
-          }
-        });
-
-        document.addEventListener('keydown', (event) => {
-          if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
-            closeModal();
-          }
-        });
-      }
-
-      window.KRESNO.settleModal = { open: openModal, close: closeModal };
-
-      const initialTransaksi = modal.dataset.initialTransaksi || '';
-      if (initialTransaksi) {
-        const trigger = document.querySelector(`[data-menu-item="settle"][data-transaksi-id="${initialTransaksi}"]`);
-        if (trigger) {
-          openModal(trigger);
-        }
-        modal.dataset.initialTransaksi = '';
-      }
-    };
-
     const bindTable = () => {
       const table = document.querySelector('[data-transaksi-gadai-table]');
       if (!table || table.dataset.bound === 'true') {
@@ -541,17 +425,6 @@
           return;
         }
 
-        const settleButton = event.target.closest('[data-menu-item="settle"]');
-        if (settleButton) {
-          event.preventDefault();
-          if (settleButton.disabled) {
-            return;
-          }
-          closeDropdown();
-          (window.KRESNO.settleModal || { open: () => {} }).open(settleButton);
-          return;
-        }
-
         if (event.target.closest('[data-more-menu]')) {
           return;
         }
@@ -574,7 +447,6 @@
 
     const bootstrap = () => {
       initCancelModal();
-      initSettleModal();
       bindTable();
     };
 
@@ -659,188 +531,6 @@
         </div>
     </div>
 
-    <div
-        id="settle-modal"
-        class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 px-4 py-6 backdrop-blur-sm"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="settle-modal-title"
-        data-initial-transaksi="{{ $pendingSettleTransaksiId }}"
-    >
-        <div class="mx-auto w-full max-w-3xl rounded-2xl bg-white shadow-xl dark:bg-neutral-900">
-            <div class="flex items-center justify-between border-b border-neutral-200 px-6 py-4 dark:border-neutral-700">
-                <div>
-                    <h2 id="settle-modal-title" class="text-lg font-semibold text-neutral-900 dark:text-white">
-                        {{ __('Pelunasan Transaksi Gadai') }}
-                    </h2>
-                    <p class="text-sm text-neutral-500 dark:text-neutral-300" data-settle-summary></p>
-                </div>
-                <button type="button" class="text-neutral-400 transition hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300" data-settle-close>
-                    <span class="sr-only">{{ __('Tutup modal') }}</span>
-                    <svg class="size-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-            <form
-                method="POST"
-                class="space-y-6 px-6 py-5"
-                data-settle-form
-                data-action-template="{{ route('gadai.transaksi-gadai.settle', ['transaksi' => '__TRANSAKSI__']) }}"
-            >
-                @csrf
-                <input type="hidden" name="settle_transaksi_id" value="{{ old('settle_transaksi_id') }}">
-                <input type="hidden" name="search" value="{{ $search }}">
-                <input type="hidden" name="tanggal_dari" value="{{ $tanggalDari }}">
-                <input type="hidden" name="tanggal_sampai" value="{{ $tanggalSampai }}">
-                <input type="hidden" name="per_page" value="{{ $perPage }}">
-                <input type="hidden" name="page" value="{{ $transaksiGadai->currentPage() }}">
-
-                <div class="grid gap-4 sm:grid-cols-2">
-                    <label class="flex flex-col gap-2 text-sm text-neutral-700 dark:text-neutral-200">
-                        <span class="font-medium">{{ __('Tanggal Pelunasan') }}</span>
-                        <input
-                            type="date"
-                            name="tanggal_pelunasan"
-                            value="{{ old('tanggal_pelunasan', now()->toDateString()) }}"
-                            required
-                            class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
-                            data-settle-field="tanggal"
-                        >
-                        @error('tanggal_pelunasan')
-                            <span class="text-xs text-red-600 dark:text-red-400">{{ $message }}</span>
-                        @enderror
-                    </label>
-
-                    <label class="flex flex-col gap-2 text-sm text-neutral-700 dark:text-neutral-200">
-                        <span class="font-medium">{{ __('Metode Pembayaran') }}</span>
-                        <input
-                            type="text"
-                            name="metode_pembayaran"
-                            value="{{ old('metode_pembayaran') }}"
-                            required
-                            maxlength="100"
-                            class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
-                            placeholder="{{ __('Contoh: Tunai, Transfer Bank…') }}"
-                            data-settle-field="metode"
-                        >
-                        @error('metode_pembayaran')
-                            <span class="text-xs text-red-600 dark:text-red-400">{{ $message }}</span>
-                        @enderror
-                    </label>
-                </div>
-
-                <div class="grid gap-4 sm:grid-cols-2">
-                    <label class="flex flex-col gap-2 text-sm text-neutral-700 dark:text-neutral-200">
-                        <span class="font-medium">{{ __('Pokok Dibayar') }}</span>
-                        <input
-                            type="text"
-                            name="pokok_dibayar"
-                            value="{{ old('pokok_dibayar') }}"
-                            required
-                            inputmode="decimal"
-                            class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
-                            placeholder="{{ __('Masukkan nominal pokok…') }}"
-                            data-settle-field="pokok"
-                        >
-                        @error('pokok_dibayar')
-                            <span class="text-xs text-red-600 dark:text-red-400">{{ $message }}</span>
-                        @enderror
-                    </label>
-
-                    <label class="flex flex-col gap-2 text-sm text-neutral-700 dark:text-neutral-200">
-                        <span class="font-medium">{{ __('Bunga Dibayar') }}</span>
-                        <input
-                            type="text"
-                            name="bunga_dibayar"
-                            value="{{ old('bunga_dibayar') }}"
-                            inputmode="decimal"
-                            class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
-                            placeholder="{{ __('Masukkan nominal bunga…') }}"
-                            data-settle-field="bunga"
-                        >
-                        @error('bunga_dibayar')
-                            <span class="text-xs text-red-600 dark:text-red-400">{{ $message }}</span>
-                        @enderror
-                    </label>
-
-                    <label class="flex flex-col gap-2 text-sm text-neutral-700 dark:text-neutral-200 sm:col-span-2">
-                        <span class="font-medium">{{ __('Biaya Lain-lain') }}</span>
-                        <input
-                            type="text"
-                            name="biaya_lain_dibayar"
-                            value="{{ old('biaya_lain_dibayar') }}"
-                            inputmode="decimal"
-                            class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
-                            placeholder="{{ __('Biaya lain yang dibayarkan (opsional)…') }}"
-                            data-settle-field="biaya"
-                        >
-                        @error('biaya_lain_dibayar')
-                            <span class="text-xs text-red-600 dark:text-red-400">{{ $message }}</span>
-                        @enderror
-                    </label>
-
-                    <label class="flex flex-col gap-2 text-sm text-neutral-700 dark:text-neutral-200 sm:col-span-2">
-                        <span class="font-medium">{{ __('Total Pelunasan') }}</span>
-                        <input
-                            type="text"
-                            name="total_pelunasan"
-                            value="{{ old('total_pelunasan') }}"
-                            required
-                            inputmode="decimal"
-                            class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
-                            placeholder="{{ __('Total dana yang diterima kasir…') }}"
-                            data-settle-field="total"
-                        >
-                        @error('total_pelunasan')
-                            <span class="text-xs text-red-600 dark:text-red-400">{{ $message }}</span>
-                        @enderror
-                    </label>
-                </div>
-
-                <label class="flex flex-col gap-2 text-sm text-neutral-700 dark:text-neutral-200">
-                    <span class="font-medium">{{ __('Catatan Pelunasan') }}</span>
-                    <textarea
-                        name="catatan_pelunasan"
-                        rows="3"
-                        class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
-                        placeholder="{{ __('Catat detail tambahan seperti nomor referensi transfer atau kondisi barang saat ditebus…') }}"
-                        data-settle-field="catatan"
-                    >{{ old('catatan_pelunasan') }}</textarea>
-                    @error('catatan_pelunasan')
-                        <span class="text-xs text-red-600 dark:text-red-400">{{ $message }}</span>
-                    @enderror
-                </label>
-
-                <div class="flex flex-col gap-3 rounded-lg border border-emerald-200 bg-emerald-50/60 px-4 py-3 text-xs text-emerald-800 shadow-sm dark:border-emerald-500/50 dark:bg-emerald-500/10 dark:text-emerald-200">
-                    <p class="font-semibold">{{ __('Ringkasan pelunasan') }}</p>
-                    <ul class="list-disc space-y-1 pl-4">
-                        <li>{{ __('Total pelunasan minimal harus menutup pokok, bunga, dan biaya lain yang dimasukkan.') }}</li>
-                        <li>{{ __('Setelah disimpan, status transaksi berubah menjadi Lunas dan tercatat pada laporan pelunasan.') }}</li>
-                    </ul>
-                </div>
-
-                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
-                    <button
-                        type="button"
-                        class="inline-flex items-center justify-center rounded-lg border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-600 transition hover:bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-400 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800/70"
-                        data-settle-close
-                    >
-                        {{ __('Batal') }}
-                    </button>
-                    <button
-                        type="submit"
-                        class="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-600 bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-500 dark:bg-emerald-500 dark:hover:border-emerald-400 dark:hover:bg-emerald-400"
-                    >
-                        <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m6 .75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                        </svg>
-                        <span>{{ __('Konfirmasi Pelunasan') }}</span>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
 </x-layouts.app>
 
 @push('scripts')
