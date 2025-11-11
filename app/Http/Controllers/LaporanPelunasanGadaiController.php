@@ -16,12 +16,13 @@ class LaporanPelunasanGadaiController extends Controller
             'nasabah',
             'kasir',
             'barangJaminan',
+            'petugasPelunasan',
         ])
             ->where('status_transaksi', 'Lunas')
             ->when($search !== '', function ($query) use ($search) {
                 $query->where('no_sbg', 'like', "%{$search}%");
             })
-            ->latest('updated_at')
+            ->latest('tanggal_pelunasan')
             ->paginate(15)
             ->withQueryString();
 

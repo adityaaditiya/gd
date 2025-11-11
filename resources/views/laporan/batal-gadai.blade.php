@@ -1,15 +1,15 @@
-<x-layouts.app :title="__('Laporan Pelunasan Gadai')">
+<x-layouts.app :title="__('Laporan Pembatalan Gadai')">
     <div class="space-y-6">
         <div class="flex flex-col gap-2">
-            <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white">{{ __('Laporan Pelunasan Gadai') }}</h1>
+            <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white">{{ __('Laporan Pembatalan Gadai') }}</h1>
             <p class="text-sm text-neutral-600 dark:text-neutral-300">
-                {{ __('Daftar kontrak gadai yang telah dilunasi beserta ringkasan pembayarannya.') }}
+                {{ __('Daftar kontrak gadai yang dibatalkan lengkap dengan alasan dan petugas pembatal.') }}
             </p>
         </div>
 
         <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <form method="GET" action="{{ route('laporan.pelunasan-gadai') }}" class="w-full max-w-md">
-                <label for="search-no-sbg" class="sr-only">{{ __('Cari No. SBG') }}</label>
+            <form method="GET" action="{{ route('laporan.batal-gadai') }}" class="w-full max-w-xl">
+                <label for="search-batal" class="sr-only">{{ __('Cari transaksi') }}</label>
                 <div class="flex items-center gap-2">
                     <div class="relative flex-1">
                         <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-neutral-400 dark:text-neutral-500">
@@ -18,17 +18,17 @@
                             </svg>
                         </span>
                         <input
-                            id="search-no-sbg"
+                            id="search-batal"
                             name="search"
                             type="search"
                             value="{{ $search ?? '' }}"
-                            placeholder="{{ __('Cari No. SBG…') }}"
+                            placeholder="{{ __('Cari No. SBG, nama nasabah, atau kontak…') }}"
                             class="w-full rounded-lg border border-neutral-200 bg-white py-2 pl-9 pr-3 text-sm text-neutral-700 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
                         />
                     </div>
                     @if (!empty($search))
                         <a
-                            href="{{ route('laporan.pelunasan-gadai') }}"
+                            href="{{ route('laporan.batal-gadai') }}"
                             class="inline-flex items-center rounded-lg border border-neutral-200 px-3 py-2 text-xs font-semibold text-neutral-600 transition hover:bg-neutral-50 dark:border-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-700/60"
                         >
                             {{ __('Reset') }}
@@ -44,7 +44,7 @@
             </form>
 
             <div class="text-sm text-neutral-600 dark:text-neutral-300">
-                {{ __('Total :count pelunasan.', ['count' => number_format($transaksiLunas->total(), 0, ',', '.')]) }}
+                {{ __('Total :count transaksi batal.', ['count' => number_format($transaksiBatal->total(), 0, ',', '.')]) }}
             </div>
         </div>
 
@@ -55,24 +55,25 @@
                         <th scope="col" class="px-4 py-3">{{ __('No. SBG') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Nasabah') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Barang Jaminan') }}</th>
-                        <th scope="col" class="px-4 py-3">{{ __('Pinjaman Awal') }}</th>
-                        <th scope="col" class="px-4 py-3">{{ __('Detail Pelunasan') }}</th>
-                        <th scope="col" class="px-4 py-3">{{ __('Tanggal') }}</th>
+                        <th scope="col" class="px-4 py-3">{{ __('Pinjaman') }}</th>
+                        <th scope="col" class="px-4 py-3">{{ __('Tanggal Batal') }}</th>
+                        <th scope="col" class="px-4 py-3">{{ __('Alasan Batal') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Petugas') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-neutral-200 bg-white dark:divide-neutral-700 dark:bg-neutral-800">
-                    @forelse ($transaksiLunas as $transaksi)
+                    @forelse ($transaksiBatal as $transaksi)
                         <tr class="align-top hover:bg-neutral-50 dark:hover:bg-neutral-700/70">
                             <td class="whitespace-nowrap px-4 py-3 font-semibold text-neutral-900 dark:text-white">
                                 {{ $transaksi->no_sbg }}
+                                <div class="text-xs font-normal text-neutral-500 dark:text-neutral-300">
+                                    {{ __('Tanggal Gadai: :date', ['date' => optional($transaksi->tanggal_gadai)->format('d M Y') ?? '—']) }}
+                                </div>
                             </td>
                             <td class="px-4 py-3">
                                 <div class="flex flex-col">
                                     <span class="font-medium text-neutral-900 dark:text-white">{{ $transaksi->nasabah?->nama ?? '—' }}</span>
-                                    <span class="text-xs text-neutral-500 dark:text-neutral-300">
-                                        {{ $transaksi->nasabah?->kelurahan ? __('Kel. :kel, :alamat', ['kel' => $transaksi->nasabah->kelurahan, 'alamat' => $transaksi->nasabah->alamat]) : ($transaksi->nasabah?->alamat ?? '—') }}
-                                    </span>
+                                    <span class="text-xs text-neutral-500 dark:text-neutral-300">{{ $transaksi->nasabah?->kode_member ?? '' }}</span>
                                 </div>
                             </td>
                             <td class="px-4 py-3">
@@ -84,6 +85,7 @@
                                             <li class="rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-700 dark:bg-neutral-900 dark:text-neutral-200">
                                                 <div class="font-semibold text-neutral-900 dark:text-white">{{ $barang->jenis_barang }} — {{ $barang->merek }}</div>
                                                 <div>Rp {{ number_format((float) $barang->nilai_taksiran, 0, ',', '.') }}</div>
+                                                <div class="text-[11px] text-neutral-500 dark:text-neutral-300">{{ __('Kelengkapan:') }} {{ $barang->kelengkapan ?? '—' }}</div>
                                             </li>
                                         @endforeach
                                     </ul>
@@ -94,66 +96,28 @@
                                 @if ((float) $transaksi->biaya_admin > 0)
                                     <div class="text-xs text-neutral-500 dark:text-neutral-300">{{ __('Biaya admin: Rp :amount', ['amount' => number_format((float) $transaksi->biaya_admin, 0, ',', '.')]) }}</div>
                                 @endif
-                                @if ((float) $transaksi->premi > 0)
-                                    <div class="text-xs text-neutral-500 dark:text-neutral-300">{{ __('Premi: Rp :amount', ['amount' => number_format((float) $transaksi->premi, 0, ',', '.')]) }}</div>
-                                @endif
-                                <div class="text-xs text-neutral-500 dark:text-neutral-300">
-                                    @if ($transaksi->tenor_hari)
-                                        {{ __('Tenor: :days hari', ['days' => $transaksi->tenor_hari]) }}
-                                    @else
-                                        {{ __('Tenor: —') }}
-                                    @endif
-                                </div>
                             </td>
-                            <td class="px-4 py-3">
-                                <div class="text-sm font-semibold text-neutral-900 dark:text-white">Rp {{ number_format((float) $transaksi->total_pelunasan, 0, ',', '.') }}</div>
-                                <dl class="mt-2 space-y-1 text-xs text-neutral-600 dark:text-neutral-300">
-                                    <div class="flex justify-between gap-3">
-                                        <dt>{{ __('Pokok') }}</dt>
-                                        <dd>Rp {{ number_format((float) $transaksi->pokok_dibayar, 0, ',', '.') }}</dd>
-                                    </div>
-                                    <div class="flex justify-between gap-3">
-                                        <dt>{{ __('Bunga') }}</dt>
-                                        <dd>Rp {{ number_format((float) $transaksi->bunga_dibayar, 0, ',', '.') }}</dd>
-                                    </div>
-                                    @if ((float) $transaksi->biaya_lain_dibayar > 0)
-                                        <div class="flex justify-between gap-3">
-                                            <dt>{{ __('Biaya lain') }}</dt>
-                                            <dd>Rp {{ number_format((float) $transaksi->biaya_lain_dibayar, 0, ',', '.') }}</dd>
-                                        </div>
-                                    @endif
-                                </dl>
-                                <div class="mt-2 text-xs text-neutral-500 dark:text-neutral-300">
-                                    {{ __('Metode: :method', ['method' => $transaksi->metode_pembayaran ?? '—']) }}
-                                </div>
-                                @if (!empty($transaksi->catatan_pelunasan))
-                                    <div class="mt-1 rounded-lg bg-neutral-50 px-3 py-2 text-[11px] text-neutral-600 dark:bg-neutral-900 dark:text-neutral-300">
-                                        {{ $transaksi->catatan_pelunasan }}
-                                    </div>
-                                @endif
+                            <td class="whitespace-nowrap px-4 py-3">{{ optional($transaksi->tanggal_batal)->format('d M Y H:i') ?? '—' }}</td>
+                            <td class="px-4 py-3 text-sm text-neutral-600 dark:text-neutral-300">
+                                {{ $transaksi->alasan_batal ?? '—' }}
                             </td>
-                            <td class="whitespace-nowrap px-4 py-3 text-xs text-neutral-600 dark:text-neutral-300">
-                                <div>{{ __('Gadai: :date', ['date' => optional($transaksi->tanggal_gadai)->format('d M Y') ?? '—']) }}</div>
-                                <div>{{ __('Pelunasan: :date', ['date' => optional($transaksi->tanggal_pelunasan)->format('d M Y H:i') ?? '—']) }}</div>
+                            <td class="px-4 py-3 text-sm text-neutral-600 dark:text-neutral-300">
+                                {{ $transaksi->pembatal?->name ?? '—' }}
                             </td>
-                            <td class="px-4 py-3 text-xs text-neutral-600 dark:text-neutral-300">
-                                <div>{{ __('Kasir awal: :name', ['name' => $transaksi->kasir?->name ?? '—']) }}</div>
-                                <div>{{ __('Petugas pelunasan: :name', ['name' => $transaksi->petugasPelunasan?->name ?? '—']) }}</div>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-300">
+                                {{ __('Belum ada transaksi gadai yang dibatalkan.') }}
                             </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="8" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-300">
-                            {{ __('Belum ada transaksi gadai yang tercatat lunas.') }}
-                        </td>
-                    </tr>
-                @endforelse
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
 
         <div>
-            {{ $transaksiLunas->links() }}
+            {{ $transaksiBatal->links() }}
         </div>
     </div>
 </x-layouts.app>

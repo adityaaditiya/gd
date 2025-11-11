@@ -1,5 +1,10 @@
 <x-layouts.app :title="__('Pemberian Kredit Gadai')">
-    <div class="space-y-8" id="pemberian-gadai-page" data-initialized="false">
+    <div
+        class="space-y-8"
+        id="pemberian-gadai-page"
+        data-initialized="false"
+        data-today="{{ ($today ?? now()->toDateString()) }}"
+    >
         <div class="flex flex-col gap-2">
             <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white">{{ __('Pemberian Kredit Gadai') }}</h1>
             <p class="text-sm text-neutral-600 dark:text-neutral-300">
@@ -160,9 +165,12 @@
                                     type="date"
                                     id="tanggal_gadai"
                                     name="tanggal_gadai"
-                                    value="{{ old('tanggal_gadai') }}"
+                                    value="{{ old('tanggal_gadai', $today ?? now()->toDateString()) }}"
                                     required
-                                    class="block w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+                                    readonly
+                                    min="{{ $today ?? now()->toDateString() }}"
+                                    max="{{ $today ?? now()->toDateString() }}"
+                                    class="block w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-neutral-300 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
                                 />
                                 @error('tanggal_gadai')
                                     <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -223,6 +231,21 @@
                                     class="block w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
                                 />
                                 @error('biaya_admin')
+                                    <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                                <label for="premi" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Premi') }}</label>
+                                <input
+                                    type="text"
+                                    inputmode="decimal"
+                                    id="premi"
+                                    name="premi"
+                                    value="{{ old('premi') }}"
+                                    class="block w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+                                />
+                                @error('premi')
                                     <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                 @enderror
                             </div>

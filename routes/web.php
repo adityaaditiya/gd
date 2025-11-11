@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\UserAccessController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\BarangJaminanController;
 use App\Http\Controllers\LaporanPelunasanGadaiController;
+use App\Http\Controllers\LaporanPembatalanGadaiController;
 use App\Http\Controllers\NasabahController;
 use App\Http\Controllers\TransaksiGadaiController;
 use Illuminate\Support\Facades\Auth;
@@ -32,6 +33,12 @@ Route::middleware(['auth'])->group(function () {
             Route::get('pemberian-kredit', [TransaksiGadaiController::class, 'create'])->name('pemberian-kredit');
             Route::post('pemberian-kredit', [TransaksiGadaiController::class, 'store'])->name('transaksi-gadai.store');
             Route::get('lihat-gadai', [TransaksiGadaiController::class, 'index'])->name('lihat-gadai');
+            Route::post('transaksi-gadai/{transaksi}/batal', [TransaksiGadaiController::class, 'cancel'])
+                ->whereNumber('transaksi')
+                ->name('transaksi-gadai.cancel');
+            Route::post('transaksi-gadai/{transaksi}/pelunasan', [TransaksiGadaiController::class, 'settle'])
+                ->whereNumber('transaksi')
+                ->name('transaksi-gadai.settle');
             Route::get('lihat-barang-gadai', [BarangJaminanController::class, 'index'])->name('lihat-barang-gadai');
             Route::get('barang-gadai/tambah', [BarangJaminanController::class, 'create'])->name('barang-jaminan.create');
             Route::post('barang-gadai', [BarangJaminanController::class, 'store'])->name('barang-jaminan.store');
@@ -47,6 +54,7 @@ Route::middleware(['auth'])->group(function () {
             Route::view('saldo-kas', 'laporan.saldo-kas')->name('saldo-kas');
             Route::view('transaksi-gadai', 'laporan.transaksi-gadai')->name('transaksi-gadai');
             Route::get('pelunasan-gadai', [LaporanPelunasanGadaiController::class, 'index'])->name('pelunasan-gadai');
+            Route::get('batal-gadai', [LaporanPembatalanGadaiController::class, 'index'])->name('batal-gadai');
             Route::view('lelang', 'laporan.lelang')->name('lelang');
         });
 
