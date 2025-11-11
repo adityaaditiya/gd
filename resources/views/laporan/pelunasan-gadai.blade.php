@@ -53,12 +53,10 @@
                         <th scope="col" class="px-4 py-3">{{ __('No. SBG') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Nasabah') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Barang Jaminan') }}</th>
-                        <th scope="col" class="px-4 py-3">{{ __('Pinjaman') }}</th>
-                        <th scope="col" class="px-4 py-3">{{ __('Total Bunga') }}</th>
-                        <th scope="col" class="px-4 py-3">{{ __('Tenor (hari)') }}</th>
-                        <th scope="col" class="px-4 py-3">{{ __('Tanggal Gadai') }}</th>
-                        <th scope="col" class="px-4 py-3">{{ __('Pelunasan Terakhir') }}</th>
-                        <th scope="col" class="px-4 py-3">{{ __('Kasir') }}</th>
+                        <th scope="col" class="px-4 py-3">{{ __('Pinjaman Awal') }}</th>
+                        <th scope="col" class="px-4 py-3">{{ __('Detail Pelunasan') }}</th>
+                        <th scope="col" class="px-4 py-3">{{ __('Tanggal') }}</th>
+                        <th scope="col" class="px-4 py-3">{{ __('Petugas') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-neutral-200 bg-white dark:divide-neutral-700 dark:bg-neutral-800">
@@ -94,22 +92,60 @@
                                 @if ((float) $transaksi->biaya_admin > 0)
                                     <div class="text-xs text-neutral-500 dark:text-neutral-300">{{ __('Biaya admin: Rp :amount', ['amount' => number_format((float) $transaksi->biaya_admin, 0, ',', '.')]) }}</div>
                                 @endif
+                                @if ((float) $transaksi->premi > 0)
+                                    <div class="text-xs text-neutral-500 dark:text-neutral-300">{{ __('Premi: Rp :amount', ['amount' => number_format((float) $transaksi->premi, 0, ',', '.')]) }}</div>
+                                @endif
+                                <div class="text-xs text-neutral-500 dark:text-neutral-300">
+                                    @if ($transaksi->tenor_hari)
+                                        {{ __('Tenor: :days hari', ['days' => $transaksi->tenor_hari]) }}
+                                    @else
+                                        {{ __('Tenor: —') }}
+                                    @endif
+                                </div>
                             </td>
-                            <td class="whitespace-nowrap px-4 py-3">Rp {{ number_format((float) $transaksi->total_bunga, 0, ',', '.') }}</td>
-                            <td class="whitespace-nowrap px-4 py-3">{{ $transaksi->tenor_hari ?? '—' }}</td>
-                            <td class="whitespace-nowrap px-4 py-3">{{ optional($transaksi->tanggal_gadai)->format('d M Y') ?? '—' }}</td>
-                            <td class="whitespace-nowrap px-4 py-3">{{ optional($transaksi->updated_at)->format('d M Y') ?? '—' }}</td>
-                            <td class="px-4 py-3 text-sm text-neutral-600 dark:text-neutral-300">
-                                {{ $transaksi->kasir?->name ?? '—' }}
+                            <td class="px-4 py-3">
+                                <div class="text-sm font-semibold text-neutral-900 dark:text-white">Rp {{ number_format((float) $transaksi->total_pelunasan, 0, ',', '.') }}</div>
+                                <dl class="mt-2 space-y-1 text-xs text-neutral-600 dark:text-neutral-300">
+                                    <div class="flex justify-between gap-3">
+                                        <dt>{{ __('Pokok') }}</dt>
+                                        <dd>Rp {{ number_format((float) $transaksi->pokok_dibayar, 0, ',', '.') }}</dd>
+                                    </div>
+                                    <div class="flex justify-between gap-3">
+                                        <dt>{{ __('Bunga') }}</dt>
+                                        <dd>Rp {{ number_format((float) $transaksi->bunga_dibayar, 0, ',', '.') }}</dd>
+                                    </div>
+                                    @if ((float) $transaksi->biaya_lain_dibayar > 0)
+                                        <div class="flex justify-between gap-3">
+                                            <dt>{{ __('Biaya lain') }}</dt>
+                                            <dd>Rp {{ number_format((float) $transaksi->biaya_lain_dibayar, 0, ',', '.') }}</dd>
+                                        </div>
+                                    @endif
+                                </dl>
+                                <div class="mt-2 text-xs text-neutral-500 dark:text-neutral-300">
+                                    {{ __('Metode: :method', ['method' => $transaksi->metode_pembayaran ?? '—']) }}
+                                </div>
+                                @if (!empty($transaksi->catatan_pelunasan))
+                                    <div class="mt-1 rounded-lg bg-neutral-50 px-3 py-2 text-[11px] text-neutral-600 dark:bg-neutral-900 dark:text-neutral-300">
+                                        {{ $transaksi->catatan_pelunasan }}
+                                    </div>
+                                @endif
                             </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="9" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-300">
-                                {{ __('Belum ada transaksi gadai yang tercatat lunas.') }}
+                            <td class="whitespace-nowrap px-4 py-3 text-xs text-neutral-600 dark:text-neutral-300">
+                                <div>{{ __('Gadai: :date', ['date' => optional($transaksi->tanggal_gadai)->format('d M Y') ?? '—']) }}</div>
+                                <div>{{ __('Pelunasan: :date', ['date' => optional($transaksi->tanggal_pelunasan)->format('d M Y H:i') ?? '—']) }}</div>
                             </td>
-                        </tr>
-                    @endforelse
+                            <td class="px-4 py-3 text-xs text-neutral-600 dark:text-neutral-300">
+                                <div>{{ __('Kasir awal: :name', ['name' => $transaksi->kasir?->name ?? '—']) }}</div>
+                                <div>{{ __('Petugas pelunasan: :name', ['name' => $transaksi->petugasPelunasan?->name ?? '—']) }}</div>
+                            </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="8" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-300">
+                            {{ __('Belum ada transaksi gadai yang tercatat lunas.') }}
+                        </td>
+                    </tr>
+                @endforelse
                 </tbody>
             </table>
         </div>

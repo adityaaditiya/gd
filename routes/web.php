@@ -36,6 +36,9 @@ Route::middleware(['auth'])->group(function () {
             Route::post('transaksi-gadai/{transaksi}/batal', [TransaksiGadaiController::class, 'cancel'])
                 ->whereNumber('transaksi')
                 ->name('transaksi-gadai.cancel');
+            Route::post('transaksi-gadai/{transaksi}/pelunasan', [TransaksiGadaiController::class, 'settle'])
+                ->whereNumber('transaksi')
+                ->name('transaksi-gadai.settle');
             Route::get('lihat-barang-gadai', [BarangJaminanController::class, 'index'])->name('lihat-barang-gadai');
             Route::get('barang-gadai/tambah', [BarangJaminanController::class, 'create'])->name('barang-jaminan.create');
             Route::post('barang-gadai', [BarangJaminanController::class, 'store'])->name('barang-jaminan.store');

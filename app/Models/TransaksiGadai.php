@@ -29,18 +29,31 @@ class TransaksiGadai extends Model
         'tanggal_batal',
         'alasan_batal',
         'pegawai_pembatal_id',
+        'tanggal_pelunasan',
+        'pokok_dibayar',
+        'bunga_dibayar',
+        'biaya_lain_dibayar',
+        'total_pelunasan',
+        'metode_pembayaran',
+        'catatan_pelunasan',
+        'pegawai_pelunasan_id',
     ];
 
     protected $casts = [
         'tanggal_gadai' => 'date',
         'jatuh_tempo_awal' => 'date',
         'tanggal_batal' => 'datetime',
+        'tanggal_pelunasan' => 'datetime',
         'tenor_hari' => 'integer',
         'tarif_bunga_harian' => 'decimal:4',
         'total_bunga' => 'decimal:2',
         'uang_pinjaman' => 'decimal:2',
         'biaya_admin' => 'decimal:2',
         'premi' => 'decimal:2',
+        'pokok_dibayar' => 'decimal:2',
+        'bunga_dibayar' => 'decimal:2',
+        'biaya_lain_dibayar' => 'decimal:2',
+        'total_pelunasan' => 'decimal:2',
     ];
 
     public function nasabah()
@@ -56,6 +69,11 @@ class TransaksiGadai extends Model
     public function pembatal()
     {
         return $this->belongsTo(User::class, 'pegawai_pembatal_id');
+    }
+
+    public function petugasPelunasan()
+    {
+        return $this->belongsTo(User::class, 'pegawai_pelunasan_id');
     }
 
     public function barangJaminan()

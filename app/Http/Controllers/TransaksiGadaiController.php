@@ -231,6 +231,76 @@ class TransaksiGadaiController extends Controller
             ->with('status', __('Transaksi gadai berhasil dibatalkan.'));
     }
 
+    public function settle(Request $request, TransaksiGadai $transaksi): RedirectResponse
+    {
+        $status = $transaksi->status_transaksi;
+
+        if (in_array($status, ['Lunas', 'Lelang', 'Batal'], true)) {
+            $message = __('Transaksi dengan status :status tidak dapat dilunasi.', ['status' => $status ?? '—']);
+
+            return redirect()
+                ->back()
+                ->withInput(array_merge($request->all(), [
+                    'settle_transaksi_id' => $transaksi->transaksi_id,
+                ]))
+                ->withErrors([
+                    'total_pelunasan' => $message,
+                ])
+                ->with('error', $message)
+                ->with('show_settle_modal', $transaksi->transaksi_id);
+        }
+
+        $request->merge([
+            'settle_transaksi_id' => $transaksi->transaksi_id,
+        ]);
+
+        $data = $this->validateSettlementData($request);
+
+        $pokok = (float) $data['pokok_dibayar'];
+        $bunga = (float) $data['bunga_dibayar'];
+        $biayaLain = (float) $data['biaya_lain_dibayar'];
+        $total = (float) $data['total_pelunasan'];
+
+        if ($total + 0.00001 < $pokok + $bunga + $biayaLain) {
+            $message = __('Total pelunasan harus sama atau lebih besar dari komponen pembayaran.');
+
+            return redirect()
+                ->back()
+                ->withInput($request->all())
+                ->withErrors([
+                    'total_pelunasan' => $message,
+                ])
+                ->with('error', $message)
+                ->with('show_settle_modal', $transaksi->transaksi_id);
+        }
+
+        $kasirId = Auth::id();
+
+        if (!$kasirId) {
+            abort(403, 'Kasir tidak dikenali.');
+        }
+
+        $tanggalPelunasan = Carbon::parse($data['tanggal_pelunasan'])
+            ->setTimeFromTimeString(Carbon::now()->toTimeString());
+
+        DB::transaction(function () use ($transaksi, $kasirId, $data, $tanggalPelunasan, $pokok, $bunga, $biayaLain, $total) {
+            $transaksi->status_transaksi = 'Lunas';
+            $transaksi->tanggal_pelunasan = $tanggalPelunasan;
+            $transaksi->pokok_dibayar = $this->formatDecimal($pokok);
+            $transaksi->bunga_dibayar = $this->formatDecimal($bunga);
+            $transaksi->biaya_lain_dibayar = $this->formatDecimal($biayaLain);
+            $transaksi->total_pelunasan = $this->formatDecimal($total);
+            $transaksi->metode_pembayaran = $data['metode_pembayaran'];
+            $transaksi->catatan_pelunasan = $data['catatan_pelunasan'] ?: null;
+            $transaksi->pegawai_pelunasan_id = $kasirId;
+            $transaksi->save();
+        });
+
+        return redirect()
+            ->route('gadai.lihat-gadai', $request->only(['search', 'tanggal_dari', 'tanggal_sampai', 'page', 'per_page']))
+            ->with('status', __('Transaksi gadai berhasil dilunasi.'));
+    }
+
     private function validateData(Request $request): array
     {
         $validated = $request->validate([
@@ -284,6 +354,30 @@ class TransaksiGadaiController extends Controller
         }
 
         return number_format((float) $value, 2, '.', '');
+    }
+
+    private function validateSettlementData(Request $request): array
+    {
+        $validated = $request->validate([
+            'tanggal_pelunasan' => ['required', 'date'],
+            'pokok_dibayar' => ['required', 'string'],
+            'bunga_dibayar' => ['nullable', 'string'],
+            'biaya_lain_dibayar' => ['nullable', 'string'],
+            'total_pelunasan' => ['required', 'string'],
+            'metode_pembayaran' => ['required', 'string', 'max:100'],
+            'catatan_pelunasan' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $validated['pokok_dibayar'] = $this->toDecimalString($validated['pokok_dibayar']);
+        $validated['bunga_dibayar'] = $this->toDecimalString($validated['bunga_dibayar'] ?? '0');
+        $validated['biaya_lain_dibayar'] = $this->toDecimalString($validated['biaya_lain_dibayar'] ?? '0');
+        $validated['total_pelunasan'] = $this->toDecimalString($validated['total_pelunasan']);
+        $validated['metode_pembayaran'] = trim($validated['metode_pembayaran']);
+        $validated['catatan_pelunasan'] = isset($validated['catatan_pelunasan'])
+            ? trim((string) $validated['catatan_pelunasan'])
+            : null;
+
+        return $validated;
     }
 
     private function formatCurrency(float $value): string
