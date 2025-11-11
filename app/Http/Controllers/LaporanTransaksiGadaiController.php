@@ -35,6 +35,10 @@ class LaporanTransaksiGadaiController extends Controller
             ->paginate(15)
             ->withQueryString();
 
+        $transaksiGadai->getCollection()->each(function (TransaksiGadai $transaksi) {
+            $transaksi->refreshBungaTerutangRiil();
+        });
+
         return view('laporan.transaksi-gadai', [
             'transaksiGadai' => $transaksiGadai,
             'search' => $search,

@@ -23,6 +23,7 @@ class TransaksiGadai extends Model
         'tenor_hari',
         'tarif_bunga_harian',
         'total_bunga',
+        'bunga_terutang_riil',
         'uang_pinjaman',
         'biaya_admin',
         'premi',
@@ -48,6 +49,7 @@ class TransaksiGadai extends Model
         'tenor_hari' => 'integer',
         'tarif_bunga_harian' => 'decimal:4',
         'total_bunga' => 'decimal:2',
+        'bunga_terutang_riil' => 'decimal:2',
         'uang_pinjaman' => 'decimal:2',
         'biaya_admin' => 'decimal:2',
         'premi' => 'decimal:2',
@@ -84,6 +86,22 @@ class TransaksiGadai extends Model
 
     public function getActualDaysAttribute(): ?int
     {
+        return $this->calculateActualDays();
+    }
+
+    public function getAccruedInterestAttribute(): ?float
+    {
+        if ($this->bunga_terutang_riil !== null) {
+            return (float) $this->bunga_terutang_riil;
+        }
+
+        $computed = $this->computeBungaTerutangRiil();
+
+        return $computed !== null ? round($computed, 2) : null;
+    }
+
+    public function calculateActualDays(?Carbon $referenceDate = null): ?int
+    {
         if (!$this->tanggal_gadai) {
             return null;
         }
@@ -92,7 +110,7 @@ class TransaksiGadai extends Model
             ? $this->tanggal_gadai->copy()->startOfDay()
             : Carbon::parse($this->tanggal_gadai)->startOfDay();
 
-        $endSource = $this->tanggal_pelunasan ?? Carbon::today();
+        $endSource = $referenceDate ?? ($this->tanggal_pelunasan ?? Carbon::today());
         $end = $endSource instanceof Carbon
             ? $endSource->copy()->startOfDay()
             : Carbon::parse($endSource)->startOfDay();
@@ -104,21 +122,48 @@ class TransaksiGadai extends Model
         return max(1, $start->diffInDays($end) + 1);
     }
 
-    public function getAccruedInterestAttribute(): ?float
+    public function computeBungaTerutangRiil(?Carbon $referenceDate = null): ?float
     {
-        if ($this->uang_pinjaman === null || $this->tarif_bunga_harian === null) {
+        if ($this->status_transaksi === 'Batal') {
+            return 0.0;
+        }
+
+        if ($this->uang_pinjaman === null) {
             return null;
         }
 
-        $days = $this->actual_days;
+        $days = $this->calculateActualDays($referenceDate);
 
         if ($days === null) {
             return null;
         }
 
         $principal = (float) $this->uang_pinjaman;
-        $dailyRate = (float) $this->tarif_bunga_harian;
+        $dailyRate = (float) ($this->tarif_bunga_harian ?? 0.0015);
+
+        if ($dailyRate <= 0) {
+            $dailyRate = 0.0015;
+        }
 
         return round($principal * $dailyRate * $days, 2);
+    }
+
+    public function refreshBungaTerutangRiil(?Carbon $referenceDate = null): void
+    {
+        $computed = $this->computeBungaTerutangRiil($referenceDate);
+
+        if ($computed === null) {
+            return;
+        }
+
+        $formatted = number_format($computed, 2, '.', '');
+
+        if ($this->bunga_terutang_riil !== $formatted) {
+            $this->forceFill([
+                'bunga_terutang_riil' => $formatted,
+            ])->saveQuietly();
+        }
+
+        $this->bunga_terutang_riil = $formatted;
     }
 }

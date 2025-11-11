@@ -77,27 +77,8 @@ class TransaksiGadaiController extends Controller
             ->paginate($perPage > 0 ? $perPage : 10)
             ->withQueryString();
 
-        $todayDate = Carbon::today();
-
-        $transaksiGadai->getCollection()->transform(function ($transaksi) use ($todayDate) {
-            $tanggalGadai = $transaksi->tanggal_gadai ? Carbon::parse($transaksi->tanggal_gadai) : null;
-            $hariBerjalan = $tanggalGadai ? max(0, $tanggalGadai->diffInDays($todayDate, false)) : 0;
-            $tenor = is_numeric($transaksi->tenor_hari) ? (int) $transaksi->tenor_hari : 0;
-            $tarif = is_numeric($transaksi->tarif_bunga_harian) ? (float) $transaksi->tarif_bunga_harian : 0.0;
-            $pinjaman = is_numeric($transaksi->uang_pinjaman) ? (float) $transaksi->uang_pinjaman : 0.0;
-
-            $hariEfektif = $tenor > 0 ? min($hariBerjalan, $tenor) : $hariBerjalan;
-            $bungaTerhitung = $pinjaman * $tarif * $hariEfektif;
-
-            $totalBungaTersimpan = is_numeric($transaksi->total_bunga) ? (float) $transaksi->total_bunga : null;
-
-            if ($totalBungaTersimpan !== null) {
-                $bungaTerhitung = min($bungaTerhitung, $totalBungaTersimpan);
-            }
-
-            $transaksi->setAttribute('bunga_terakumulasi_harian', $bungaTerhitung);
-
-            return $transaksi;
+        $transaksiGadai->getCollection()->each(function (TransaksiGadai $transaksi) {
+            $transaksi->refreshBungaTerutangRiil();
         });
 
         return view('gadai.lihat-gadai', [
@@ -181,8 +162,21 @@ class TransaksiGadaiController extends Controller
         $tenorHari = max(1, $tanggalGadai->diffInDays($jatuhTempo) + 1);
         $tarifBungaHarian = 0.0015; // 0.15% per hari
         $totalBunga = $this->formatDecimal($uangPinjaman * $tarifBungaHarian * $tenorHari);
+        $hariBerjalan = $this->calculateActualDays($tanggalGadai, Carbon::today());
+        $bungaTerutangRiil = $this->formatDecimal(
+            $this->calculateSewaModal($uangPinjaman, $tarifBungaHarian, $hariBerjalan)
+        );
 
-        DB::transaction(function () use ($barangCollection, $kasirId, $data, $tenorHari, $tarifBungaHarian, $totalBunga, $tanggalGadai) {
+        DB::transaction(function () use (
+            $barangCollection,
+            $kasirId,
+            $data,
+            $tenorHari,
+            $tarifBungaHarian,
+            $totalBunga,
+            $tanggalGadai,
+            $bungaTerutangRiil
+        ) {
             $noSbg = $this->nextNoSbg($tanggalGadai, true);
 
             $transaksi = TransaksiGadai::create([
@@ -194,6 +188,7 @@ class TransaksiGadaiController extends Controller
                 'tenor_hari' => $tenorHari,
                 'tarif_bunga_harian' => $this->formatDecimal($tarifBungaHarian, 4),
                 'total_bunga' => $totalBunga,
+                'bunga_terutang_riil' => $bungaTerutangRiil,
                 'uang_pinjaman' => $data['uang_pinjaman'],
                 'biaya_admin' => $data['biaya_admin'],
                 'premi' => $data['premi'],
@@ -367,6 +362,7 @@ class TransaksiGadaiController extends Controller
             $transaksi->bunga_dibayar = $this->formatDecimal($sewaModalTerutang);
             $transaksi->biaya_lain_dibayar = $this->formatDecimal($biayaAdminAwal);
             $transaksi->total_pelunasan = $this->formatDecimal($total);
+            $transaksi->bunga_terutang_riil = $this->formatDecimal($sewaModalTerutang);
             $transaksi->metode_pembayaran = $data['metode_pembayaran'];
             $transaksi->catatan_pelunasan = $data['catatan_pelunasan'] ?: null;
             $transaksi->pegawai_pelunasan_id = $kasirId;
