@@ -117,13 +117,11 @@
                                     type="text"
                                     id="no_sbg"
                                     name="no_sbg"
-                                    value="{{ old('no_sbg') }}"
-                                    required
-                                    class="block w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+                                    value="{{ old('no_sbg', $defaultNoSbg) }}"
+                                    readonly
+                                    class="block w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm font-semibold text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
                                 />
-                                @error('no_sbg')
-                                    <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                                @enderror
+                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Nomor SBG dibuat otomatis dan mengikuti format GE02 + tanggal (YYMMDD) + urutan harian tiga digit.') }}</p>
                             </div>
 
                             <div class="flex flex-col gap-2">
@@ -201,7 +199,7 @@
                                     readonly
                                     class="block w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-neutral-300 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
                                 />
-                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Tenor dihitung otomatis dari tanggal gadai dan jatuh tempo.') }}</p>
+                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Tenor dihitung otomatis dari tanggal gadai dan jatuh tempo secara inklusif dengan minimum 1 hari.') }}</p>
                             </div>
 
                             <div class="flex flex-col gap-2">
@@ -248,6 +246,29 @@
                                 @error('premi')
                                     <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                 @enderror
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                                <label for="total_potongan_display" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Total Potongan (Admin + Premi)') }}</label>
+                                <input
+                                    type="text"
+                                    id="total_potongan_display"
+                                    value="Rp 0,00"
+                                    readonly
+                                    class="block w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-neutral-300 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
+                                />
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                                <label for="uang_cair_display" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Uang Cair (Diterima Nasabah)') }}</label>
+                                <input
+                                    type="text"
+                                    id="uang_cair_display"
+                                    value="Rp 0,00"
+                                    readonly
+                                    class="block w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-neutral-300 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
+                                />
+                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Nilai ini otomatis muncul di nota kontrak sebagai dana bersih yang diterima nasabah.') }}</p>
                             </div>
 
                             <div class="flex flex-col gap-2">
@@ -319,8 +340,12 @@
                     const tanggalGadaiInput = document.getElementById('tanggal_gadai');
                     const jatuhTempoInput = document.getElementById('jatuh_tempo_awal');
                     const pinjamanInput = document.getElementById('uang_pinjaman');
+                    const biayaAdminInput = document.getElementById('biaya_admin');
+                    const premiInput = document.getElementById('premi');
                     const tenorDisplay = document.getElementById('tenor_display');
                     const bungaDisplay = document.getElementById('estimasi_bunga_display');
+                    const totalPotonganDisplay = document.getElementById('total_potongan_display');
+                    const uangCairDisplay = document.getElementById('uang_cair_display');
                     const barangSearchInput = document.getElementById('barang_search');
                     const nasabahSelect = document.getElementById('nasabah_id');
                     const nasabahSearchInput = document.getElementById('nasabah_search');
@@ -368,6 +393,34 @@
 
                         const parsed = Number.parseFloat(value);
                         return Number.isNaN(parsed) ? 0 : parsed;
+                    };
+
+                    const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
+
+                    const isInvalidDate = (date) => !(date instanceof Date) || Number.isNaN(date.getTime());
+
+                    const calculateActualDays = (startDate, endDate) => {
+                        if (isInvalidDate(startDate) || isInvalidDate(endDate)) {
+                            return 0;
+                        }
+
+                        const startUtc = Date.UTC(
+                            startDate.getFullYear(),
+                            startDate.getMonth(),
+                            startDate.getDate(),
+                        );
+                        const endUtc = Date.UTC(
+                            endDate.getFullYear(),
+                            endDate.getMonth(),
+                            endDate.getDate(),
+                        );
+
+                        if (endUtc < startUtc) {
+                            return 0;
+                        }
+
+                        const diffDays = Math.floor((endUtc - startUtc) / MILLISECONDS_PER_DAY);
+                        return Math.max(1, diffDays + 1);
                     };
 
                     let totalNilaiTerpilih = 0;
@@ -428,29 +481,27 @@
                     const updateBunga = () => {
                         if (!tenorDisplay || !bungaDisplay) return;
 
-                        const ratePerDay = 0.0015;
-                        const millisecondsPerDay = 24 * 60 * 60 * 1000;
-
                         const tanggalGadai = tanggalGadaiInput?.value ? new Date(tanggalGadaiInput.value) : null;
                         const jatuhTempo = jatuhTempoInput?.value ? new Date(jatuhTempoInput.value) : null;
-
-                        let tenor = 0;
-                        if (tanggalGadai instanceof Date && jatuhTempo instanceof Date) {
-                            const startTime = tanggalGadai.getTime();
-                            const endTime = jatuhTempo.getTime();
-
-                            if (!Number.isNaN(startTime) && !Number.isNaN(endTime) && endTime >= startTime) {
-                                const diffDays = Math.floor((endTime - startTime) / millisecondsPerDay);
-                                tenor = Math.max(1, diffDays);
-                            }
-                        }
+                        const ratePerDay = 0.0015;
+                        const tenor = calculateActualDays(tanggalGadai, jatuhTempo);
 
                         tenorDisplay.value = tenor > 0 ? `${tenor} hari` : '—';
 
                         const pinjaman = parseDecimal(pinjamanInput?.value ?? '');
+                        const adminCost = parseDecimal(biayaAdminInput?.value ?? '');
+                        const premiCost = parseDecimal(premiInput?.value ?? '');
+                        const totalPotongan = Math.max(0, adminCost + premiCost);
+                        const uangCair = Math.max(0, pinjaman - totalPotongan);
                         const bunga = tenor > 0 && pinjaman > 0 ? pinjaman * ratePerDay * tenor : 0;
 
                         bungaDisplay.value = tenor > 0 && pinjaman > 0 ? formatCurrency(bunga) : formatCurrency(0);
+                        if (totalPotonganDisplay) {
+                            totalPotonganDisplay.value = formatCurrency(totalPotongan);
+                        }
+                        if (uangCairDisplay) {
+                            uangCairDisplay.value = formatCurrency(uangCair);
+                        }
                     };
 
                     select.addEventListener('change', () => {
@@ -466,6 +517,8 @@
                     tanggalGadaiInput?.addEventListener('change', updateBunga);
                     jatuhTempoInput?.addEventListener('change', updateBunga);
                     pinjamanInput?.addEventListener('input', updateBunga);
+                    biayaAdminInput?.addEventListener('input', updateBunga);
+                    premiInput?.addEventListener('input', updateBunga);
 
                     updateSummary();
                     updateBunga();
