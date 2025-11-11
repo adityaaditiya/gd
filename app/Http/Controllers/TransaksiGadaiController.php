@@ -105,6 +105,7 @@ class TransaksiGadaiController extends Controller
             'barangSiapGadai' => $barangSiapGadai,
             'nasabahList' => $nasabahList,
             'today' => Carbon::today()->toDateString(),
+            'defaultNoSbg' => $this->nextNoSbg(Carbon::today()),
         ]);
     }
 
@@ -154,29 +155,33 @@ class TransaksiGadaiController extends Controller
         $tanggalGadai = Carbon::parse($data['tanggal_gadai']);
         $jatuhTempo = Carbon::parse($data['jatuh_tempo_awal']);
 
-        $tenorHari = max(1, $tanggalGadai->diffInDays($jatuhTempo));
+        $tenorHari = max(1, $tanggalGadai->diffInDays($jatuhTempo) + 1);
         $tarifBungaHarian = 0.0015; // 0.15% per hari
         $totalBunga = $this->formatDecimal($uangPinjaman * $tarifBungaHarian * $tenorHari);
 
-        $transaksi = TransaksiGadai::create([
-            'no_sbg' => $data['no_sbg'],
-            'nasabah_id' => $data['nasabah_id'],
-            'pegawai_kasir_id' => $kasirId,
-            'tanggal_gadai' => $data['tanggal_gadai'],
-            'jatuh_tempo_awal' => $data['jatuh_tempo_awal'],
-            'tenor_hari' => $tenorHari,
-            'tarif_bunga_harian' => $this->formatDecimal($tarifBungaHarian, 4),
-            'total_bunga' => $totalBunga,
-            'uang_pinjaman' => $data['uang_pinjaman'],
-            'biaya_admin' => $data['biaya_admin'],
-            'premi' => $data['premi'],
-            'status_transaksi' => 'Aktif',
-        ]);
+        DB::transaction(function () use ($barangCollection, $kasirId, $data, $tenorHari, $tarifBungaHarian, $totalBunga, $tanggalGadai) {
+            $noSbg = $this->nextNoSbg($tanggalGadai, true);
 
-        foreach ($barangCollection as $barang) {
-            $barang->transaksi_id = $transaksi->transaksi_id;
-            $barang->save();
-        }
+            $transaksi = TransaksiGadai::create([
+                'no_sbg' => $noSbg,
+                'nasabah_id' => $data['nasabah_id'],
+                'pegawai_kasir_id' => $kasirId,
+                'tanggal_gadai' => $data['tanggal_gadai'],
+                'jatuh_tempo_awal' => $data['jatuh_tempo_awal'],
+                'tenor_hari' => $tenorHari,
+                'tarif_bunga_harian' => $this->formatDecimal($tarifBungaHarian, 4),
+                'total_bunga' => $totalBunga,
+                'uang_pinjaman' => $data['uang_pinjaman'],
+                'biaya_admin' => $data['biaya_admin'],
+                'premi' => $data['premi'],
+                'status_transaksi' => 'Aktif',
+            ]);
+
+            foreach ($barangCollection as $barang) {
+                $barang->transaksi_id = $transaksi->transaksi_id;
+                $barang->save();
+            }
+        });
 
         return redirect()
             ->route('gadai.lihat-gadai')
@@ -231,6 +236,39 @@ class TransaksiGadaiController extends Controller
             ->with('status', __('Transaksi gadai berhasil dibatalkan.'));
     }
 
+    public function showSettlementForm(Request $request, TransaksiGadai $transaksi): View
+    {
+        $status = $transaksi->status_transaksi;
+
+        if (in_array($status, ['Lunas', 'Lelang', 'Batal'], true)) {
+            $message = __('Transaksi dengan status :status tidak dapat dilunasi.', ['status' => $status ?? '—']);
+
+            return redirect()
+                ->route('gadai.lihat-gadai', $this->extractListingQuery($request))
+                ->with('error', $message);
+        }
+
+        $transaksi->loadMissing(['nasabah', 'kasir', 'barangJaminan']);
+
+        $pelunasanBiayaSaran = (float) $transaksi->biaya_admin + (float) $transaksi->premi;
+        $pelunasanTotalSaran = (float) $transaksi->uang_pinjaman + (float) $transaksi->total_bunga + $pelunasanBiayaSaran;
+
+        return view('gadai.pelunasan', [
+            'transaksi' => $transaksi,
+            'query' => $this->extractListingQuery($request),
+            'defaults' => [
+                'tanggal_pelunasan' => Carbon::today()->toDateString(),
+                'metode_pembayaran' => __('Tunai'),
+                'pokok_dibayar' => number_format((float) $transaksi->uang_pinjaman, 2, '.', ''),
+                'bunga_dibayar' => number_format((float) $transaksi->total_bunga, 2, '.', ''),
+                'biaya_lain_dibayar' => number_format($pelunasanBiayaSaran, 2, '.', ''),
+                'total_pelunasan' => number_format($pelunasanTotalSaran, 2, '.', ''),
+            ],
+            'pelunasanBiayaSaran' => $pelunasanBiayaSaran,
+            'pelunasanTotalSaran' => $pelunasanTotalSaran,
+        ]);
+    }
+
     public function settle(Request $request, TransaksiGadai $transaksi): RedirectResponse
     {
         $status = $transaksi->status_transaksi;
@@ -239,20 +277,9 @@ class TransaksiGadaiController extends Controller
             $message = __('Transaksi dengan status :status tidak dapat dilunasi.', ['status' => $status ?? '—']);
 
             return redirect()
-                ->back()
-                ->withInput(array_merge($request->all(), [
-                    'settle_transaksi_id' => $transaksi->transaksi_id,
-                ]))
-                ->withErrors([
-                    'total_pelunasan' => $message,
-                ])
-                ->with('error', $message)
-                ->with('show_settle_modal', $transaksi->transaksi_id);
+                ->route('gadai.lihat-gadai', $this->extractListingQuery($request))
+                ->with('error', $message);
         }
-
-        $request->merge([
-            'settle_transaksi_id' => $transaksi->transaksi_id,
-        ]);
 
         $data = $this->validateSettlementData($request);
 
@@ -266,12 +293,11 @@ class TransaksiGadaiController extends Controller
 
             return redirect()
                 ->back()
-                ->withInput($request->all())
+                ->withInput($request->except('_token'))
                 ->withErrors([
                     'total_pelunasan' => $message,
                 ])
-                ->with('error', $message)
-                ->with('show_settle_modal', $transaksi->transaksi_id);
+                ->with('error', $message);
         }
 
         $kasirId = Auth::id();
@@ -297,8 +323,16 @@ class TransaksiGadaiController extends Controller
         });
 
         return redirect()
-            ->route('gadai.lihat-gadai', $request->only(['search', 'tanggal_dari', 'tanggal_sampai', 'page', 'per_page']))
+            ->route('gadai.lihat-gadai', $this->extractListingQuery($request))
             ->with('status', __('Transaksi gadai berhasil dilunasi.'));
+    }
+
+    private function extractListingQuery(Request $request): array
+    {
+        return array_filter(
+            $request->only(['search', 'tanggal_dari', 'tanggal_sampai', 'per_page', 'page']),
+            static fn ($value) => $value !== null && $value !== ''
+        );
     }
 
     private function validateData(Request $request): array
@@ -310,7 +344,6 @@ class TransaksiGadaiController extends Controller
                 'distinct',
                 Rule::exists('barang_jaminan', 'barang_id')->whereNull('transaksi_id'),
             ],
-            'no_sbg' => ['required', 'string', 'max:50', 'unique:transaksi_gadai,no_sbg'],
             'nasabah_id' => ['required', 'exists:nasabahs,id'],
             'tanggal_gadai' => ['required', 'date'],
             'jatuh_tempo_awal' => ['required', 'date', 'after_or_equal:tanggal_gadai'],
@@ -388,5 +421,27 @@ class TransaksiGadaiController extends Controller
     private function formatDecimal(float $value, int $precision = 2): string
     {
         return number_format($value, $precision, '.', '');
+    }
+
+    private function nextNoSbg(Carbon $tanggalGadai, bool $lock = false): string
+    {
+        $prefix = 'GE02' . $tanggalGadai->format('ymd');
+
+        $query = TransaksiGadai::whereDate('tanggal_gadai', $tanggalGadai->toDateString())
+            ->where('no_sbg', 'like', $prefix . '%');
+
+        if ($lock) {
+            $query->lockForUpdate();
+        }
+
+        $latest = $query->orderByDesc('no_sbg')->value('no_sbg');
+
+        if ($latest && preg_match('/(\d{3})$/', $latest, $matches)) {
+            $sequence = (int) $matches[1] + 1;
+        } else {
+            $sequence = 1;
+        }
+
+        return $prefix . str_pad((string) $sequence, 3, '0', STR_PAD_LEFT);
     }
 }
