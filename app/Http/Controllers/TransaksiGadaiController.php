@@ -104,11 +104,16 @@ class TransaksiGadaiController extends Controller
         return view('gadai.pemberian-kredit', [
             'barangSiapGadai' => $barangSiapGadai,
             'nasabahList' => $nasabahList,
+            'today' => Carbon::today()->toDateString(),
         ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
+        $request->merge([
+            'tanggal_gadai' => Carbon::today()->toDateString(),
+        ]);
+
         $data = $this->validateData($request);
 
         $barangIds = array_map('intval', $data['barang_ids']);
