@@ -439,7 +439,7 @@
 
                             if (!Number.isNaN(startTime) && !Number.isNaN(endTime) && endTime >= startTime) {
                                 const diffDays = Math.floor((endTime - startTime) / millisecondsPerDay);
-                                tenor = Math.max(1, diffDays + 1);
+                                tenor = Math.max(1, diffDays);
                             }
                         }
 
