@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 class TransaksiGadai extends Model
 {
@@ -79,5 +80,27 @@ class TransaksiGadai extends Model
     public function barangJaminan()
     {
         return $this->hasMany(BarangJaminan::class, 'transaksi_id', 'transaksi_id');
+    }
+
+    public function getActualDaysAttribute(): ?int
+    {
+        if (!$this->tanggal_gadai) {
+            return null;
+        }
+
+        $start = $this->tanggal_gadai instanceof Carbon
+            ? $this->tanggal_gadai->copy()->startOfDay()
+            : Carbon::parse($this->tanggal_gadai)->startOfDay();
+
+        $endSource = $this->tanggal_pelunasan ?? Carbon::today();
+        $end = $endSource instanceof Carbon
+            ? $endSource->copy()->startOfDay()
+            : Carbon::parse($endSource)->startOfDay();
+
+        if ($end->lessThan($start)) {
+            return 1;
+        }
+
+        return max(1, $start->diffInDays($end) + 1);
     }
 }
