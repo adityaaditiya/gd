@@ -5,6 +5,8 @@
         $nasabah = $transaksi->nasabah?->nama ?? '—';
         $kasir = $transaksi->kasir?->name ?? '—';
         $barangJaminan = $transaksi->barangJaminan ?? collect();
+        $perhitungan = $perhitunganPelunasan;
+        $tarifBungaPersen = $perhitungan['tarif_bunga'] * 100;
     @endphp
 
     <div class="space-y-8">
@@ -109,14 +111,14 @@
                     </div>
 
                     <label class="flex flex-col gap-2 text-sm text-neutral-700 dark:text-neutral-200">
-                        <span class="font-medium">{{ __('Biaya Lain-lain') }}</span>
+                        <span class="font-medium">{{ __('Biaya Administrasi Awal') }}</span>
                         <input
                             type="text"
                             name="biaya_lain_dibayar"
                             value="{{ old('biaya_lain_dibayar', $defaults['biaya_lain_dibayar']) }}"
                             inputmode="decimal"
                             class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
-                            placeholder="{{ __('Biaya lain yang dibayarkan (opsional)…') }}"
+                            placeholder="{{ __('Nominal biaya administrasi awal yang harus dilunasi…') }}"
                         >
                         @error('biaya_lain_dibayar')
                             <span class="text-xs text-red-600 dark:text-red-400">{{ $message }}</span>
@@ -155,7 +157,7 @@
                     <div class="flex flex-col gap-3 rounded-lg border border-emerald-200 bg-emerald-50/60 px-4 py-3 text-xs text-emerald-800 shadow-sm dark:border-emerald-500/50 dark:bg-emerald-500/10 dark:text-emerald-200">
                         <p class="font-semibold">{{ __('Ringkasan pelunasan') }}</p>
                         <ul class="list-disc space-y-1 pl-4">
-                            <li>{{ __('Total pelunasan minimal harus menutup pokok, bunga, dan biaya lain yang dimasukkan.') }}</li>
+                            <li>{{ __('Total pelunasan minimal meliputi pokok pinjaman, sewa modal terutang, dan biaya administrasi awal.') }}</li>
                             <li>{{ __('Setelah disimpan, status transaksi berubah menjadi Lunas dan tercatat pada laporan pelunasan.') }}</li>
                         </ul>
                     </div>
@@ -209,13 +211,21 @@
                             <dd class="text-right font-semibold text-emerald-600 dark:text-emerald-300">Rp {{ number_format((float) $transaksi->uang_pinjaman, 0, ',', '.') }}</dd>
                         </div>
                         <div class="flex items-start justify-between gap-4">
-                            <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('Total Bunga') }}</dt>
-                            <dd class="text-right text-neutral-900 dark:text-white">Rp {{ number_format((float) $transaksi->total_bunga, 0, ',', '.') }}</dd>
+                            <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('Tarif Bunga Harian') }}</dt>
+                            <dd class="text-right text-neutral-900 dark:text-white">{{ number_format($tarifBungaPersen, 2, ',', '.') }}%</dd>
                         </div>
-                        @if ((float) $transaksi->biaya_admin > 0 || (float) $transaksi->premi > 0)
+                        <div class="flex items-start justify-between gap-4">
+                            <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('Hari Pemakaian Aktual') }}</dt>
+                            <dd class="text-right text-neutral-900 dark:text-white">{{ $perhitungan['actual_days'] }} {{ __('hari') }}</dd>
+                        </div>
+                        <div class="flex items-start justify-between gap-4">
+                            <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('Sewa Modal Terutang') }}</dt>
+                            <dd class="text-right text-neutral-900 dark:text-white">Rp {{ number_format($perhitungan['sewa_modal'], 0, ',', '.') }}</dd>
+                        </div>
+                        @if ($perhitungan['biaya_admin'] > 0)
                             <div class="flex items-start justify-between gap-4">
-                                <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('Biaya Lain Disarankan') }}</dt>
-                                <dd class="text-right text-neutral-900 dark:text-white">Rp {{ number_format($pelunasanBiayaSaran, 0, ',', '.') }}</dd>
+                                <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('Biaya Administrasi Awal') }}</dt>
+                                <dd class="text-right text-neutral-900 dark:text-white">Rp {{ number_format($perhitungan['biaya_admin'], 0, ',', '.') }}</dd>
                             </div>
                         @endif
                     </dl>
@@ -237,27 +247,27 @@
                 </div>
 
                 <div class="rounded-xl border border-emerald-200 bg-emerald-50/70 p-6 text-sm text-emerald-800 shadow-sm dark:border-emerald-500/60 dark:bg-emerald-500/10 dark:text-emerald-200">
-                    <h2 class="text-lg font-semibold">{{ __('Estimasi Pelunasan') }}</h2>
+                    <h2 class="text-lg font-semibold">{{ __('Perhitungan Pelunasan') }}</h2>
                     <dl class="mt-4 space-y-3">
                         <div class="flex items-center justify-between gap-4">
-                            <dt>{{ __('Pokok yang disarankan') }}</dt>
-                            <dd class="font-semibold">Rp {{ number_format((float) $transaksi->uang_pinjaman, 0, ',', '.') }}</dd>
+                            <dt>{{ __('Pokok Pinjaman') }}</dt>
+                            <dd class="font-semibold">Rp {{ number_format($perhitungan['pokok'], 0, ',', '.') }}</dd>
                         </div>
                         <div class="flex items-center justify-between gap-4">
-                            <dt>{{ __('Bunga yang disarankan') }}</dt>
-                            <dd class="font-semibold">Rp {{ number_format((float) $transaksi->total_bunga, 0, ',', '.') }}</dd>
+                            <dt>{{ __('Sewa Modal Terutang') }}</dt>
+                            <dd class="font-semibold">Rp {{ number_format($perhitungan['sewa_modal'], 0, ',', '.') }}</dd>
                         </div>
                         <div class="flex items-center justify-between gap-4">
-                            <dt>{{ __('Biaya lain disarankan') }}</dt>
-                            <dd class="font-semibold">Rp {{ number_format($pelunasanBiayaSaran, 0, ',', '.') }}</dd>
+                            <dt>{{ __('Biaya Administrasi Awal') }}</dt>
+                            <dd class="font-semibold">Rp {{ number_format($perhitungan['biaya_admin'], 0, ',', '.') }}</dd>
                         </div>
                         <div class="flex items-center justify-between gap-4 border-t border-emerald-200 pt-3 dark:border-emerald-500/40">
-                            <dt>{{ __('Total pelunasan disarankan') }}</dt>
-                            <dd class="text-base font-bold">Rp {{ number_format($pelunasanTotalSaran, 0, ',', '.') }}</dd>
+                            <dt>{{ __('Total Tagihan Pelunasan') }}</dt>
+                            <dd class="text-base font-bold">Rp {{ number_format($perhitungan['total_tagihan'], 0, ',', '.') }}</dd>
                         </div>
                     </dl>
                     <p class="mt-4 text-xs text-emerald-700 dark:text-emerald-200/80">
-                        {{ __('Silakan sesuaikan angka di formulir jika nasabah melakukan pembayaran berbeda dari estimasi ini.') }}
+                        {{ __('Nilai di atas dihitung berdasarkan tarif bunga harian 0,15% dan jumlah hari aktual sejak tanggal gadai.') }}
                     </p>
                 </div>
             </aside>

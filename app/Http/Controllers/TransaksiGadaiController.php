@@ -178,7 +178,7 @@ class TransaksiGadaiController extends Controller
         $tanggalGadai = Carbon::parse($data['tanggal_gadai']);
         $jatuhTempo = Carbon::parse($data['jatuh_tempo_awal']);
 
-        $tenorHari = max(1, $tanggalGadai->diffInDays($jatuhTempo));
+        $tenorHari = max(1, $tanggalGadai->diffInDays($jatuhTempo) + 1);
         $tarifBungaHarian = 0.0015; // 0.15% per hari
         $totalBunga = $this->formatDecimal($uangPinjaman * $tarifBungaHarian * $tenorHari);
 
@@ -273,22 +273,33 @@ class TransaksiGadaiController extends Controller
 
         $transaksi->loadMissing(['nasabah', 'kasir', 'barangJaminan']);
 
-        $pelunasanBiayaSaran = (float) $transaksi->biaya_admin + (float) $transaksi->premi;
-        $pelunasanTotalSaran = (float) $transaksi->uang_pinjaman + (float) $transaksi->total_bunga + $pelunasanBiayaSaran;
+        $today = Carbon::today();
+        $tarifBungaHarian = $this->resolveTarifBunga($transaksi);
+        $pokokPinjaman = (float) $transaksi->uang_pinjaman;
+        $actualDays = $this->calculateActualDays($transaksi->tanggal_gadai, $today);
+        $sewaModalTerutang = $this->calculateSewaModal($pokokPinjaman, $tarifBungaHarian, $actualDays);
+        $biayaAdminAwal = (float) $transaksi->biaya_admin;
+        $totalTagihanPelunasan = $pokokPinjaman + $sewaModalTerutang + $biayaAdminAwal;
 
         return view('gadai.pelunasan', [
             'transaksi' => $transaksi,
             'query' => $this->extractListingQuery($request),
             'defaults' => [
-                'tanggal_pelunasan' => Carbon::today()->toDateString(),
+                'tanggal_pelunasan' => $today->toDateString(),
                 'metode_pembayaran' => __('Tunai'),
-                'pokok_dibayar' => number_format((float) $transaksi->uang_pinjaman, 2, '.', ''),
-                'bunga_dibayar' => number_format((float) $transaksi->total_bunga, 2, '.', ''),
-                'biaya_lain_dibayar' => number_format($pelunasanBiayaSaran, 2, '.', ''),
-                'total_pelunasan' => number_format($pelunasanTotalSaran, 2, '.', ''),
+                'pokok_dibayar' => number_format($pokokPinjaman, 2, '.', ''),
+                'bunga_dibayar' => number_format($sewaModalTerutang, 2, '.', ''),
+                'biaya_lain_dibayar' => number_format($biayaAdminAwal, 2, '.', ''),
+                'total_pelunasan' => number_format($totalTagihanPelunasan, 2, '.', ''),
             ],
-            'pelunasanBiayaSaran' => $pelunasanBiayaSaran,
-            'pelunasanTotalSaran' => $pelunasanTotalSaran,
+            'perhitunganPelunasan' => [
+                'tarif_bunga' => $tarifBungaHarian,
+                'actual_days' => $actualDays,
+                'pokok' => $pokokPinjaman,
+                'sewa_modal' => $sewaModalTerutang,
+                'biaya_admin' => $biayaAdminAwal,
+                'total_tagihan' => $totalTagihanPelunasan,
+            ],
         ]);
     }
 
@@ -306,13 +317,21 @@ class TransaksiGadaiController extends Controller
 
         $data = $this->validateSettlementData($request);
 
-        $pokok = (float) $data['pokok_dibayar'];
-        $bunga = (float) $data['bunga_dibayar'];
-        $biayaLain = (float) $data['biaya_lain_dibayar'];
+        $tarifBungaHarian = $this->resolveTarifBunga($transaksi);
+        $pokokPinjaman = (float) $transaksi->uang_pinjaman;
+        $tanggalPelunasan = Carbon::parse($data['tanggal_pelunasan']);
+        $actualDays = $this->calculateActualDays($transaksi->tanggal_gadai, $tanggalPelunasan);
+        $sewaModalTerutang = $this->calculateSewaModal($pokokPinjaman, $tarifBungaHarian, $actualDays);
+        $biayaAdminAwal = (float) $transaksi->biaya_admin;
+        $minimalPelunasan = $pokokPinjaman + $sewaModalTerutang + $biayaAdminAwal;
+
         $total = (float) $data['total_pelunasan'];
 
-        if ($total + 0.00001 < $pokok + $bunga + $biayaLain) {
-            $message = __('Total pelunasan harus sama atau lebih besar dari komponen pembayaran.');
+        if ($total + 0.00001 < $minimalPelunasan) {
+            $message = __('Total pelunasan minimal adalah :amount berdasarkan pemakaian :days hari.', [
+                'amount' => $this->formatCurrency($minimalPelunasan),
+                'days' => $actualDays,
+            ]);
 
             return redirect()
                 ->back()
@@ -329,15 +348,24 @@ class TransaksiGadaiController extends Controller
             abort(403, 'Kasir tidak dikenali.');
         }
 
-        $tanggalPelunasan = Carbon::parse($data['tanggal_pelunasan'])
+        $tanggalPelunasan = $tanggalPelunasan
             ->setTimeFromTimeString(Carbon::now()->toTimeString());
 
-        DB::transaction(function () use ($transaksi, $kasirId, $data, $tanggalPelunasan, $pokok, $bunga, $biayaLain, $total) {
+        DB::transaction(function () use (
+            $transaksi,
+            $kasirId,
+            $data,
+            $tanggalPelunasan,
+            $pokokPinjaman,
+            $sewaModalTerutang,
+            $biayaAdminAwal,
+            $total
+        ) {
             $transaksi->status_transaksi = 'Lunas';
             $transaksi->tanggal_pelunasan = $tanggalPelunasan;
-            $transaksi->pokok_dibayar = $this->formatDecimal($pokok);
-            $transaksi->bunga_dibayar = $this->formatDecimal($bunga);
-            $transaksi->biaya_lain_dibayar = $this->formatDecimal($biayaLain);
+            $transaksi->pokok_dibayar = $this->formatDecimal($pokokPinjaman);
+            $transaksi->bunga_dibayar = $this->formatDecimal($sewaModalTerutang);
+            $transaksi->biaya_lain_dibayar = $this->formatDecimal($biayaAdminAwal);
             $transaksi->total_pelunasan = $this->formatDecimal($total);
             $transaksi->metode_pembayaran = $data['metode_pembayaran'];
             $transaksi->catatan_pelunasan = $data['catatan_pelunasan'] ?: null;
@@ -444,6 +472,36 @@ class TransaksiGadaiController extends Controller
     private function formatDecimal(float $value, int $precision = 2): string
     {
         return number_format($value, $precision, '.', '');
+    }
+
+    private function calculateActualDays($tanggalGadai, Carbon $tanggalPelunasan): int
+    {
+        if (!$tanggalGadai) {
+            return 1;
+        }
+
+        $mulai = $tanggalGadai instanceof Carbon
+            ? $tanggalGadai->copy()->startOfDay()
+            : Carbon::parse($tanggalGadai)->startOfDay();
+        $selesai = $tanggalPelunasan->copy()->startOfDay();
+
+        return max(1, $mulai->diffInDays($selesai) + 1);
+    }
+
+    private function calculateSewaModal(float $pokokPinjaman, float $tarifBunga, int $actualDays): float
+    {
+        $pokokPinjaman = max(0, $pokokPinjaman);
+        $tarifBunga = max(0, $tarifBunga);
+        $actualDays = max(0, $actualDays);
+
+        return $pokokPinjaman * $tarifBunga * $actualDays;
+    }
+
+    private function resolveTarifBunga(TransaksiGadai $transaksi): float
+    {
+        $tarif = (float) $transaksi->tarif_bunga_harian;
+
+        return $tarif > 0 ? $tarif : 0.0015;
     }
 
     private function nextNoSbg(Carbon $tanggalGadai, bool $lock = false): string
