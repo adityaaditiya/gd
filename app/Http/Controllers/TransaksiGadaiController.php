@@ -523,21 +523,51 @@ class TransaksiGadaiController extends Controller
     private function nextNoSbg(Carbon $tanggalGadai, bool $lock = false): string
     {
         $prefix = 'GE02' . $tanggalGadai->format('ymd');
+        $lockName = null;
 
-        $query = TransaksiGadai::where('no_sbg', 'like', $prefix . '%');
+        // $query = TransaksiGadai::where('no_sbg', 'like', $prefix . '%');
 
         if ($lock) {
-            $query->lockForUpdate();
+            // $query->lockForUpdate();
+            $lockName = 'transaksi_gadai_no_sbg_' . $prefix;
+            $lockResult = DB::selectOne('SELECT GET_LOCK(?, ?) AS acquired', [$lockName, 5]);
+
+            if (!$lockResult || (int) ($lockResult->acquired ?? 0) !== 1) {
+                throw new \RuntimeException('Unable to acquire lock for SBG generation.');
+            }
         }
 
-        $latest = $query->orderByDesc('no_sbg')->value('no_sbg');
+        // $latest = $query->orderByDesc('no_sbg')->value('no_sbg');
 
-        if ($latest && preg_match('/(\d+)$/', $latest, $matches)) {
-            $sequence = (int) $matches[1] + 1;
-        } else {
-            $sequence = 1;
+try {
+            $query = TransaksiGadai::whereDate('tanggal_gadai', $tanggalGadai->toDateString())
+                ->where('no_sbg', 'like', $prefix . '%');
+
+        // if ($latest && preg_match('/(\d+)$/', $latest, $matches)) {
+        //     $sequence = (int) $matches[1] + 1;
+        // } else {
+        //     $sequence = 1;
+        // }
+
+        if ($lock) {
+                $query->lockForUpdate();
+            }
+
+        // return $prefix . str_pad((string) $sequence, 3, '0', STR_PAD_LEFT);
+ $latest = $query->orderByDesc('no_sbg')->value('no_sbg');
+
+            if ($latest && preg_match('/(\d{3})$/', $latest, $matches)) {
+                $sequence = (int) $matches[1] + 1;
+            } else {
+                $sequence = 1;
+            }
+
+            return $prefix . str_pad((string) $sequence, 3, '0', STR_PAD_LEFT);
+        } finally {
+            if ($lock && $lockName !== null) {
+                DB::selectOne('SELECT RELEASE_LOCK(?) AS released', [$lockName]);
+            }
         }
 
-        return $prefix . str_pad((string) $sequence, 3, '0', STR_PAD_LEFT);
     }
 }

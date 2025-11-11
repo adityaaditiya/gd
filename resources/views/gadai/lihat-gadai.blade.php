@@ -114,7 +114,7 @@
                         <th scope="col" class="px-4 py-3">{{ __('Nasabah') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Barang Jaminan') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Pinjaman') }}</th>
-                        <th scope="col" class="px-4 py-3">{{ __('Premi') }}</th>
+                        <!-- <th scope="col" class="px-4 py-3">{{ __('Premi') }}</th> -->
                         <th scope="col" class="px-4 py-3">{{ __('Tenor') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Bunga Terakumulasi') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Tarif Bunga Harian') }}</th>
@@ -227,6 +227,9 @@
                                 @if ((float) $transaksi->biaya_admin > 0)
                                     <div class="text-xs text-neutral-500 dark:text-neutral-300">{{ __('Biaya admin: Rp :amount', ['amount' => number_format((float) $transaksi->biaya_admin, 0, ',', '.')]) }}</div>
                                 @endif
+                                @if ($transaksi->premi !== null)
+                                    <div class="text-xs text-neutral-500 dark:text-neutral-300">{{ __('Premi: Rp :amount', ['amount' => number_format($transaksi->premi, 0, ',', '.')]) }}</div>
+                                @endif
                                 @if ($transaksi->total_potongan > 0)
                                     <div class="text-xs text-neutral-500 dark:text-neutral-300">{{ __('Total potongan: Rp :amount', ['amount' => number_format($transaksi->total_potongan, 0, ',', '.')]) }}</div>
                                 @endif
@@ -234,9 +237,9 @@
                                     <div class="text-xs font-semibold text-neutral-700 dark:text-neutral-200">{{ __('Uang cair: Rp :amount', ['amount' => number_format($transaksi->uang_cair, 0, ',', '.')]) }}</div>
                                 @endif
                             </td>
-                            <td class="whitespace-nowrap px-4 py-3">
+                            <!-- <td class="whitespace-nowrap px-4 py-3">
                                 <div class="font-semibold text-neutral-900 dark:text-white">Rp {{ number_format((float) $transaksi->premi, 0, ',', '.') }}</div>
-                            </td>
+                            </td> -->
                             <td class="whitespace-nowrap px-4 py-3">
                                 <div class="font-semibold text-neutral-900 dark:text-white">
                                     {{ $transaksi->tenor_hari ? __(':days hari', ['days' => $transaksi->tenor_hari]) : '—' }}

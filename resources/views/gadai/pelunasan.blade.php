@@ -23,15 +23,82 @@
                 </p>
             </div>
             <a
-                href="{{ $listRoute }}"
-                class="inline-flex items-center gap-2 rounded-lg border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-400 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800/70"
-            >
-                <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-                </svg>
-                <span>{{ __('Kembali ke daftar transaksi') }}</span>
-            </a>
+    href="{{ $listRoute }}"
+    class="ml-auto inline-flex items-center gap-2 rounded-lg border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-400 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800/70"
+>
+    <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+    </svg>
+    <span>{{ __('Kembali ke daftar transaksi') }}</span>
+</a>
+
         </div>
+        
+<br>
+
+<aside class="space-y-6">
+                <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+                    <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Informasi Transaksi') }}</h2>
+                    <dl class="mt-4 space-y-3 text-sm text-neutral-700 dark:text-neutral-200">
+                        <div class="flex items-start justify-between gap-4">
+                            <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('No. SBG') }}</dt>
+                            <dd class="text-right font-semibold text-neutral-900 dark:text-white">{{ $transaksi->no_sbg }}</dd>
+                        </div>
+                        <div class="flex items-start justify-between gap-4">
+                            <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('Nasabah') }}</dt>
+                            <dd class="text-right text-neutral-900 dark:text-white">{{ $nasabah }}</dd>
+                        </div>
+                        <div class="flex items-start justify-between gap-4">
+                            <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('Kasir Pembuat') }}</dt>
+                            <dd class="text-right text-neutral-900 dark:text-white">{{ $kasir }}</dd>
+                        </div>
+                        <div class="flex items-start justify-between gap-4">
+                            <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('Tanggal Gadai') }}</dt>
+                            <dd class="text-right text-neutral-900 dark:text-white">{{ optional($transaksi->tanggal_gadai)->format('d M Y') ?? '—' }}</dd>
+                        </div>
+                        <div class="flex items-start justify-between gap-4">
+                            <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('Jatuh Tempo') }}</dt>
+                            <dd class="text-right text-neutral-900 dark:text-white">{{ optional($transaksi->jatuh_tempo_awal)->format('d M Y') ?? '—' }}</dd>
+                        </div>
+                        <div class="flex items-start justify-between gap-4">
+                            <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('Uang Pinjaman') }}</dt>
+                            <dd class="text-right font-semibold text-emerald-600 dark:text-emerald-300">Rp {{ number_format((float) $transaksi->uang_pinjaman, 0, ',', '.') }}</dd>
+                        </div>
+                        <div class="flex items-start justify-between gap-4">
+                            <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('Tarif Bunga Harian') }}</dt>
+                            <dd class="text-right text-neutral-900 dark:text-white">{{ number_format($tarifBungaPersen, 2, ',', '.') }}%</dd>
+                        </div>
+                        <div class="flex items-start justify-between gap-4">
+                            <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('Hari Pemakaian Aktual') }}</dt>
+                            <dd class="text-right text-neutral-900 dark:text-white">{{ $perhitungan['actual_days'] }} {{ __('hari') }}</dd>
+                        </div>
+                        <div class="flex items-start justify-between gap-4">
+                            <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('Sewa Modal Terutang') }}</dt>
+                            <dd class="text-right text-neutral-900 dark:text-white">Rp {{ number_format($perhitungan['sewa_modal'], 0, ',', '.') }}</dd>
+                        </div>
+                        @if ($perhitungan['biaya_admin'] > 0)
+                            <div class="flex items-start justify-between gap-4">
+                                <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('Biaya Administrasi Awal') }}</dt>
+                                <dd class="text-right text-neutral-900 dark:text-white">Rp {{ number_format($perhitungan['biaya_admin'], 0, ',', '.') }}</dd>
+                            </div>
+                        @endif
+                    </dl>
+
+                    @if ($barangJaminan->isNotEmpty())
+                        <div class="mt-4 space-y-2 text-sm text-neutral-600 dark:text-neutral-300">
+                            <p class="font-medium text-neutral-700 dark:text-neutral-200">{{ __('Barang Jaminan') }}</p>
+                            <ul class="space-y-2">
+                                @foreach ($barangJaminan as $barang)
+                                    <li class="rounded-lg border border-neutral-200 px-3 py-2 text-xs text-neutral-700 dark:border-neutral-700 dark:text-neutral-200">
+                                        <div class="font-semibold text-neutral-900 dark:text-white">{{ $barang->jenis_barang }} — {{ $barang->merek }}</div>
+                                        <div>{{ __('Nilai taksiran: :amount', ['amount' => 'Rp ' . number_format((float) $barang->nilai_taksiran, 0, ',', '.')]) }}</div>
+                                        <div class="text-[11px] text-neutral-500 dark:text-neutral-400">{{ __('Kelengkapan:') }} {{ $barang->kelengkapan ?? '—' }}</div>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+                </div>
 
         <div class="grid gap-6 lg:grid-cols-[2fr,1fr]">
             <div class="rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
@@ -171,7 +238,7 @@
                         </a>
                         <button
                             type="submit"
-                            class="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-600 bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-500 dark:bg-emerald-500 dark:hover:border-emerald-400 dark:hover:bg-emerald-400"
+                            class="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-600 bg-emerald-600 px-4 py-2 text-sm font-semibold text-blue-600 shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-500 dark:bg-emerald-500 dark:hover:border-emerald-400 dark:hover:bg-emerald-400"
                         >
                             <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m6 .75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
@@ -182,69 +249,7 @@
                 </form>
             </div>
 
-            <aside class="space-y-6">
-                <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
-                    <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Informasi Transaksi') }}</h2>
-                    <dl class="mt-4 space-y-3 text-sm text-neutral-700 dark:text-neutral-200">
-                        <div class="flex items-start justify-between gap-4">
-                            <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('No. SBG') }}</dt>
-                            <dd class="text-right font-semibold text-neutral-900 dark:text-white">{{ $transaksi->no_sbg }}</dd>
-                        </div>
-                        <div class="flex items-start justify-between gap-4">
-                            <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('Nasabah') }}</dt>
-                            <dd class="text-right text-neutral-900 dark:text-white">{{ $nasabah }}</dd>
-                        </div>
-                        <div class="flex items-start justify-between gap-4">
-                            <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('Kasir Pembuat') }}</dt>
-                            <dd class="text-right text-neutral-900 dark:text-white">{{ $kasir }}</dd>
-                        </div>
-                        <div class="flex items-start justify-between gap-4">
-                            <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('Tanggal Gadai') }}</dt>
-                            <dd class="text-right text-neutral-900 dark:text-white">{{ optional($transaksi->tanggal_gadai)->format('d M Y') ?? '—' }}</dd>
-                        </div>
-                        <div class="flex items-start justify-between gap-4">
-                            <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('Jatuh Tempo') }}</dt>
-                            <dd class="text-right text-neutral-900 dark:text-white">{{ optional($transaksi->jatuh_tempo_awal)->format('d M Y') ?? '—' }}</dd>
-                        </div>
-                        <div class="flex items-start justify-between gap-4">
-                            <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('Uang Pinjaman') }}</dt>
-                            <dd class="text-right font-semibold text-emerald-600 dark:text-emerald-300">Rp {{ number_format((float) $transaksi->uang_pinjaman, 0, ',', '.') }}</dd>
-                        </div>
-                        <div class="flex items-start justify-between gap-4">
-                            <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('Tarif Bunga Harian') }}</dt>
-                            <dd class="text-right text-neutral-900 dark:text-white">{{ number_format($tarifBungaPersen, 2, ',', '.') }}%</dd>
-                        </div>
-                        <div class="flex items-start justify-between gap-4">
-                            <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('Hari Pemakaian Aktual') }}</dt>
-                            <dd class="text-right text-neutral-900 dark:text-white">{{ $perhitungan['actual_days'] }} {{ __('hari') }}</dd>
-                        </div>
-                        <div class="flex items-start justify-between gap-4">
-                            <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('Sewa Modal Terutang') }}</dt>
-                            <dd class="text-right text-neutral-900 dark:text-white">Rp {{ number_format($perhitungan['sewa_modal'], 0, ',', '.') }}</dd>
-                        </div>
-                        @if ($perhitungan['biaya_admin'] > 0)
-                            <div class="flex items-start justify-between gap-4">
-                                <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('Biaya Administrasi Awal') }}</dt>
-                                <dd class="text-right text-neutral-900 dark:text-white">Rp {{ number_format($perhitungan['biaya_admin'], 0, ',', '.') }}</dd>
-                            </div>
-                        @endif
-                    </dl>
-
-                    @if ($barangJaminan->isNotEmpty())
-                        <div class="mt-4 space-y-2 text-sm text-neutral-600 dark:text-neutral-300">
-                            <p class="font-medium text-neutral-700 dark:text-neutral-200">{{ __('Barang Jaminan') }}</p>
-                            <ul class="space-y-2">
-                                @foreach ($barangJaminan as $barang)
-                                    <li class="rounded-lg border border-neutral-200 px-3 py-2 text-xs text-neutral-700 dark:border-neutral-700 dark:text-neutral-200">
-                                        <div class="font-semibold text-neutral-900 dark:text-white">{{ $barang->jenis_barang }} — {{ $barang->merek }}</div>
-                                        <div>{{ __('Nilai taksiran: :amount', ['amount' => 'Rp ' . number_format((float) $barang->nilai_taksiran, 0, ',', '.')]) }}</div>
-                                        <div class="text-[11px] text-neutral-500 dark:text-neutral-400">{{ __('Kelengkapan:') }} {{ $barang->kelengkapan ?? '—' }}</div>
-                                    </li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-                </div>
+            
 
                 <div class="rounded-xl border border-emerald-200 bg-emerald-50/70 p-6 text-sm text-emerald-800 shadow-sm dark:border-emerald-500/60 dark:bg-emerald-500/10 dark:text-emerald-200">
                     <h2 class="text-lg font-semibold">{{ __('Perhitungan Pelunasan') }}</h2>
