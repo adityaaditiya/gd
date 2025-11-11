@@ -199,7 +199,7 @@
                                     readonly
                                     class="block w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-neutral-300 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
                                 />
-                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Tenor dihitung otomatis dari tanggal gadai dan jatuh tempo.') }}</p>
+                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Tenor dihitung otomatis dari tanggal gadai dan jatuh tempo secara inklusif dengan minimum 1 hari.') }}</p>
                             </div>
 
                             <div class="flex flex-col gap-2">
@@ -368,6 +368,34 @@
                         return Number.isNaN(parsed) ? 0 : parsed;
                     };
 
+                    const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
+
+                    const isInvalidDate = (date) => !(date instanceof Date) || Number.isNaN(date.getTime());
+
+                    const calculateActualDays = (startDate, endDate) => {
+                        if (isInvalidDate(startDate) || isInvalidDate(endDate)) {
+                            return 0;
+                        }
+
+                        const startUtc = Date.UTC(
+                            startDate.getFullYear(),
+                            startDate.getMonth(),
+                            startDate.getDate(),
+                        );
+                        const endUtc = Date.UTC(
+                            endDate.getFullYear(),
+                            endDate.getMonth(),
+                            endDate.getDate(),
+                        );
+
+                        if (endUtc < startUtc) {
+                            return 0;
+                        }
+
+                        const diffDays = Math.floor((endUtc - startUtc) / MILLISECONDS_PER_DAY);
+                        return Math.max(1, diffDays + 1);
+                    };
+
                     let totalNilaiTerpilih = 0;
                     const emptyListMessage = @json(__('Belum ada barang dipilih.'));
 
@@ -426,22 +454,10 @@
                     const updateBunga = () => {
                         if (!tenorDisplay || !bungaDisplay) return;
 
-                        const ratePerDay = 0.0015;
-                        const millisecondsPerDay = 24 * 60 * 60 * 1000;
-
                         const tanggalGadai = tanggalGadaiInput?.value ? new Date(tanggalGadaiInput.value) : null;
                         const jatuhTempo = jatuhTempoInput?.value ? new Date(jatuhTempoInput.value) : null;
-
-                        let tenor = 0;
-                        if (tanggalGadai instanceof Date && jatuhTempo instanceof Date) {
-                            const startTime = tanggalGadai.getTime();
-                            const endTime = jatuhTempo.getTime();
-
-                            if (!Number.isNaN(startTime) && !Number.isNaN(endTime) && endTime >= startTime) {
-                                const diffDays = Math.floor((endTime - startTime) / millisecondsPerDay);
-                                tenor = Math.max(1, diffDays + 1);
-                            }
-                        }
+                        const ratePerDay = 0.0015;
+                        const tenor = calculateActualDays(tanggalGadai, jatuhTempo);
 
                         tenorDisplay.value = tenor > 0 ? `${tenor} hari` : '—';
 

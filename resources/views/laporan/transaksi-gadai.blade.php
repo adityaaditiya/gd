@@ -164,6 +164,11 @@
                                         {{ __('Tenor: —') }}
                                     @endif
                                 </div>
+                                @if ($transaksi->actual_days)
+                                    <div class="text-xs text-neutral-500 dark:text-neutral-300">
+                                        {{ __('Hari berjalan: :days hari', ['days' => $transaksi->actual_days]) }}
+                                    </div>
+                                @endif
                                 @if ((float) $transaksi->tarif_bunga_harian > 0)
                                     <div class="text-xs text-neutral-500 dark:text-neutral-300">
                                         {{ __('Tarif bunga harian: :rate%', ['rate' => rtrim(rtrim(number_format((float) $transaksi->tarif_bunga_harian, 2, '.', ''), '0'), '.')]) }}
