@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BarangJaminan;
+use App\Models\MutasiKas;
 use App\Models\Nasabah;
 use App\Models\TransaksiGadai;
 use Carbon\Carbon;
@@ -184,6 +185,7 @@ class TransaksiGadaiController extends Controller
             $this->calculateSewaModal($uangPinjaman, $tarifBungaHarian, $hariBerjalan)
         );
         $uangCair = $this->formatDecimal(max(0, $uangPinjaman - $totalPotongan));
+        $uangCairValue = (float) $uangCair;
 
         DB::transaction(function () use (
             $barangCollection,
@@ -194,7 +196,8 @@ class TransaksiGadaiController extends Controller
             $totalBunga,
             $tanggalGadai,
             $bungaTerutangRiil,
-            $uangCair
+            $uangCair,
+            $uangCairValue
         ) {
             $noSbg = $this->nextNoSbg($tanggalGadai, true);
 
@@ -218,6 +221,29 @@ class TransaksiGadaiController extends Controller
             foreach ($barangCollection as $barang) {
                 $barang->transaksi_id = $transaksi->transaksi_id;
                 $barang->save();
+            }
+
+            if ($uangCairValue > 0) {
+                $transaksi->loadMissing('nasabah');
+
+                $referensi = 'Pencairan Gadai ' . $noSbg;
+
+                MutasiKas::updateOrCreate(
+                    [
+                        'transaksi_gadai_id' => $transaksi->transaksi_id,
+                        'tipe' => 'keluar',
+                        'referensi' => $referensi,
+                    ],
+                    [
+                        'tanggal' => $tanggalGadai->toDateString(),
+                        'referensi' => $referensi,
+                        'jumlah' => $uangCair,
+                        'sumber' => __('Transaksi Gadai'),
+                        'keterangan' => __('Pencairan dana gadai untuk :nasabah', [
+                            'nasabah' => $transaksi->nasabah?->nama ?? __('Nasabah tidak diketahui'),
+                        ]),
+                    ]
+                );
             }
         });
 
@@ -267,6 +293,8 @@ class TransaksiGadaiController extends Controller
             $transaksi->alasan_batal = $alasan;
             $transaksi->pegawai_pembatal_id = $pembatalId;
             $transaksi->save();
+
+            MutasiKas::where('transaksi_gadai_id', $transaksi->transaksi_id)->delete();
         });
 
         return redirect()
@@ -341,6 +369,7 @@ class TransaksiGadaiController extends Controller
         $minimalPelunasan = $pokokPinjaman + $sewaModalTerutang + $biayaAdminAwal;
 
         $total = (float) $data['total_pelunasan'];
+        $formattedTotalPelunasan = $this->formatDecimal($total);
 
         if ($total + 0.00001 < $minimalPelunasan) {
             $message = __('Total pelunasan minimal adalah :amount berdasarkan pemakaian :days hari.', [
@@ -374,7 +403,8 @@ class TransaksiGadaiController extends Controller
             $pokokPinjaman,
             $sewaModalTerutang,
             $biayaAdminAwal,
-            $total
+            $total,
+            $formattedTotalPelunasan
         ) {
             $transaksi->status_transaksi = 'Lunas';
             $transaksi->tanggal_pelunasan = $tanggalPelunasan;
@@ -387,6 +417,29 @@ class TransaksiGadaiController extends Controller
             $transaksi->catatan_pelunasan = $data['catatan_pelunasan'] ?: null;
             $transaksi->pegawai_pelunasan_id = $kasirId;
             $transaksi->save();
+
+            if ($total > 0) {
+                $transaksi->loadMissing('nasabah');
+
+                $referensi = 'Pelunasan Gadai ' . $transaksi->no_sbg;
+
+                MutasiKas::updateOrCreate(
+                    [
+                        'transaksi_gadai_id' => $transaksi->transaksi_id,
+                        'tipe' => 'masuk',
+                        'referensi' => $referensi,
+                    ],
+                    [
+                        'tanggal' => $tanggalPelunasan->toDateString(),
+                        'referensi' => $referensi,
+                        'jumlah' => $formattedTotalPelunasan,
+                        'sumber' => __('Pelunasan Gadai'),
+                        'keterangan' => __('Pelunasan gadai oleh :nasabah', [
+                            'nasabah' => $transaksi->nasabah?->nama ?? __('Nasabah tidak diketahui'),
+                        ]),
+                    ]
+                );
+            }
         });
 
         return redirect()

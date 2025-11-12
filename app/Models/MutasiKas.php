@@ -13,6 +13,7 @@ class MutasiKas extends Model
     protected $table = 'kas_mutasi';
 
     protected $fillable = [
+        'transaksi_gadai_id',
         'jadwal_lelang_id',
         'tanggal',
         'referensi',
@@ -30,5 +31,10 @@ class MutasiKas extends Model
     public function jadwalLelang(): BelongsTo
     {
         return $this->belongsTo(JadwalLelang::class, 'jadwal_lelang_id');
+    }
+
+    public function transaksiGadai(): BelongsTo
+    {
+        return $this->belongsTo(TransaksiGadai::class, 'transaksi_gadai_id', 'transaksi_id');
     }
 }
