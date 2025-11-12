@@ -23,7 +23,10 @@ return new class extends Migration
             $table->timestamp('paid_at')->nullable();
             $table->timestamps();
 
-            $table->unique(['cicil_emas_transaction_id', 'sequence']);
+            $table->unique(
+                ['cicil_emas_transaction_id', 'sequence'],
+                'cicil_emas_tx_sequence_unique'
+            );
         });
     }
 
