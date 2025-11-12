@@ -11,6 +11,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use Illuminate\Support\Carbon;
 
 class CicilEmasTransaksiController extends Controller
 {
@@ -138,6 +139,8 @@ class CicilEmasTransaksiController extends Controller
             ]),
         ]);
 
+        $this->generateInstallments($transaction, $tenor, $installment);
+
         return redirect()
             ->route('cicil-emas.transaksi-emas')
             ->with('status', __('Simulasi cicil emas berhasil disimpan.'))
@@ -173,5 +176,22 @@ class CicilEmasTransaksiController extends Controller
                     'harga' => $barang->harga,
                 ]];
             });
+    }
+
+    private function generateInstallments(CicilEmasTransaction $transaction, int $tenor, float $amount): void
+    {
+        $penaltyRate = (float) config('cicil_emas.late_fee_percentage_per_day', 0.5);
+        $baseDate = Carbon::now()->startOfDay();
+
+        for ($sequence = 1; $sequence <= $tenor; $sequence++) {
+            $dueDate = $baseDate->copy()->addMonthsNoOverflow($sequence);
+
+            $transaction->installments()->create([
+                'sequence' => $sequence,
+                'due_date' => $dueDate,
+                'amount' => $amount,
+                'penalty_rate' => $penaltyRate,
+            ]);
+        }
     }
 }

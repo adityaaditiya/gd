@@ -4,7 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CicilEmasInstallment> $installments
+ */
 class CicilEmasTransaction extends Model
 {
     use HasFactory;
@@ -33,8 +38,13 @@ class CicilEmasTransaction extends Model
         'besaran_angsuran' => 'float',
     ];
 
-    public function nasabah()
+    public function nasabah(): BelongsTo
     {
         return $this->belongsTo(Nasabah::class);
+    }
+
+    public function installments(): HasMany
+    {
+        return $this->hasMany(CicilEmasInstallment::class);
     }
 }

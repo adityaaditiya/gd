@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\UserAccessController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\BarangController;
 use App\Http\Controllers\BarangJaminanController;
+use App\Http\Controllers\CicilEmasInstallmentController;
 use App\Http\Controllers\CicilEmasTransaksiController;
 use App\Http\Controllers\LaporanPelunasanGadaiController;
 use App\Http\Controllers\LaporanTransaksiGadaiController;
@@ -102,7 +103,10 @@ Route::middleware(['auth'])->group(function () {
             Route::get('transaksi-emas', [CicilEmasTransaksiController::class, 'create'])->name('transaksi-emas');
             Route::post('transaksi-emas', [CicilEmasTransaksiController::class, 'store'])->name('transaksi-emas.store');
             Route::get('daftar-cicilan', [CicilEmasTransaksiController::class, 'index'])->name('daftar-cicilan');
-            Route::view('angsuran-rutin', 'cicil-emas.angsuran-rutin')->name('angsuran-rutin');
+            Route::get('angsuran-rutin', [CicilEmasInstallmentController::class, 'index'])->name('angsuran-rutin');
+            Route::post('angsuran-rutin/{installment}/bayar', [CicilEmasInstallmentController::class, 'pay'])
+                ->whereNumber('installment')
+                ->name('angsuran-rutin.pay');
             Route::view('riwayat-cicilan', 'cicil-emas.riwayat-cicilan')->name('riwayat-cicilan');
             Route::view('pelunasan-cicilan', 'cicil-emas.pelunasan-cicilan')->name('pelunasan-cicilan');
         });

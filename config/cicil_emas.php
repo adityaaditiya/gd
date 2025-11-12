@@ -6,4 +6,6 @@ return [
     'default_down_payment_percentage' => 10,
 
     'tenor_options' => [3, 6, 12, 18, 24, 36],
+
+    'late_fee_percentage_per_day' => 0.5,
 ];
