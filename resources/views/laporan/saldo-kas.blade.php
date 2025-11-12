@@ -82,6 +82,8 @@
                                 <div class="font-medium">{{ $mutasi->referensi }}</div>
                                 @if ($mutasi->jadwalLelang)
                                     <div class="text-xs text-neutral-500 dark:text-neutral-400">{{ $mutasi->jadwalLelang->transaksi?->no_sbg }} — {{ $mutasi->jadwalLelang->barang?->jenis_barang }}</div>
+                                @elseif ($mutasi->transaksiGadai)
+                                    <div class="text-xs text-neutral-500 dark:text-neutral-400">{{ $mutasi->transaksiGadai->no_sbg }} — {{ $mutasi->transaksiGadai->nasabah?->nama }}</div>
                                 @endif
                             </td>
                             <td class="px-4 py-3">{{ $mutasi->keterangan ?? '—' }}</td>
