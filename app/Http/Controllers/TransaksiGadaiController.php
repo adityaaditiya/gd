@@ -462,22 +462,30 @@ class TransaksiGadaiController extends Controller
 
         $transaksi->loadMissing(['nasabah', 'kasir', 'barangJaminan', 'perpanjangan.petugas', 'perpanjangan.pembatal']);
 
-        $today = Carbon::today();
+        $today = Carbon::today()->startOfDay();
         $defaultMulai = $today->toDateString();
         $defaultTenor = max(1, (int) ($transaksi->tenor_hari ?? 30));
 
         $targetStart = Carbon::parse($defaultMulai)->startOfDay();
         $originalStart = $this->resolveStartDate($transaksi, $targetStart);
-        $daysElapsed = max(0, $originalStart->diffInDays($targetStart));
-        $pokok = (float) ($transaksi->uang_pinjaman ?? 0);
-        $tarifBunga = $this->resolveTarifBunga($transaksi);
-        $bungaBerjalan = $this->calculateSewaModal($pokok, $tarifBunga, $daysElapsed);
+        $referenceDate = $today->copy();
+
+        if ($referenceDate->lessThan($originalStart)) {
+            $referenceDate = $originalStart->copy();
+        }
+
+        $transaksi->refreshBungaTerutangRiil($referenceDate);
+
+        $bungaBerjalan = (float) ($transaksi->bunga_terutang_riil ?? 0);
+        $hasElapsed = $bungaBerjalan > 0.00001;
 
         return view('gadai.perpanjangan', [
             'transaksi' => $transaksi,
             'defaultTanggalMulai' => $defaultMulai,
             'defaultTenor' => $defaultTenor,
             'bungaBerjalan' => $this->formatDecimal($bungaBerjalan),
+            'extensionCutoff' => $referenceDate->toDateString(),
+            'extensionHasElapsed' => $hasElapsed,
             'listingQuery' => $this->extractListingQuery($request),
         ]);
     }
@@ -530,10 +538,14 @@ class TransaksiGadaiController extends Controller
         $tenorBaru = max(1, (int) $data['tenor_hari']);
         $tanggalJatuhTempoBaru = $tanggalMulaiBaru->copy()->addDays($tenorBaru - 1);
 
-        $daysElapsed = max(0, $originalStart->diffInDays($tanggalMulaiBaru));
-        $pokokPinjaman = (float) ($transaksi->uang_pinjaman ?? 0);
-        $tarifBunga = $this->resolveTarifBunga($transaksi);
-        $bungaSeharusnya = $this->calculateSewaModal($pokokPinjaman, $tarifBunga, $daysElapsed);
+        $referenceDate = $today->copy();
+
+        if ($referenceDate->lessThan($originalStart)) {
+            $referenceDate = $originalStart->copy();
+        }
+
+        $transaksi->refreshBungaTerutangRiil($referenceDate);
+        $bungaSeharusnya = (float) ($transaksi->bunga_terutang_riil ?? 0);
 
         $bungaDibayar = (float) $data['bunga_dibayar'];
         $biayaAdmin = (float) $data['biaya_admin'];
