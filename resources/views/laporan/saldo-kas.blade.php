@@ -47,20 +47,7 @@
             </div>
         </form>
 
-        <div class="grid gap-3 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-700 dark:bg-neutral-900 md:grid-cols-3">
-            <div class="flex flex-col gap-1">
-                <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Total Masuk') }}</span>
-                <span class="text-xl font-semibold text-emerald-600 dark:text-emerald-300">Rp {{ number_format((float) $totalMasuk, 0, ',', '.') }}</span>
-            </div>
-            <div class="flex flex-col gap-1">
-                <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Total Keluar') }}</span>
-                <span class="text-xl font-semibold text-rose-600 dark:text-rose-300">Rp {{ number_format((float) $totalKeluar, 0, ',', '.') }}</span>
-            </div>
-            <div class="flex flex-col gap-1">
-                <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Saldo Bersih Periode') }}</span>
-                <span class="text-xl font-semibold text-neutral-900 dark:text-white">Rp {{ number_format((float) $saldo, 0, ',', '.') }}</span>
-            </div>
-        </div>
+        
 
         <div class="overflow-x-auto rounded-lg border border-neutral-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
             <table class="min-w-full divide-y divide-neutral-200 dark:divide-neutral-700">
@@ -98,6 +85,21 @@
                     @endforelse
                 </tbody>
             </table>
+        </div>
+
+<div class="grid gap-3 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-700 dark:bg-neutral-900 md:grid-cols-3">
+            <div class="flex flex-col gap-1">
+                <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Total Masuk') }}</span>
+                <span class="text-xl font-semibold text-emerald-600 dark:text-emerald-300">Rp {{ number_format((float) $totalMasuk, 0, ',', '.') }}</span>
+            </div>
+            <div class="flex flex-col gap-1">
+                <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Total Keluar') }}</span>
+                <span class="text-xl font-semibold text-rose-600 dark:text-rose-300">Rp {{ number_format((float) $totalKeluar, 0, ',', '.') }}</span>
+            </div>
+            <div class="flex flex-col gap-1">
+                <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Saldo Bersih Periode') }}</span>
+                <span class="text-xl font-semibold text-neutral-900 dark:text-white">Rp {{ number_format((float) $saldo, 0, ',', '.') }}</span>
+            </div>
         </div>
 
         <div>

@@ -119,6 +119,7 @@
                         <th scope="col" class="px-4 py-3">{{ __('Bunga Terakumulasi') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Tarif Bunga Harian') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Jatuh Tempo') }}</th>
+                        <th scope="col" class="px-4 py-3">{{ __('Status') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Kasir') }}</th>
                         <th scope="col" class="px-4 py-3 text-center">{{ __('Aksi') }}</th>
                     </tr>
@@ -262,6 +263,11 @@
                             </td>
                             <td class="whitespace-nowrap px-4 py-3">{{ number_format((float) $transaksi->tarif_bunga_harian * 100, 2, ',', '.') }}%</td>
                             <td class="whitespace-nowrap px-4 py-3">{{ optional($transaksi->jatuh_tempo_awal)->format('d M Y') ?? '—' }}</td>
+                            <td class="px-4 py-3">
+                                <div class="font-semibold text-emerald-600 dark:text-emerald-300">
+                                    <span>{{ $transaksi->status_transaksi ?? '—' }}</span>
+                                </div>
+                            </td>
                             <td class="px-4 py-3">
                                 <div class="flex flex-col text-xs text-neutral-600 dark:text-neutral-300">
                                     <span>{{ __('Kasir:') }} {{ $transaksi->kasir?->name ?? '—' }}</span>

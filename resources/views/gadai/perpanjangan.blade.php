@@ -158,14 +158,14 @@
                         @enderror
                     </label>
 
-                    <div class="flex flex-col gap-2 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-200">
+                    <!-- <div class="flex flex-col gap-2 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-200">
                         <div class="font-semibold">{{ __('Ringkasan Perpanjangan') }}</div>
                         <ul class="list-disc space-y-1 pl-4">
                             <li>{{ __('Tenor baru berakhir pada :date.', ['date' => $defaultMulai->copy()->addDays($tenorFormValue - 1)->format('d M Y')]) }}</li>
                             <li>{{ __('Biaya yang dicatat otomatis masuk ke laporan saldo kas pada tanggal perpanjangan.') }}</li>
                             <li>{{ __('Status kontrak berubah menjadi Perpanjang setelah disimpan.') }}</li>
                         </ul>
-                    </div>
+                    </div> -->
 
                     <div class="flex items-center justify-end gap-3">
                         <a
@@ -179,7 +179,7 @@
                         </a>
                         <button
                             type="submit"
-                            class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400"
+                            class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-blue-600 shadow-sm transition hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400"
                         >
                             <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
@@ -308,7 +308,7 @@
                             <div class="flex items-center justify-end gap-2">
                                 <button
                                     type="submit"
-                                    class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500 dark:bg-red-500 dark:hover:bg-red-400"
+                                    class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-red shadow-sm transition hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500 dark:bg-red-500 dark:hover:bg-red-400"
                                 >
                                     <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />

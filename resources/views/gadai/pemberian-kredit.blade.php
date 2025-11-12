@@ -26,7 +26,7 @@
                             <span class="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-600 text-sm font-semibold text-white">1</span>
                             <div>
                                 <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Pilih Barang Jaminan Siap Gadai') }}</h2>
-                                <p class="text-sm text-neutral-600 dark:text-neutral-300">{{ __('Kasir memulai proses dengan memilih aset yang belum terikat kontrak.') }}</p>
+                                <!-- <p class="text-sm text-neutral-600 dark:text-neutral-300">{{ __('Kasir memulai proses dengan memilih aset yang belum terikat kontrak.') }}</p> -->
                             </div>
                         </div>
 
@@ -65,7 +65,7 @@
                                         </option>
                                     @endforeach
                                 </select>
-                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Gunakan Ctrl/Cmd + klik untuk memilih lebih dari satu barang.') }}</p>
+                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Gunakan kursor untuk memblok langsung atau Ctrl/Cmd + klik untuk memilih lebih dari satu barang.') }}</p>
                                 @error('barang_ids')
                                     <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                 @enderror
@@ -102,14 +102,14 @@
                     </section>
 
                     <section class="space-y-4">
-                        <div class="flex items-center gap-3">
+                        <!-- <div class="flex items-center gap-3">
                             <span class="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-600 text-sm font-semibold text-white">2</span>
                             <div>
                                 <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Input Detail Kontrak') }}</h2>
                                 <p class="text-sm text-neutral-600 dark:text-neutral-300">{{ __('Lengkapi informasi kontrak dan pastikan plafon pinjaman tidak melebihi 94% dari nilai taksiran.') }}</p>
                             </div>
-                        </div>
-
+                        </div> -->
+<div></div>
                         <div class="grid gap-6 lg:grid-cols-2">
                             <div class="flex flex-col gap-2">
                                 <label for="no_sbg" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Nomor SBG') }}</label>
@@ -289,18 +289,18 @@
                     </section>
 
                     <section class="space-y-4">
-                        <div class="flex items-center gap-3">
+                        <!-- <div class="flex items-center gap-3">
                             <span class="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-600 text-sm font-semibold text-white">3</span>
                             <div>
                                 <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Terbitkan Kontrak & Kunci Barang') }}</h2>
                                 <p class="text-sm text-neutral-600 dark:text-neutral-300">{{ __('Setelah disimpan, sistem akan membuat kontrak berstatus Aktif dan mengunci barang agar tidak dapat digunakan ulang.') }}</p>
                             </div>
-                        </div>
+                        </div> -->
 
                         <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-700 dark:border-neutral-700 dark:bg-neutral-900/50 dark:text-neutral-200">
                             <ul class="list-disc space-y-1 pl-5">
                                 <li>{{ __('Nominal pinjaman otomatis divalidasi agar tidak melampaui plafon 94% dari nilai taksiran.') }}</li>
-                                <li>{{ __('Barang jaminan yang dipilih tidak lagi tampil pada daftar siap gadai setelah kontrak terbit.') }}</li>
+                                <li>{{ __('Barang jaminan yang dipilih tidak lagi tampil pada daftar siap gadai setelah SBG terbit.') }}</li>
                                 <li>{{ __('Kasir akan diarahkan ke halaman indeks kontrak untuk menindaklanjuti proses berikutnya.') }}</li>
                             </ul>
                         </div>
