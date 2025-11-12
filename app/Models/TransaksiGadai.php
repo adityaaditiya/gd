@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use App\Models\PerpanjanganGadai;
 
 class TransaksiGadai extends Model
 {
@@ -90,6 +91,12 @@ class TransaksiGadai extends Model
     public function jadwalLelang(): HasMany
     {
         return $this->hasMany(JadwalLelang::class, 'transaksi_id', 'transaksi_id');
+    }
+
+    public function perpanjangan(): HasMany
+    {
+        return $this->hasMany(PerpanjanganGadai::class, 'transaksi_gadai_id', 'transaksi_id')
+            ->orderByDesc('tanggal_perpanjangan');
     }
 
     public function getActualDaysAttribute(): ?int
