@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\Admin\UserAccessController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\BarangController;
 use App\Http\Controllers\BarangJaminanController;
+use App\Http\Controllers\CicilEmasTransaksiController;
 use App\Http\Controllers\LaporanPelunasanGadaiController;
 use App\Http\Controllers\LaporanTransaksiGadaiController;
 use App\Http\Controllers\LaporanPembatalanGadaiController;
@@ -81,6 +83,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('batal-gadai', [LaporanPembatalanGadaiController::class, 'index'])->name('batal-gadai');
             Route::get('perpanjangan-gadai', [LaporanPerpanjanganGadaiController::class, 'index'])->name('perpanjangan-gadai');
             Route::get('lelang', [LaporanLelangController::class, 'index'])->name('lelang');
+            Route::view('cicil-emas', 'laporan.cicil-emas')->name('cicil-emas');
         });
 
     Route::prefix('akuntansi')
@@ -96,8 +99,12 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('cicil-emas')
         ->as('cicil-emas.')
         ->group(function () {
-            Route::view('transaksi-emas', 'cicil-emas.transaksi-emas')->name('transaksi-emas');
+            Route::get('transaksi-emas', [CicilEmasTransaksiController::class, 'create'])->name('transaksi-emas');
+            Route::post('transaksi-emas', [CicilEmasTransaksiController::class, 'store'])->name('transaksi-emas.store');
             Route::view('daftar-cicilan', 'cicil-emas.daftar-cicilan')->name('daftar-cicilan');
+            Route::view('angsuran-rutin', 'cicil-emas.angsuran-rutin')->name('angsuran-rutin');
+            Route::view('riwayat-cicilan', 'cicil-emas.riwayat-cicilan')->name('riwayat-cicilan');
+            Route::view('pelunasan-cicilan', 'cicil-emas.pelunasan-cicilan')->name('pelunasan-cicilan');
         });
 
     Route::prefix('jual-emas')
@@ -121,6 +128,13 @@ Route::middleware(['auth'])->group(function () {
         ->group(function () {
             Route::view('transaksi-titip-emas', 'titip-emas.transaksi-titip-emas')->name('transaksi-titip-emas');
             Route::view('lihat-titipan', 'titip-emas.lihat-titipan')->name('lihat-titipan');
+        });
+
+    Route::prefix('barang')
+        ->as('barang.')
+        ->group(function () {
+            Route::get('data-barang', [BarangController::class, 'index'])->name('data-barang');
+            Route::post('data-barang', [BarangController::class, 'store'])->name('data-barang.store');
         });
 
     Route::prefix('nasabah')
