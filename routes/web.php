@@ -81,6 +81,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('batal-gadai', [LaporanPembatalanGadaiController::class, 'index'])->name('batal-gadai');
             Route::get('perpanjangan-gadai', [LaporanPerpanjanganGadaiController::class, 'index'])->name('perpanjangan-gadai');
             Route::get('lelang', [LaporanLelangController::class, 'index'])->name('lelang');
+            Route::view('cicil-emas', 'laporan.cicil-emas')->name('cicil-emas');
         });
 
     Route::prefix('akuntansi')
@@ -98,6 +99,9 @@ Route::middleware(['auth'])->group(function () {
         ->group(function () {
             Route::view('transaksi-emas', 'cicil-emas.transaksi-emas')->name('transaksi-emas');
             Route::view('daftar-cicilan', 'cicil-emas.daftar-cicilan')->name('daftar-cicilan');
+            Route::view('angsuran-rutin', 'cicil-emas.angsuran-rutin')->name('angsuran-rutin');
+            Route::view('riwayat-cicilan', 'cicil-emas.riwayat-cicilan')->name('riwayat-cicilan');
+            Route::view('pelunasan-cicilan', 'cicil-emas.pelunasan-cicilan')->name('pelunasan-cicilan');
         });
 
     Route::prefix('jual-emas')
