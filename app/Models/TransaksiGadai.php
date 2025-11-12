@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Carbon\CarbonInterface;
 use App\Models\PerpanjanganGadai;
 
 class TransaksiGadai extends Model
@@ -142,18 +143,18 @@ class TransaksiGadai extends Model
         return round(max(0, (float) $this->uang_pinjaman - $this->total_potongan), 2);
     }
 
-    public function calculateActualDays(?Carbon $referenceDate = null): ?int
+    public function calculateActualDays(?CarbonInterface $referenceDate = null): ?int
     {
         if (!$this->tanggal_gadai) {
             return null;
         }
 
-        $start = $this->tanggal_gadai instanceof Carbon
+        $start = $this->tanggal_gadai instanceof CarbonInterface
             ? $this->tanggal_gadai->copy()->startOfDay()
             : Carbon::parse($this->tanggal_gadai)->startOfDay();
 
         $endSource = $referenceDate ?? ($this->tanggal_pelunasan ?? Carbon::today());
-        $end = $endSource instanceof Carbon
+        $end = $endSource instanceof CarbonInterface
             ? $endSource->copy()->startOfDay()
             : Carbon::parse($endSource)->startOfDay();
 
@@ -164,7 +165,7 @@ class TransaksiGadai extends Model
         return max(1, $start->diffInDays($end) + 1);
     }
 
-    public function computeBungaTerutangRiil(?Carbon $referenceDate = null): ?float
+    public function computeBungaTerutangRiil(?CarbonInterface $referenceDate = null): ?float
     {
         if ($this->status_transaksi === 'Batal') {
             return 0.0;
@@ -190,7 +191,7 @@ class TransaksiGadai extends Model
         return round($principal * $dailyRate * $days, 2);
     }
 
-    public function hitungKewajibanLelang(?float $biayaLelang = null, ?Carbon $referenceDate = null): float
+    public function hitungKewajibanLelang(?float $biayaLelang = null, ?CarbonInterface $referenceDate = null): float
     {
         $principal = (float) ($this->uang_pinjaman ?? 0);
         $interest = (float) ($this->computeBungaTerutangRiil($referenceDate) ?? 0);
@@ -199,7 +200,7 @@ class TransaksiGadai extends Model
         return round($principal + $interest + $biaya, 2);
     }
 
-    public function refreshBungaTerutangRiil(?Carbon $referenceDate = null): void
+    public function refreshBungaTerutangRiil(?CarbonInterface $referenceDate = null): void
     {
         $computed = $this->computeBungaTerutangRiil($referenceDate);
 
