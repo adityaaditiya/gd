@@ -10,11 +10,20 @@
             ->sort()
             ->values();
         $selectedTenor = old('tenor_bulan');
+        $downPaymentMode = old('down_payment_mode', 'nominal');
+        if (! in_array($downPaymentMode, ['nominal', 'percentage'], true)) {
+            $downPaymentMode = 'nominal';
+        }
         $defaultDownPaymentValue = old('estimasi_uang_muka');
         if (! is_numeric($defaultDownPaymentValue)) {
             $defaultDownPaymentValue = $defaultDownPayment ?? 1_000_000;
         }
-        $defaultDownPaymentValue = (float) $defaultDownPaymentValue;
+        $defaultDownPaymentValue = max((float) $defaultDownPaymentValue, 0);
+        $defaultDownPaymentPercentageValue = old('down_payment_percentage');
+        if (! is_numeric($defaultDownPaymentPercentageValue)) {
+            $defaultDownPaymentPercentageValue = $defaultDownPaymentPercentage ?? 10;
+        }
+        $defaultDownPaymentPercentageValue = min(max((float) $defaultDownPaymentPercentageValue, 0), 100);
     @endphp
     <div class="space-y-8">
         <div class="flex flex-col gap-2">
@@ -47,7 +56,18 @@
                         </div>
                         <div class="space-y-1">
                             <dt class="font-semibold text-neutral-900 dark:text-white">{{ __('Estimasi DP') }}</dt>
-                            <dd>{{ isset($summary['dp']) ? number_format($summary['dp'], 2, ',', '.') : '—' }}</dd>
+                            @if (isset($summary['dp']))
+                                <dd class="space-y-1">
+                                    <span>{{ number_format($summary['dp'], 2, ',', '.') }}</span>
+                                    @if (isset($summary['dp_percentage']))
+                                        <span class="block text-xs text-neutral-500 dark:text-neutral-400">
+                                            {{ __('Sekitar :persen% dari harga', ['persen' => number_format($summary['dp_percentage'], 2, ',', '.')]) }}
+                                        </span>
+                                    @endif
+                                </dd>
+                            @else
+                                <dd>—</dd>
+                            @endif
                         </div>
                         <div class="space-y-1">
                             <dt class="font-semibold text-neutral-900 dark:text-white">{{ __('Angsuran Bulanan') }}</dt>
@@ -163,26 +183,54 @@
                                 <label for="uang_muka_display" class="mb-2 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
                                     {{ __('Uang Muka') }}
                                 </label>
+                                <div class="mb-3 inline-flex rounded-lg border border-neutral-300 bg-neutral-100 p-1 text-xs font-semibold text-neutral-600 shadow-sm dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-300" data-down-payment-mode-group>
+                                    <button
+                                        type="button"
+                                        data-down-payment-mode-button="nominal"
+                                        class="flex-1 rounded-md px-3 py-1.5 transition"
+                                    >
+                                        {{ __('Nominal (Rp)') }}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        data-down-payment-mode-button="percentage"
+                                        class="flex-1 rounded-md px-3 py-1.5 transition"
+                                    >
+                                        {{ __('Persentase (%)') }}
+                                    </button>
+                                </div>
                                 <div class="flex overflow-hidden rounded-lg border border-neutral-300 bg-white shadow-sm dark:border-neutral-600 dark:bg-neutral-800">
-                                    <span class="flex items-center justify-center bg-neutral-100 px-3 text-xs font-semibold uppercase tracking-wide text-neutral-600 dark:bg-neutral-700 dark:text-neutral-200">
-                                        {{ __('Rupiah') }}
+                                    <span class="flex items-center justify-center bg-neutral-100 px-3 text-xs font-semibold uppercase tracking-wide text-neutral-600 dark:bg-neutral-700 dark:text-neutral-200" data-down-payment-label>
+                                        {{ $downPaymentMode === 'percentage' ? __('Persen') : __('Rupiah') }}
                                     </span>
                                     <input
                                         id="uang_muka_display"
                                         type="text"
-                                        inputmode="numeric"
+                                        inputmode="decimal"
                                         data-down-payment-input
-                                        value="{{ number_format((float) $defaultDownPaymentValue, 0, ',', '.') }}"
+                                        value="{{ $downPaymentMode === 'percentage'
+                                            ? number_format((float) $defaultDownPaymentPercentageValue, 2, ',', '.')
+                                            : number_format((float) $defaultDownPaymentValue, 0, ',', '.') }}"
                                         class="w-full border-0 bg-transparent px-3 py-2 text-sm font-semibold text-neutral-900 focus:outline-none focus:ring-0 dark:text-white"
                                         autocomplete="off"
                                     />
                                 </div>
-                                <input type="hidden" name="estimasi_uang_muka" data-down-payment-hidden value="{{ $defaultDownPaymentValue }}">
+                                <input type="hidden" name="down_payment_mode" data-down-payment-mode value="{{ $downPaymentMode }}">
+                                <input type="hidden" name="down_payment_percentage" data-down-payment-percentage value="{{ number_format((float) $defaultDownPaymentPercentageValue, 2, '.', '') }}">
+                                <input type="hidden" name="estimasi_uang_muka" data-down-payment-hidden value="{{ number_format((float) $defaultDownPaymentValue, 2, '.', '') }}">
+                                @error('down_payment_mode')
+                                    <p class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
+                                @enderror
+                                @error('down_payment_percentage')
+                                    <p class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
+                                @enderror
                                 @error('estimasi_uang_muka')
                                     <p class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
                                 @enderror
                                 <p class="mt-2 text-xs text-neutral-500 dark:text-neutral-400" data-down-payment-display>
-                                    {{ __('Masukkan uang muka untuk menghitung besaran cicilan.') }}
+                                    {{ $downPaymentMode === 'percentage'
+                                        ? __('Masukkan persentase uang muka (0-100%) untuk melihat estimasi cicilan.')
+                                        : __('Masukkan uang muka untuk menghitung besaran cicilan.') }}
                                 </p>
                             </div>
 
@@ -273,6 +321,10 @@
             const downPaymentInput = document.querySelector('[data-down-payment-input]');
             const downPaymentHidden = document.querySelector('[data-down-payment-hidden]');
             const downPaymentDisplay = document.querySelector('[data-down-payment-display]');
+            const downPaymentModeButtons = Array.from(document.querySelectorAll('[data-down-payment-mode-button]'));
+            const downPaymentModeHidden = document.querySelector('[data-down-payment-mode]');
+            const downPaymentLabel = document.querySelector('[data-down-payment-label]');
+            const downPaymentPercentageHidden = document.querySelector('[data-down-payment-percentage]');
             const tenorHidden = document.querySelector('[data-tenor-input]');
             const tenorMeta = document.querySelector('[data-tenor-meta]');
             const tenorCards = Array.from(document.querySelectorAll('[data-tenor-card]'));
@@ -297,18 +349,87 @@
                     Number.isFinite(value) ? Math.round(value) : 0,
                 );
 
+            const formatPercentage = (value) =>
+                new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 }).format(
+                    Number.isFinite(value) ? value : 0,
+                );
+
             const parseCurrencyInput = (value) => {
                 const sanitized = String(value ?? '').replace(/[^0-9]/g, '');
                 return sanitized ? parseInt(sanitized, 10) : 0;
             };
 
-            const setDownPaymentValue = (value) => {
-                const normalized = Number.isFinite(value) ? Math.max(value, 0) : 0;
-                if (downPaymentHidden) {
-                    downPaymentHidden.value = (Math.round(normalized * 100) / 100).toFixed(2);
+            const parsePercentageInput = (value) => {
+                const sanitized = String(value ?? '')
+                    .replace(/[^0-9.,-]/g, '')
+                    .replace(',', '.');
+                const parsed = parseFloat(sanitized);
+                return Number.isFinite(parsed) ? parsed : 0;
+            };
+
+            const getDownPaymentMode = () =>
+                downPaymentModeHidden?.value === 'percentage' ? 'percentage' : 'nominal';
+
+            const refreshModeButtons = (mode) => {
+                downPaymentModeButtons.forEach((button) => {
+                    const buttonMode = button.getAttribute('data-down-payment-mode-button');
+                    const isActive = buttonMode === mode;
+                    button.classList.toggle('bg-white', isActive);
+                    button.classList.toggle('text-indigo-600', isActive);
+                    button.classList.toggle('shadow', isActive);
+                    button.classList.toggle('dark:bg-neutral-700', isActive);
+                    button.classList.toggle('dark:text-white', isActive);
+                });
+            };
+
+            const refreshModeLabel = (mode) => {
+                if (!downPaymentLabel) {
+                    return;
                 }
-                if (downPaymentInput) {
-                    downPaymentInput.value = formatNumber(normalized);
+                downPaymentLabel.textContent = mode === 'percentage'
+                    ? '{{ __('Persen') }}'
+                    : '{{ __('Rupiah') }}';
+            };
+
+            const getNominalValue = () => {
+                const value = Number.parseFloat(downPaymentHidden?.value ?? '0');
+                return Number.isFinite(value) ? value : 0;
+            };
+
+            const setNominalValue = (value) => {
+                const sanitized = Number.isFinite(value) ? Math.max(value, 0) : 0;
+                if (downPaymentHidden) {
+                    downPaymentHidden.value = (Math.round(sanitized * 100) / 100).toFixed(2);
+                }
+                if (getDownPaymentMode() === 'nominal' && downPaymentInput) {
+                    downPaymentInput.value = formatNumber(sanitized);
+                }
+            };
+
+            const getPercentageValue = () => {
+                const value = Number.parseFloat(downPaymentPercentageHidden?.value ?? '0');
+                return Number.isFinite(value) ? value : 0;
+            };
+
+            const setPercentageValue = (value) => {
+                let sanitized = Number.isFinite(value) ? value : 0;
+                sanitized = Math.min(Math.max(sanitized, 0), 100);
+                if (downPaymentPercentageHidden) {
+                    downPaymentPercentageHidden.value = (Math.round(sanitized * 100) / 100).toFixed(2);
+                }
+                if (getDownPaymentMode() === 'percentage' && downPaymentInput) {
+                    downPaymentInput.value = formatPercentage(sanitized);
+                }
+            };
+
+            const refreshDownPaymentInput = () => {
+                const mode = getDownPaymentMode();
+                if (mode === 'percentage') {
+                    if (downPaymentInput) {
+                        downPaymentInput.value = formatPercentage(getPercentageValue());
+                    }
+                } else if (downPaymentInput) {
+                    downPaymentInput.value = formatNumber(getNominalValue());
                 }
             };
 
@@ -393,28 +514,53 @@
                 const selectedPackage = findPackage(packageSelect?.value);
                 const totalPrice = Number(selectedPackage?.harga ?? 0);
                 const hasPackage = Boolean(selectedPackage);
+                const mode = getDownPaymentMode();
 
                 toggleTenorCardsDisabled(!hasPackage);
 
-                let downPayment = Number.parseFloat(downPaymentHidden?.value ?? '0');
-                if (!Number.isFinite(downPayment) || downPayment < 0) {
-                    downPayment = 0;
+                let downPaymentAmount = 0;
+                let percentValue = 0;
+
+                if (mode === 'percentage') {
+                    let percent = getPercentageValue();
+                    if (!Number.isFinite(percent)) {
+                        percent = 0;
+                    }
+                    percent = Math.min(Math.max(percent, 0), 100);
+                    setPercentageValue(percent);
+                    percentValue = percent;
+                    const computed = hasPackage && totalPrice > 0 ? (totalPrice * percent) / 100 : 0;
+                    downPaymentAmount = Math.round(computed * 100) / 100;
+                    setNominalValue(downPaymentAmount);
+                } else {
+                    let nominal = getNominalValue();
+                    if (!Number.isFinite(nominal) || nominal < 0) {
+                        nominal = 0;
+                    }
+                    if (hasPackage && totalPrice > 0 && nominal > totalPrice) {
+                        nominal = totalPrice;
+                    }
+                    setNominalValue(nominal);
+                    percentValue = totalPrice > 0
+                        ? Math.round((nominal / totalPrice) * 100 * 100) / 100
+                        : 0;
+                    setPercentageValue(percentValue);
+                    downPaymentAmount = nominal;
                 }
 
-                if (hasPackage && totalPrice > 0 && downPayment > totalPrice) {
-                    downPayment = totalPrice;
-                    setDownPaymentValue(downPayment);
-                }
+                refreshDownPaymentInput();
 
                 updateTenorCardsState(tenorHidden?.value);
-                updateTenorCaptions(totalPrice, downPayment);
+                updateTenorCaptions(totalPrice, downPaymentAmount);
 
                 if (!hasPackage) {
                     if (packageMeta) {
                         packageMeta.textContent = '{{ __('Silakan pilih barang emas untuk melihat detail harga.') }}';
                     }
                     if (downPaymentDisplay) {
-                        downPaymentDisplay.textContent = '{{ __('Masukkan uang muka untuk menghitung besaran cicilan.') }}';
+                        downPaymentDisplay.textContent = mode === 'percentage'
+                            ? '{{ __('Masukkan persentase uang muka (0-100%) untuk melihat estimasi cicilan.') }}'
+                            : '{{ __('Masukkan uang muka untuk menghitung besaran cicilan.') }}';
                     }
                     if (tenorMeta) {
                         tenorMeta.textContent = '{{ __('Pilih barang emas terlebih dahulu sebelum menentukan jangka waktu.') }}';
@@ -463,7 +609,7 @@
                 }
 
                 const tenorValue = Number(tenorHidden?.value ?? 0);
-                const remaining = Math.max(totalPrice - downPayment, 0);
+                const remaining = Math.max(totalPrice - downPaymentAmount, 0);
                 const installment = tenorValue > 0 ? Math.round((remaining / tenorValue) * 100) / 100 : 0;
 
                 if (installmentHidden) {
@@ -473,13 +619,12 @@
                     installmentOutput.value = installment ? formatNumber(installment) : '';
                 }
 
-                const percent = totalPrice > 0 ? Math.round((downPayment / totalPrice) * 10000) / 100 : 0;
-
                 if (downPaymentDisplay) {
-                    downPaymentDisplay.textContent = `${formatCurrency(downPayment)} • {{ __('Sekitar :persen% dari harga', ['persen' => ':persen']) }}`.replace(
-                        ':persen',
-                        percent.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 }),
-                    );
+                    const percentText = percentValue.toLocaleString('id-ID', {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 2,
+                    });
+                    downPaymentDisplay.textContent = `${formatCurrency(downPaymentAmount)} • ${percentText}% {{ __('dari harga barang') }}`;
                 }
                 if (tenorMeta) {
                     tenorMeta.textContent = tenorValue
@@ -498,16 +643,45 @@
                 }
             };
 
+            const applyDownPaymentMode = (mode) => {
+                const sanitizedMode = mode === 'percentage' ? 'percentage' : 'nominal';
+                if (downPaymentModeHidden) {
+                    downPaymentModeHidden.value = sanitizedMode;
+                }
+
+                const selectedPackage = findPackage(packageSelect?.value);
+                const totalPrice = Number(selectedPackage?.harga ?? 0);
+
+                if (sanitizedMode === 'percentage') {
+                    const nominal = getNominalValue();
+                    if (totalPrice > 0) {
+                        const percentFromNominal = (nominal / totalPrice) * 100;
+                        setPercentageValue(percentFromNominal);
+                    }
+                    setPercentageValue(getPercentageValue());
+                } else {
+                    const percent = getPercentageValue();
+                    if (totalPrice > 0) {
+                        const nominalFromPercent = (totalPrice * percent) / 100;
+                        setNominalValue(nominalFromPercent);
+                    }
+                    setNominalValue(getNominalValue());
+                }
+
+                refreshModeButtons(sanitizedMode);
+                refreshModeLabel(sanitizedMode);
+                refreshDownPaymentInput();
+                updateOutputs();
+            };
+
             const initialTenor = ensureTenorSelection();
             updateTenorCardsState(initialTenor);
 
-            const initialHiddenValue = Number.parseFloat(downPaymentHidden?.value ?? '0');
-            if (!Number.isFinite(initialHiddenValue) || initialHiddenValue <= 0) {
-                const parsed = downPaymentInput ? parseCurrencyInput(downPaymentInput.value) : 0;
-                setDownPaymentValue(parsed);
-            } else if (downPaymentInput) {
-                downPaymentInput.value = formatNumber(initialHiddenValue);
-            }
+            setNominalValue(getNominalValue());
+            setPercentageValue(getPercentageValue());
+            refreshModeButtons(getDownPaymentMode());
+            refreshModeLabel(getDownPaymentMode());
+            refreshDownPaymentInput();
 
             updateOutputs();
 
@@ -517,19 +691,28 @@
 
             if (downPaymentInput) {
                 downPaymentInput.addEventListener('input', () => {
-                    const raw = parseCurrencyInput(downPaymentInput.value);
-                    const selectedPackage = findPackage(packageSelect?.value);
-                    const totalPrice = Number(selectedPackage?.harga ?? 0);
-                    const adjusted = totalPrice > 0 ? Math.min(raw, totalPrice) : raw;
-                    setDownPaymentValue(adjusted);
+                    const mode = getDownPaymentMode();
+                    if (mode === 'percentage') {
+                        const rawPercent = parsePercentageInput(downPaymentInput.value);
+                        setPercentageValue(rawPercent);
+                    } else {
+                        const rawNominal = parseCurrencyInput(downPaymentInput.value);
+                        setNominalValue(rawNominal);
+                    }
                     updateOutputs();
                 });
 
                 downPaymentInput.addEventListener('blur', () => {
-                    const hiddenValue = Number.parseFloat(downPaymentHidden?.value ?? '0');
-                    downPaymentInput.value = formatNumber(hiddenValue);
+                    refreshDownPaymentInput();
                 });
             }
+
+            downPaymentModeButtons.forEach((button) => {
+                button.addEventListener('click', () => {
+                    const mode = button.getAttribute('data-down-payment-mode-button');
+                    applyDownPaymentMode(mode);
+                });
+            });
 
             tenorOptions.forEach((option) => {
                 option.addEventListener('change', () => {

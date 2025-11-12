@@ -32,6 +32,7 @@ class CicilEmasTransaksiController extends Controller
             'packages' => $packages,
             'nasabahs' => $nasabahs,
             'defaultDownPayment' => (int) config('cicil_emas.default_down_payment', 1_000_000),
+            'defaultDownPaymentPercentage' => (float) config('cicil_emas.default_down_payment_percentage', 10),
             'tenorOptions' => $tenorOptions,
         ]);
     }
@@ -48,14 +49,44 @@ class CicilEmasTransaksiController extends Controller
         $validated = $request->validate([
             'nasabah_id' => ['required', 'exists:nasabahs,id'],
             'package_id' => ['required', Rule::in($packages->keys()->all())],
-            'estimasi_uang_muka' => ['required', 'numeric', 'min:0'],
+            'down_payment_mode' => ['required', Rule::in(['nominal', 'percentage'])],
+            'estimasi_uang_muka' => [
+                'nullable',
+                'numeric',
+                'min:0',
+                Rule::requiredIf(fn () => $request->input('down_payment_mode') === 'nominal'),
+            ],
+            'down_payment_percentage' => [
+                'nullable',
+                'numeric',
+                'min:0',
+                'max:100',
+                Rule::requiredIf(fn () => $request->input('down_payment_mode') === 'percentage'),
+            ],
             'tenor_bulan' => ['required', 'integer', Rule::in($tenorOptions->all())],
             'besaran_angsuran' => ['required', 'numeric', 'min:0'],
         ]);
 
         $package = $packages->get($validated['package_id']);
         $totalPrice = (float) ($package['harga'] ?? 0);
-        $downPayment = min((float) $validated['estimasi_uang_muka'], $totalPrice);
+        $mode = $validated['down_payment_mode'];
+        $downPaymentPercentageInput = (float) ($validated['down_payment_percentage'] ?? 0);
+        $downPaymentValueInput = (float) ($validated['estimasi_uang_muka'] ?? 0);
+
+        if ($mode === 'percentage') {
+            $downPaymentPercentageInput = max(min($downPaymentPercentageInput, 100), 0);
+            $downPayment = $totalPrice > 0
+                ? round(($totalPrice * $downPaymentPercentageInput) / 100, 2)
+                : 0.0;
+        } else {
+            $downPayment = $downPaymentValueInput;
+        }
+
+        if ($totalPrice > 0) {
+            $downPayment = min(max($downPayment, 0), $totalPrice);
+        } else {
+            $downPayment = max($downPayment, 0);
+        }
         $tenor = (int) $validated['tenor_bulan'];
 
         if ($downPayment < 0) {
@@ -89,8 +120,9 @@ class CicilEmasTransaksiController extends Controller
             'tenor_bulan' => $tenor,
             'besaran_angsuran' => $installment,
             'option_id' => 'manual-tenor-'.$tenor,
-            'option_label' => __('DP Rp :dp • Tenor :tenor', [
+            'option_label' => __('DP Rp :dp (:percent%) • Tenor :tenor', [
                 'dp' => number_format($downPayment, 0, ',', '.'),
+                'percent' => number_format($dpPercentage, 2, ',', '.'),
                 'tenor' => $tenorLabel,
             ]),
         ]);
@@ -104,6 +136,7 @@ class CicilEmasTransaksiController extends Controller
                 'paket' => $package['nama_barang'].' • '.number_format((float) $package['berat'], 3, ',', '.').' gr • '.($package['kode_group'] ?? $package['kode_intern']),
                 'jangka_waktu' => __('Jangka waktu :bulan bulan', ['bulan' => $tenor]),
                 'dp' => $downPayment,
+                'dp_percentage' => $dpPercentage,
                 'tenor' => $tenor,
                 'angsuran' => $installment,
                 'total' => $totalPrice,
