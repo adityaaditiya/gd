@@ -134,7 +134,17 @@ Route::middleware(['auth'])->group(function () {
         ->as('barang.')
         ->group(function () {
             Route::get('data-barang', [BarangController::class, 'index'])->name('data-barang');
+            Route::get('data-barang/tambah', [BarangController::class, 'create'])->name('data-barang.create');
             Route::post('data-barang', [BarangController::class, 'store'])->name('data-barang.store');
+            Route::get('data-barang/{barang}/edit', [BarangController::class, 'edit'])
+                ->whereNumber('barang')
+                ->name('data-barang.edit');
+            Route::put('data-barang/{barang}', [BarangController::class, 'update'])
+                ->whereNumber('barang')
+                ->name('data-barang.update');
+            Route::delete('data-barang/{barang}', [BarangController::class, 'destroy'])
+                ->whereNumber('barang')
+                ->name('data-barang.destroy');
         });
 
     Route::prefix('nasabah')
