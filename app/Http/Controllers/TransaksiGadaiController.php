@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BarangJaminan;
+use App\Models\MutasiKas;
 use App\Models\Nasabah;
 use App\Models\TransaksiGadai;
 use Carbon\Carbon;
@@ -184,6 +185,7 @@ class TransaksiGadaiController extends Controller
             $this->calculateSewaModal($uangPinjaman, $tarifBungaHarian, $hariBerjalan)
         );
         $uangCair = $this->formatDecimal(max(0, $uangPinjaman - $totalPotongan));
+        $uangCairValue = (float) $uangCair;
 
         DB::transaction(function () use (
             $barangCollection,
@@ -194,7 +196,8 @@ class TransaksiGadaiController extends Controller
             $totalBunga,
             $tanggalGadai,
             $bungaTerutangRiil,
-            $uangCair
+            $uangCair,
+            $uangCairValue
         ) {
             $noSbg = $this->nextNoSbg($tanggalGadai, true);
 
@@ -218,6 +221,29 @@ class TransaksiGadaiController extends Controller
             foreach ($barangCollection as $barang) {
                 $barang->transaksi_id = $transaksi->transaksi_id;
                 $barang->save();
+            }
+
+            if ($uangCairValue > 0) {
+                $transaksi->loadMissing('nasabah');
+
+                $referensi = 'Pencairan Gadai ' . $noSbg;
+
+                MutasiKas::updateOrCreate(
+                    [
+                        'transaksi_gadai_id' => $transaksi->transaksi_id,
+                        'tipe' => 'keluar',
+                        'referensi' => $referensi,
+                    ],
+                    [
+                        'tanggal' => $tanggalGadai->toDateString(),
+                        'referensi' => $referensi,
+                        'jumlah' => $uangCair,
+                        'sumber' => __('Transaksi Gadai'),
+                        'keterangan' => __('Pencairan dana gadai untuk :nasabah', [
+                            'nasabah' => $transaksi->nasabah?->nama ?? __('Nasabah tidak diketahui'),
+                        ]),
+                    ]
+                );
             }
         });
 
@@ -267,6 +293,8 @@ class TransaksiGadaiController extends Controller
             $transaksi->alasan_batal = $alasan;
             $transaksi->pegawai_pembatal_id = $pembatalId;
             $transaksi->save();
+
+            MutasiKas::where('transaksi_gadai_id', $transaksi->transaksi_id)->delete();
         });
 
         return redirect()
@@ -293,8 +321,8 @@ class TransaksiGadaiController extends Controller
         $pokokPinjaman = (float) $transaksi->uang_pinjaman;
         $actualDays = $this->calculateActualDays($transaksi->tanggal_gadai, $today);
         $sewaModalTerutang = $this->calculateSewaModal($pokokPinjaman, $tarifBungaHarian, $actualDays);
-        $biayaAdminAwal = (float) $transaksi->biaya_admin;
-        $totalTagihanPelunasan = $pokokPinjaman + $sewaModalTerutang + $biayaAdminAwal;
+        $biayaLainPelunasan = 0.0;
+        $totalTagihanPelunasan = $pokokPinjaman + $sewaModalTerutang + $biayaLainPelunasan;
 
         return view('gadai.pelunasan', [
             'transaksi' => $transaksi,
@@ -304,7 +332,7 @@ class TransaksiGadaiController extends Controller
                 'metode_pembayaran' => __('Tunai'),
                 'pokok_dibayar' => number_format($pokokPinjaman, 2, '.', ''),
                 'bunga_dibayar' => number_format($sewaModalTerutang, 2, '.', ''),
-                'biaya_lain_dibayar' => number_format($biayaAdminAwal, 2, '.', ''),
+                'biaya_lain_dibayar' => number_format($biayaLainPelunasan, 2, '.', ''),
                 'total_pelunasan' => number_format($totalTagihanPelunasan, 2, '.', ''),
             ],
             'perhitunganPelunasan' => [
@@ -312,7 +340,7 @@ class TransaksiGadaiController extends Controller
                 'actual_days' => $actualDays,
                 'pokok' => $pokokPinjaman,
                 'sewa_modal' => $sewaModalTerutang,
-                'biaya_admin' => $biayaAdminAwal,
+                'biaya_lain' => $biayaLainPelunasan,
                 'total_tagihan' => $totalTagihanPelunasan,
             ],
         ]);
@@ -337,10 +365,11 @@ class TransaksiGadaiController extends Controller
         $tanggalPelunasan = Carbon::parse($data['tanggal_pelunasan']);
         $actualDays = $this->calculateActualDays($transaksi->tanggal_gadai, $tanggalPelunasan);
         $sewaModalTerutang = $this->calculateSewaModal($pokokPinjaman, $tarifBungaHarian, $actualDays);
-        $biayaAdminAwal = (float) $transaksi->biaya_admin;
-        $minimalPelunasan = $pokokPinjaman + $sewaModalTerutang + $biayaAdminAwal;
+        $biayaLainDibayar = (float) $data['biaya_lain_dibayar'];
+        $minimalPelunasan = $pokokPinjaman + $sewaModalTerutang + $biayaLainDibayar;
 
         $total = (float) $data['total_pelunasan'];
+        $formattedTotalPelunasan = $this->formatDecimal($total);
 
         if ($total + 0.00001 < $minimalPelunasan) {
             $message = __('Total pelunasan minimal adalah :amount berdasarkan pemakaian :days hari.', [
@@ -373,20 +402,44 @@ class TransaksiGadaiController extends Controller
             $tanggalPelunasan,
             $pokokPinjaman,
             $sewaModalTerutang,
-            $biayaAdminAwal,
-            $total
+            $biayaLainDibayar,
+            $total,
+            $formattedTotalPelunasan
         ) {
             $transaksi->status_transaksi = 'Lunas';
             $transaksi->tanggal_pelunasan = $tanggalPelunasan;
             $transaksi->pokok_dibayar = $this->formatDecimal($pokokPinjaman);
             $transaksi->bunga_dibayar = $this->formatDecimal($sewaModalTerutang);
-            $transaksi->biaya_lain_dibayar = $this->formatDecimal($biayaAdminAwal);
+            $transaksi->biaya_lain_dibayar = $this->formatDecimal($biayaLainDibayar);
             $transaksi->total_pelunasan = $this->formatDecimal($total);
             $transaksi->bunga_terutang_riil = $this->formatDecimal($sewaModalTerutang);
             $transaksi->metode_pembayaran = $data['metode_pembayaran'];
             $transaksi->catatan_pelunasan = $data['catatan_pelunasan'] ?: null;
             $transaksi->pegawai_pelunasan_id = $kasirId;
             $transaksi->save();
+
+            if ($total > 0) {
+                $transaksi->loadMissing('nasabah');
+
+                $referensi = 'Pelunasan Gadai ' . $transaksi->no_sbg;
+
+                MutasiKas::updateOrCreate(
+                    [
+                        'transaksi_gadai_id' => $transaksi->transaksi_id,
+                        'tipe' => 'masuk',
+                        'referensi' => $referensi,
+                    ],
+                    [
+                        'tanggal' => $tanggalPelunasan->toDateString(),
+                        'referensi' => $referensi,
+                        'jumlah' => $formattedTotalPelunasan,
+                        'sumber' => __('Pelunasan Gadai'),
+                        'keterangan' => __('Pelunasan gadai oleh :nasabah', [
+                            'nasabah' => $transaksi->nasabah?->nama ?? __('Nasabah tidak diketahui'),
+                        ]),
+                    ]
+                );
+            }
         });
 
         return redirect()
