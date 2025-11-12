@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -30,6 +31,9 @@ class PerpanjanganGadai extends Model
         'tanggal_mulai_sebelumnya',
         'tanggal_jatuh_tempo_sebelumnya',
         'catatan',
+        'dibatalkan_pada',
+        'dibatalkan_oleh',
+        'alasan_pembatalan',
     ];
 
     protected $casts = [
@@ -45,6 +49,7 @@ class PerpanjanganGadai extends Model
         'biaya_titip' => 'decimal:2',
         'total_bayar' => 'decimal:2',
         'pokok_pinjaman' => 'decimal:2',
+        'dibatalkan_pada' => 'datetime',
     ];
 
     public function transaksi(): BelongsTo
@@ -55,5 +60,10 @@ class PerpanjanganGadai extends Model
     public function petugas(): BelongsTo
     {
         return $this->belongsTo(User::class, 'pegawai_id');
+    }
+
+    public function pembatal(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'dibatalkan_oleh');
     }
 }

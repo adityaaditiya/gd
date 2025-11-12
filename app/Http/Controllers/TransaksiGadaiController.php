@@ -460,7 +460,7 @@ class TransaksiGadaiController extends Controller
                 ->with('error', $message);
         }
 
-        $transaksi->loadMissing(['nasabah', 'kasir', 'barangJaminan', 'perpanjangan.petugas']);
+        $transaksi->loadMissing(['nasabah', 'kasir', 'barangJaminan', 'perpanjangan.petugas', 'perpanjangan.pembatal']);
 
         $today = Carbon::today();
         $defaultMulai = $today->toDateString();
@@ -618,6 +618,98 @@ class TransaksiGadaiController extends Controller
         return redirect()
             ->route('gadai.lihat-gadai', $this->extractListingQuery($request))
             ->with('status', __('Perpanjangan kontrak berhasil disimpan.'));
+    }
+
+    public function cancelExtension(Request $request, TransaksiGadai $transaksi, PerpanjanganGadai $perpanjangan): RedirectResponse
+    {
+        if ($perpanjangan->transaksi_gadai_id !== $transaksi->transaksi_id) {
+            abort(404);
+        }
+
+        if ($perpanjangan->dibatalkan_pada !== null) {
+            return redirect()
+                ->route(
+                    'gadai.transaksi-gadai.extend-form',
+                    array_merge(['transaksi' => $transaksi->transaksi_id], $this->extractListingQuery($request))
+                )
+                ->with('error', __('Perpanjangan ini sudah dibatalkan sebelumnya.'));
+        }
+
+        $validated = $request->validate([
+            'alasan_pembatalan' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $kasirId = Auth::id();
+
+        if (!$kasirId) {
+            abort(403, 'Kasir tidak dikenali.');
+        }
+
+        $latestActive = $transaksi->perpanjangan()
+            ->whereNull('dibatalkan_pada')
+            ->orderByDesc('tanggal_perpanjangan')
+            ->first();
+
+        if (!$latestActive || $latestActive->perpanjangan_id !== $perpanjangan->perpanjangan_id) {
+            return redirect()
+                ->route(
+                    'gadai.transaksi-gadai.extend-form',
+                    array_merge(['transaksi' => $transaksi->transaksi_id], $this->extractListingQuery($request))
+                )
+                ->withInput($request->except('_token'))
+                ->with('error', __('Hanya perpanjangan terbaru yang dapat dibatalkan.'));
+        }
+
+        $alasan = isset($validated['alasan_pembatalan']) ? trim((string) $validated['alasan_pembatalan']) : null;
+
+        DB::transaction(function () use ($transaksi, $perpanjangan, $kasirId, $alasan) {
+            $previousStart = $perpanjangan->tanggal_mulai_sebelumnya
+                ? $perpanjangan->tanggal_mulai_sebelumnya->toDateString()
+                : $transaksi->tanggal_gadai;
+            $previousDue = $perpanjangan->tanggal_jatuh_tempo_sebelumnya
+                ? $perpanjangan->tanggal_jatuh_tempo_sebelumnya->toDateString()
+                : null;
+            $previousTenor = max(1, (int) ($perpanjangan->tenor_sebelumnya ?? 1));
+            $tarifBunga = $this->resolveTarifBunga($transaksi);
+            $totalBungaSebelumnya = $this->calculateSewaModal(
+                (float) ($transaksi->uang_pinjaman ?? 0),
+                $tarifBunga,
+                $previousTenor
+            );
+
+            $otherActiveExists = PerpanjanganGadai::query()
+                ->where('transaksi_gadai_id', $transaksi->transaksi_id)
+                ->whereNull('dibatalkan_pada')
+                ->where('perpanjangan_id', '!=', $perpanjangan->perpanjangan_id)
+                ->exists();
+
+            $transaksi->tanggal_gadai = $previousStart;
+            $transaksi->jatuh_tempo_awal = $previousDue;
+            $transaksi->tenor_hari = $previousTenor;
+            $transaksi->status_transaksi = $otherActiveExists ? 'Perpanjang' : 'Aktif';
+            $transaksi->total_bunga = $this->formatDecimal($totalBungaSebelumnya);
+            $transaksi->save();
+
+            $referensi = 'Perpanjangan Gadai ' . $transaksi->no_sbg . ' #' . $perpanjangan->perpanjangan_id;
+
+            MutasiKas::query()
+                ->where('transaksi_gadai_id', $transaksi->transaksi_id)
+                ->where('referensi', $referensi)
+                ->delete();
+
+            $perpanjangan->fill([
+                'dibatalkan_pada' => Carbon::now(),
+                'dibatalkan_oleh' => $kasirId,
+                'alasan_pembatalan' => $alasan ?: null,
+            ])->save();
+        });
+
+        $transaksi->refresh();
+        $transaksi->refreshBungaTerutangRiil();
+
+        return redirect()
+            ->route('gadai.lihat-gadai', $this->extractListingQuery($request))
+            ->with('status', __('Perpanjangan terakhir berhasil dibatalkan dan data kontrak dipulihkan.'));
     }
 
     private function extractListingQuery(Request $request): array

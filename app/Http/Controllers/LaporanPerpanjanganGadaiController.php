@@ -27,6 +27,7 @@ class LaporanPerpanjanganGadaiController extends Controller
                 'transaksi.nasabah',
                 'transaksi.kasir',
                 'petugas',
+                'pembatal',
             ])
             ->when($search !== '', function ($query) use ($search) {
                 $query->whereHas('transaksi', function ($transaksiQuery) use ($search) {

@@ -86,10 +86,33 @@
                 </thead>
                 <tbody class="divide-y divide-neutral-200 bg-white dark:divide-neutral-700 dark:bg-neutral-800">
                     @forelse ($riwayat as $item)
-                        <tr class="align-top hover:bg-neutral-50 dark:hover:bg-neutral-700/70">
+                        @php
+                            $isCancelled = $item->dibatalkan_pada !== null;
+                        @endphp
+                        <tr @class([
+                            'align-top hover:bg-neutral-50 dark:hover:bg-neutral-700/70',
+                            'bg-red-50/80 dark:bg-red-500/10' => $isCancelled,
+                        ])>
                             <td class="whitespace-nowrap px-4 py-3 text-xs text-neutral-600 dark:text-neutral-300">
                                 <div class="font-semibold text-neutral-900 dark:text-white">{{ optional($item->tanggal_perpanjangan)->format('d M Y H:i') ?? '—' }}</div>
                                 <div>{{ __('Dicatat pada: :date', ['date' => $item->created_at?->format('d M Y H:i') ?? '—']) }}</div>
+                                <div class="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
+                                    <span @class([
+                                        'inline-flex items-center rounded-full px-2 py-0.5 font-semibold uppercase tracking-wide',
+                                        'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200' => !$isCancelled,
+                                        'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-200' => $isCancelled,
+                                    ])>
+                                        {{ $isCancelled ? __('Dibatalkan') : __('Aktif') }}
+                                    </span>
+                                    @if ($isCancelled)
+                                        <span class="text-red-700 dark:text-red-200">
+                                            {{ __('Dibatalkan :date oleh :user', [
+                                                'date' => optional($item->dibatalkan_pada)->format('d M Y H:i') ?? '—',
+                                                'user' => $item->pembatal?->name ?? __('Tidak diketahui'),
+                                            ]) }}
+                                        </span>
+                                    @endif
+                                </div>
                             </td>
                             <td class="px-4 py-3">
                                 <div class="font-semibold text-neutral-900 dark:text-white">{{ $item->transaksi?->no_sbg ?? '—' }}</div>
@@ -123,6 +146,19 @@
                                 @if (!empty($item->catatan))
                                     <div class="mt-2 rounded-lg bg-neutral-50 px-3 py-2 text-[11px] text-neutral-600 dark:bg-neutral-900 dark:text-neutral-300">
                                         {{ $item->catatan }}
+                                    </div>
+                                @endif
+                                @if ($isCancelled)
+                                    <div class="mt-3 rounded-lg bg-red-100 px-3 py-2 text-[11px] text-red-700 dark:bg-red-500/20 dark:text-red-100">
+                                        <p>
+                                            {{ __('Mutasi kas dibatalkan pada :date oleh :user.', [
+                                                'date' => optional($item->dibatalkan_pada)->format('d M Y H:i') ?? '—',
+                                                'user' => $item->pembatal?->name ?? __('Tidak diketahui'),
+                                            ]) }}
+                                        </p>
+                                        @if (!empty($item->alasan_pembatalan))
+                                            <p class="mt-1 italic">“{{ $item->alasan_pembatalan }}”</p>
+                                        @endif
                                     </div>
                                 @endif
                             </td>
