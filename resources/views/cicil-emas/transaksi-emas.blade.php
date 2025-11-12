@@ -9,7 +9,7 @@
         <div class="flex flex-col gap-2">
             <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white">{{ __('Transaksi Cicil Emas') }}</h1>
             <p class="text-sm text-neutral-600 dark:text-neutral-300">
-                {{ __('Lakukan simulasi cicilan dengan memilih nasabah, paket emas, dan kombinasi DP–tenor untuk menghasilkan estimasi pembayaran yang otomatis tersimpan.') }}
+                {{ __('Lakukan simulasi cicilan dengan memilih nasabah, barang emas, dan kombinasi DP–tenor untuk menghasilkan estimasi pembayaran yang otomatis tersimpan.') }}
             </p>
         </div>
 
@@ -58,7 +58,7 @@
                     </header>
                     <ul class="list-disc space-y-2 ps-5 text-sm text-neutral-700 dark:text-neutral-200">
                         <li>{{ __('Pilih nasabah yang telah lulus verifikasi sebagai pemohon cicilan.') }}</li>
-                        <li>{{ __('Tentukan paket emas berdasarkan pabrikan, berat, dan kadar yang tersedia.') }}</li>
+                        <li>{{ __('Tentukan barang emas berdasarkan data master (kode, berat, dan grup) yang tersedia.') }}</li>
                         <li>{{ __('Sesuaikan kombinasi DP–tenor untuk melihat estimasi angsuran yang dihitung otomatis.') }}</li>
                     </ul>
                 </section>
@@ -114,7 +114,7 @@
 
                             <div>
                                 <label for="package_id" class="mb-2 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
-                                    {{ __('Paket Emas') }}
+                                    {{ __('Data Barang') }}
                                 </label>
                                 <select
                                     id="package_id"
@@ -122,11 +122,12 @@
                                     data-package-select
                                     class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white"
                                     required
+                                    @disabled($packagesCollection->isEmpty())
                                 >
-                                    <option value="">{{ __('Pilih paket emas') }}</option>
+                                    <option value="">{{ $packagesCollection->isEmpty() ? __('Belum ada data barang tersedia') : __('Pilih barang emas') }}</option>
                                     @foreach ($packagesCollection as $package)
                                         <option value="{{ $package['id'] }}" @selected($selectedPackageId === $package['id'])>
-                                            {{ $package['pabrikan'] }} — {{ number_format($package['berat_gram'], 2, ',', '.') }} gr • {{ $package['kadar'] }}
+                                            {{ $package['nama_barang'] }} — {{ $package['kode_group'] ?? $package['kode_intern'] }} • {{ number_format((float) $package['berat'], 3, ',', '.') }} gr
                                         </option>
                                     @endforeach
                                 </select>
@@ -134,8 +135,16 @@
                                     <p class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
                                 @enderror
                                 <p class="mt-2 text-xs text-neutral-500 dark:text-neutral-400" data-package-meta>
-                                    {{ __('Silakan pilih paket emas untuk melihat detail harga.') }}
+                                    {{ __('Silakan pilih barang emas untuk melihat detail harga.') }}
                                 </p>
+                                @if ($packagesCollection->isEmpty())
+                                    <p class="mt-3 text-xs text-amber-600 dark:text-amber-400">
+                                        {{ __('Belum ada data barang. Tambahkan entri melalui halaman Data Barang terlebih dahulu.') }}
+                                        <a href="{{ route('barang.data-barang') }}" class="font-semibold underline underline-offset-2">
+                                            {{ __('Buka Data Barang') }}
+                                        </a>
+                                    </p>
+                                @endif
                             </div>
 
                             <div>
@@ -163,7 +172,7 @@
                                     <p class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
                                 @enderror
                                 <p class="mt-2 text-xs text-neutral-500 dark:text-neutral-400" data-option-meta>
-                                    {{ __('Pilih paket terlebih dahulu untuk melihat kombinasi DP & tenor yang tersedia.') }}
+                                    {{ __('Pilih barang terlebih dahulu untuk melihat kombinasi DP & tenor yang tersedia.') }}
                                 </p>
                             </div>
 
@@ -186,7 +195,7 @@
                                     <p class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
                                 @enderror
                                 <p class="mt-2 text-xs text-neutral-500 dark:text-neutral-400" data-down-payment-display>
-                                    {{ __('Nilai DP akan dihitung otomatis setelah memilih paket dan kombinasi tenor.') }}
+                                    {{ __('Nilai DP akan dihitung otomatis setelah memilih barang dan kombinasi tenor.') }}
                                 </p>
                             </div>
 
@@ -234,9 +243,9 @@
                         </div>
 
                         <div class="rounded-lg bg-neutral-100 px-4 py-3 text-sm text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200" data-summary-panel hidden>
-                            <p class="font-semibold text-neutral-900 dark:text-white">{{ __('Ringkasan Paket') }}</p>
+                            <p class="font-semibold text-neutral-900 dark:text-white">{{ __('Ringkasan Barang') }}</p>
                             <ul class="mt-2 space-y-1">
-                                <li data-summary-package>{{ __('Paket belum dipilih.') }}</li>
+                                <li data-summary-package>{{ __('Barang belum dipilih.') }}</li>
                                 <li data-summary-price></li>
                                 <li data-summary-option></li>
                             </ul>
@@ -289,7 +298,7 @@
 
                 if (!pkg) {
                     optionSelect.disabled = true;
-                    optionMeta.textContent = '{{ __('Pilih paket terlebih dahulu untuk melihat kombinasi DP & tenor yang tersedia.') }}';
+                    optionMeta.textContent = '{{ __('Pilih barang terlebih dahulu untuk melihat kombinasi DP & tenor yang tersedia.') }}';
                     summaryOption.textContent = '';
                     return;
                 }
@@ -318,28 +327,34 @@
                     downPaymentInput.value = '';
                     tenorInput.value = '';
                     installmentInput.value = '';
-                    downPaymentDisplay.textContent = '{{ __('Nilai DP akan dihitung otomatis setelah memilih paket dan kombinasi tenor.') }}';
+                    downPaymentDisplay.textContent = '{{ __('Nilai DP akan dihitung otomatis setelah memilih barang dan kombinasi tenor.') }}';
                     installmentDisplay.textContent = '{{ __('Besaran angsuran dihitung dari sisa harga emas dibagi tenor yang dipilih.') }}';
-                    packageMeta.textContent = '{{ __('Silakan pilih paket emas untuk melihat detail harga.') }}';
+                    packageMeta.textContent = '{{ __('Silakan pilih barang emas untuk melihat detail harga.') }}';
                     summaryPanel.hidden = true;
-                    summaryPackage.textContent = '{{ __('Paket belum dipilih.') }}';
+                    summaryPackage.textContent = '{{ __('Barang belum dipilih.') }}';
                     summaryPrice.textContent = '';
                     summaryOption.textContent = '';
                     return;
                 }
 
-                const totalPrice = Number(selectedPackage.berat_gram) * Number(selectedPackage.price_per_gram);
-                packageMeta.textContent = `${selectedPackage.pabrikan} • ${Number(selectedPackage.berat_gram).toLocaleString('id-ID')} gr • ${selectedPackage.kadar}`;
+                const totalPrice = Number(selectedPackage.harga ?? 0);
+                const beratDisplay = Number(selectedPackage.berat ?? 0).toLocaleString('id-ID', {
+                    minimumFractionDigits: 3,
+                    maximumFractionDigits: 3,
+                });
+                const groupLabel = selectedPackage.kode_group || selectedPackage.kode_intern || '—';
+
+                packageMeta.textContent = `${selectedPackage.nama_barang} • ${beratDisplay} gr • ${groupLabel}`;
                 summaryPanel.hidden = false;
-                summaryPackage.textContent = `${selectedPackage.pabrikan} • ${Number(selectedPackage.berat_gram).toLocaleString('id-ID')} gr • ${selectedPackage.kadar}`;
-                summaryPrice.textContent = `{{ __('Total Harga') }}: ${formatCurrency(totalPrice)}`;
+                summaryPackage.textContent = `${selectedPackage.nama_barang} • ${beratDisplay} gr • ${groupLabel}`;
+                summaryPrice.textContent = `{{ __('Harga Barang') }}: ${formatCurrency(totalPrice)}`;
 
                 if (!selectedOption) {
                     optionMeta.textContent = '{{ __('Pilih kombinasi DP & tenor untuk menghitung estimasi angsuran.') }}';
                     downPaymentInput.value = '';
                     tenorInput.value = '';
                     installmentInput.value = '';
-                    downPaymentDisplay.textContent = '{{ __('Nilai DP akan dihitung otomatis setelah memilih paket dan kombinasi tenor.') }}';
+                    downPaymentDisplay.textContent = '{{ __('Nilai DP akan dihitung otomatis setelah memilih barang dan kombinasi tenor.') }}';
                     summaryOption.textContent = '{{ __('Belum ada kombinasi dipilih.') }}';
                     return;
                 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Barang;
 use App\Models\CicilEmasTransaction;
 use App\Models\Nasabah;
 use Illuminate\Http\RedirectResponse;
@@ -47,7 +48,7 @@ class CicilEmasTransaksiController extends Controller
             ]);
         }
 
-        $totalPrice = (float) $package['berat_gram'] * (float) $package['price_per_gram'];
+        $totalPrice = (float) ($package['harga'] ?? 0);
         $downPayment = round($totalPrice * (float) ($option['dp_percentage'] ?? 0), 2);
         $tenor = (int) ($option['tenor'] ?? $validated['tenor_bulan']);
         $installment = $tenor > 0
@@ -59,9 +60,9 @@ class CicilEmasTransaksiController extends Controller
         $transaction = CicilEmasTransaction::create([
             'nasabah_id' => $nasabah?->id,
             'package_id' => $package['id'],
-            'pabrikan' => $package['pabrikan'],
-            'berat_gram' => $package['berat_gram'],
-            'kadar' => $package['kadar'],
+            'pabrikan' => $package['nama_barang'],
+            'berat_gram' => $package['berat'],
+            'kadar' => $package['kode_group'] ?? $package['kode_intern'],
             'harga_emas' => $totalPrice,
             'dp_percentage' => round((float) ($option['dp_percentage'] ?? 0) * 100, 2),
             'estimasi_uang_muka' => $downPayment,
@@ -77,7 +78,7 @@ class CicilEmasTransaksiController extends Controller
             ->with('transaction_summary', [
                 'nasabah' => $nasabah?->nama,
                 'kode_member' => $nasabah?->kode_member,
-                'paket' => $package['pabrikan'].' • '.$package['berat_gram'].' gr • '.$package['kadar'],
+                'paket' => $package['nama_barang'].' • '.number_format((float) $package['berat'], 3, ',', '.').' gr • '.($package['kode_group'] ?? $package['kode_intern']),
                 'kombinasi' => $option['label'] ?? null,
                 'dp' => $downPayment,
                 'tenor' => $tenor,
@@ -89,19 +90,34 @@ class CicilEmasTransaksiController extends Controller
 
     private function availablePackages(): Collection
     {
-        return collect(config('cicil_emas.packages', []))
-            ->mapWithKeys(function (array $package, int $index) {
-                $package['id'] = $package['id'] ?? 'package-'.($index + 1);
-                $package['options'] = collect($package['options'] ?? [])
-                    ->map(function (array $option, int $optionIndex) use ($package) {
-                        $option['id'] = $option['id'] ?? $package['id'].'-option-'.($optionIndex + 1);
+        $defaultOptions = collect(config('cicil_emas.default_options', []));
+
+        return Barang::orderBy('nama_barang')
+            ->get(['id', 'kode_barcode', 'nama_barang', 'kode_intern', 'kode_group', 'berat', 'harga'])
+            ->mapWithKeys(function (Barang $barang) use ($defaultOptions) {
+                $packageId = 'barang-'.$barang->id;
+                $options = $defaultOptions
+                    ->map(function (array $option, int $index) use ($packageId) {
+                        $option['id'] = ! empty($option['id']) ? $packageId.'-'.$option['id'] : $packageId.'-option-'.($index + 1);
+                        $option['label'] = $option['label']
+                            ?? sprintf('DP %s%% • Tenor %s bulan', round(($option['dp_percentage'] ?? 0) * 100), $option['tenor'] ?? '—');
 
                         return $option;
                     })
                     ->values()
                     ->all();
 
-                return [$package['id'] => $package];
+                return [$packageId => [
+                    'id' => $packageId,
+                    'barang_id' => $barang->id,
+                    'kode_barcode' => $barang->kode_barcode,
+                    'nama_barang' => $barang->nama_barang,
+                    'kode_intern' => $barang->kode_intern,
+                    'kode_group' => $barang->kode_group,
+                    'berat' => $barang->berat,
+                    'harga' => $barang->harga,
+                    'options' => $options,
+                ]];
             });
     }
 }
