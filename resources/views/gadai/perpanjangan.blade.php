@@ -9,10 +9,10 @@
         $riwayatPerpanjanganAktif = $riwayatPerpanjangan->filter(fn ($item) => $item->dibatalkan_pada === null);
         $riwayatPerpanjanganTerbaru = $riwayatPerpanjanganAktif->first();
         $defaultMulai = \Carbon\Carbon::parse($defaultTanggalMulai);
-        $cutoffString = $extensionCutoff ?? $defaultTanggalMulai;
         $bungaDirekomendasikan = (float) $bungaBerjalan;
-        $hasElapsed = $extensionHasElapsed ?? ($bungaDirekomendasikan > 0);
-        $bungaCutoff = \Carbon\Carbon::parse($cutoffString);
+        $bungaCutoff = $bungaDirekomendasikan > 0
+            ? $defaultMulai->copy()->subDay()
+            : $defaultMulai->copy();
         $tenorFormValue = max(1, (int) old('tenor_hari', $defaultTenor));
     @endphp
 
@@ -98,14 +98,10 @@
                                 placeholder="{{ __('Nominal bunga yang diterima saat perpanjangan…') }}"
                             >
                             <span class="text-[11px] text-neutral-500 dark:text-neutral-400">
-                                @if ($hasElapsed && $bungaDirekomendasikan > 0)
-                                    {{ __('Minimal sebesar Rp :amount untuk menutup pemakaian sampai :date.', [
-                                        'amount' => number_format($bungaDirekomendasikan, 0, ',', '.'),
-                                        'date' => $bungaCutoff->format('d M Y'),
-                                    ]) }}
-                                @else
-                                    {{ __('Belum ada bunga berjalan yang harus dilunasi; masukkan 0 jika tidak ada pembayaran bunga.') }}
-                                @endif
+                                {{ __('Minimal sebesar Rp :amount untuk menutup pemakaian sampai :date.', [
+                                    'amount' => number_format($bungaDirekomendasikan, 0, ',', '.'),
+                                    'date' => $bungaCutoff->format('d M Y'),
+                                ]) }}
                             </span>
                             @error('bunga_dibayar')
                                 <span class="text-xs text-red-600 dark:text-red-400">{{ $message }}</span>
