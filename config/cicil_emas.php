@@ -1,24 +1,7 @@
 <?php
 
 return [
-    'default_options' => [
-        [
-            'id' => 'dp20-tenor12',
-            'label' => 'DP 20% • Tenor 12 bulan',
-            'dp_percentage' => 0.20,
-            'tenor' => 12,
-        ],
-        [
-            'id' => 'dp30-tenor18',
-            'label' => 'DP 30% • Tenor 18 bulan',
-            'dp_percentage' => 0.30,
-            'tenor' => 18,
-        ],
-        [
-            'id' => 'dp40-tenor24',
-            'label' => 'DP 40% • Tenor 24 bulan',
-            'dp_percentage' => 0.40,
-            'tenor' => 24,
-        ],
-    ],
+    'default_down_payment' => 1_000_000,
+
+    'tenor_options' => [3, 6, 12, 18, 24, 36],
 ];

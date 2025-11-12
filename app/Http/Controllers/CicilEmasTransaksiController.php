@@ -20,40 +20,60 @@ class CicilEmasTransaksiController extends Controller
         $nasabahs = Nasabah::orderBy('nama')
             ->get(['id', 'nama', 'kode_member']);
 
+        $tenorOptions = collect(config('cicil_emas.tenor_options', []))
+            ->filter(fn ($value) => is_numeric($value) && $value > 0)
+            ->map(fn ($value) => (int) $value)
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+
         return view('cicil-emas.transaksi-emas', [
             'packages' => $packages,
             'nasabahs' => $nasabahs,
+            'defaultDownPayment' => (int) config('cicil_emas.default_down_payment', 1_000_000),
+            'tenorOptions' => $tenorOptions,
         ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
         $packages = $this->availablePackages();
+        $tenorOptions = collect(config('cicil_emas.tenor_options', []))
+            ->filter(fn ($value) => is_numeric($value) && $value > 0)
+            ->map(fn ($value) => (int) $value)
+            ->unique()
+            ->values();
 
         $validated = $request->validate([
             'nasabah_id' => ['required', 'exists:nasabahs,id'],
             'package_id' => ['required', Rule::in($packages->keys()->all())],
-            'option_id' => ['required', 'string'],
             'estimasi_uang_muka' => ['required', 'numeric', 'min:0'],
-            'tenor_bulan' => ['required', 'integer', 'min:1'],
+            'tenor_bulan' => ['required', 'integer', Rule::in($tenorOptions->all())],
             'besaran_angsuran' => ['required', 'numeric', 'min:0'],
         ]);
 
         $package = $packages->get($validated['package_id']);
-        $option = collect($package['options'] ?? [])->firstWhere('id', $validated['option_id']);
+        $totalPrice = (float) ($package['harga'] ?? 0);
+        $downPayment = min((float) $validated['estimasi_uang_muka'], $totalPrice);
+        $tenor = (int) $validated['tenor_bulan'];
 
-        if (! $option) {
+        if ($downPayment < 0) {
             throw ValidationException::withMessages([
-                'option_id' => __('Pilihan kombinasi DP & tenor tidak valid untuk paket yang dipilih.'),
+                'estimasi_uang_muka' => __('Nilai uang muka tidak valid.'),
             ]);
         }
 
-        $totalPrice = (float) ($package['harga'] ?? 0);
-        $downPayment = round($totalPrice * (float) ($option['dp_percentage'] ?? 0), 2);
-        $tenor = (int) ($option['tenor'] ?? $validated['tenor_bulan']);
+        $remaining = max($totalPrice - $downPayment, 0);
         $installment = $tenor > 0
-            ? round(max($totalPrice - $downPayment, 0) / $tenor, 2)
+            ? round($remaining / $tenor, 2)
             : 0.0;
+
+        $dpPercentage = $totalPrice > 0
+            ? round(($downPayment / $totalPrice) * 100, 2)
+            : 0.0;
+
+        $tenorLabel = __(':bulan bulan', ['bulan' => $tenor]);
 
         $nasabah = Nasabah::find($validated['nasabah_id']);
 
@@ -64,12 +84,15 @@ class CicilEmasTransaksiController extends Controller
             'berat_gram' => $package['berat'],
             'kadar' => $package['kode_group'] ?? $package['kode_intern'],
             'harga_emas' => $totalPrice,
-            'dp_percentage' => round((float) ($option['dp_percentage'] ?? 0) * 100, 2),
+            'dp_percentage' => $dpPercentage,
             'estimasi_uang_muka' => $downPayment,
             'tenor_bulan' => $tenor,
             'besaran_angsuran' => $installment,
-            'option_id' => $option['id'],
-            'option_label' => $option['label'] ?? null,
+            'option_id' => 'manual-tenor-'.$tenor,
+            'option_label' => __('DP Rp :dp • Tenor :tenor', [
+                'dp' => number_format($downPayment, 0, ',', '.'),
+                'tenor' => $tenorLabel,
+            ]),
         ]);
 
         return redirect()
@@ -79,7 +102,7 @@ class CicilEmasTransaksiController extends Controller
                 'nasabah' => $nasabah?->nama,
                 'kode_member' => $nasabah?->kode_member,
                 'paket' => $package['nama_barang'].' • '.number_format((float) $package['berat'], 3, ',', '.').' gr • '.($package['kode_group'] ?? $package['kode_intern']),
-                'kombinasi' => $option['label'] ?? null,
+                'jangka_waktu' => __('Jangka waktu :bulan bulan', ['bulan' => $tenor]),
                 'dp' => $downPayment,
                 'tenor' => $tenor,
                 'angsuran' => $installment,
@@ -90,22 +113,10 @@ class CicilEmasTransaksiController extends Controller
 
     private function availablePackages(): Collection
     {
-        $defaultOptions = collect(config('cicil_emas.default_options', []));
-
         return Barang::orderBy('nama_barang')
             ->get(['id', 'kode_barcode', 'nama_barang', 'kode_intern', 'kode_group', 'berat', 'harga'])
-            ->mapWithKeys(function (Barang $barang) use ($defaultOptions) {
+            ->mapWithKeys(function (Barang $barang) {
                 $packageId = 'barang-'.$barang->id;
-                $options = $defaultOptions
-                    ->map(function (array $option, int $index) use ($packageId) {
-                        $option['id'] = ! empty($option['id']) ? $packageId.'-'.$option['id'] : $packageId.'-option-'.($index + 1);
-                        $option['label'] = $option['label']
-                            ?? sprintf('DP %s%% • Tenor %s bulan', round(($option['dp_percentage'] ?? 0) * 100), $option['tenor'] ?? '—');
-
-                        return $option;
-                    })
-                    ->values()
-                    ->all();
 
                 return [$packageId => [
                     'id' => $packageId,
@@ -116,7 +127,6 @@ class CicilEmasTransaksiController extends Controller
                     'kode_group' => $barang->kode_group,
                     'berat' => $barang->berat,
                     'harga' => $barang->harga,
-                    'options' => $options,
                 ]];
             });
     }

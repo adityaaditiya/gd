@@ -3,13 +3,24 @@
         $packagesCollection = collect($packages ?? []);
         $selectedPackageId = old('package_id');
         $selectedPackage = $packagesCollection->firstWhere('id', $selectedPackageId);
-        $selectedOptionId = old('option_id');
+        $tenorCollection = collect($tenorOptions ?? [])
+            ->filter(fn ($value) => is_numeric($value) && $value > 0)
+            ->map(fn ($value) => (int) $value)
+            ->unique()
+            ->sort()
+            ->values();
+        $selectedTenor = old('tenor_bulan');
+        $defaultDownPaymentValue = old('estimasi_uang_muka');
+        if (! is_numeric($defaultDownPaymentValue)) {
+            $defaultDownPaymentValue = $defaultDownPayment ?? 1_000_000;
+        }
+        $defaultDownPaymentValue = (float) $defaultDownPaymentValue;
     @endphp
     <div class="space-y-8">
         <div class="flex flex-col gap-2">
             <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white">{{ __('Transaksi Cicil Emas') }}</h1>
             <p class="text-sm text-neutral-600 dark:text-neutral-300">
-                {{ __('Lakukan simulasi cicilan dengan memilih nasabah, barang emas, dan kombinasi DP–tenor untuk menghasilkan estimasi pembayaran yang otomatis tersimpan.') }}
+                {{ __('Lakukan simulasi cicilan dengan memilih nasabah, barang emas, serta menentukan uang muka dan jangka waktu untuk menghasilkan estimasi pembayaran yang otomatis tersimpan.') }}
             </p>
         </div>
 
@@ -29,9 +40,10 @@
                         <div class="space-y-1">
                             <dt class="font-semibold text-neutral-900 dark:text-white">{{ __('Paket Emas') }}</dt>
                             <dd>{{ $summary['paket'] ?? '—' }}</dd>
-                            @if (!empty($summary['kombinasi']))
-                                <dd class="text-xs text-neutral-500 dark:text-neutral-400">{{ $summary['kombinasi'] }}</dd>
-                            @endif
+                        </div>
+                        <div class="space-y-1">
+                            <dt class="font-semibold text-neutral-900 dark:text-white">{{ __('Jangka Waktu') }}</dt>
+                            <dd>{{ $summary['jangka_waktu'] ?? '—' }}</dd>
                         </div>
                         <div class="space-y-1">
                             <dt class="font-semibold text-neutral-900 dark:text-white">{{ __('Estimasi DP') }}</dt>
@@ -59,7 +71,7 @@
                     <ul class="list-disc space-y-2 ps-5 text-sm text-neutral-700 dark:text-neutral-200">
                         <li>{{ __('Pilih nasabah yang telah lulus verifikasi sebagai pemohon cicilan.') }}</li>
                         <li>{{ __('Tentukan barang emas berdasarkan data master (kode, berat, dan grup) yang tersedia.') }}</li>
-                        <li>{{ __('Sesuaikan kombinasi DP–tenor untuk melihat estimasi angsuran yang dihitung otomatis.') }}</li>
+                        <li>{{ __('Sesuaikan uang muka dan jangka waktu cicilan untuk melihat estimasi angsuran yang dihitung otomatis.') }}</li>
                     </ul>
                 </section>
 
@@ -147,92 +159,80 @@
                                 @endif
                             </div>
 
-                            <div>
-                                <label for="option_id" class="mb-2 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
-                                    {{ __('Kombinasi DP & Tenor') }}
+                            <div class="md:col-span-2">
+                                <label for="uang_muka_display" class="mb-2 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
+                                    {{ __('Uang Muka') }}
                                 </label>
-                                <select
-                                    id="option_id"
-                                    name="option_id"
-                                    data-option-select
-                                    class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white"
-                                    @if (! $selectedPackage) disabled @endif
-                                    required
-                                >
-                                    <option value="">{{ __('Pilih kombinasi DP & tenor') }}</option>
-                                    @if ($selectedPackage)
-                                        @foreach ($selectedPackage['options'] as $option)
-                                            <option value="{{ $option['id'] }}" @selected($selectedOptionId === $option['id'])>
-                                                {{ $option['label'] }}
-                                            </option>
-                                        @endforeach
-                                    @endif
-                                </select>
-                                @error('option_id')
-                                    <p class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
-                                @enderror
-                                <p class="mt-2 text-xs text-neutral-500 dark:text-neutral-400" data-option-meta>
-                                    {{ __('Pilih barang terlebih dahulu untuk melihat kombinasi DP & tenor yang tersedia.') }}
-                                </p>
-                            </div>
-
-                            <div>
-                                <label for="estimasi_uang_muka" class="mb-2 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
-                                    {{ __('Estimasi Uang Muka (DP)') }}
-                                </label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    id="estimasi_uang_muka"
-                                    name="estimasi_uang_muka"
-                                    data-down-payment
-                                    value="{{ old('estimasi_uang_muka') }}"
-                                    readonly
-                                    class="w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:outline-none dark:border-neutral-600 dark:bg-neutral-800 dark:text-white"
-                                />
+                                <div class="flex overflow-hidden rounded-lg border border-neutral-300 bg-white shadow-sm dark:border-neutral-600 dark:bg-neutral-800">
+                                    <span class="flex items-center justify-center bg-neutral-100 px-3 text-xs font-semibold uppercase tracking-wide text-neutral-600 dark:bg-neutral-700 dark:text-neutral-200">
+                                        {{ __('Rupiah') }}
+                                    </span>
+                                    <input
+                                        id="uang_muka_display"
+                                        type="text"
+                                        inputmode="numeric"
+                                        data-down-payment-input
+                                        value="{{ number_format((float) $defaultDownPaymentValue, 0, ',', '.') }}"
+                                        class="w-full border-0 bg-transparent px-3 py-2 text-sm font-semibold text-neutral-900 focus:outline-none focus:ring-0 dark:text-white"
+                                        autocomplete="off"
+                                    />
+                                </div>
+                                <input type="hidden" name="estimasi_uang_muka" data-down-payment-hidden value="{{ $defaultDownPaymentValue }}">
                                 @error('estimasi_uang_muka')
                                     <p class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
                                 @enderror
                                 <p class="mt-2 text-xs text-neutral-500 dark:text-neutral-400" data-down-payment-display>
-                                    {{ __('Nilai DP akan dihitung otomatis setelah memilih barang dan kombinasi tenor.') }}
+                                    {{ __('Masukkan uang muka untuk menghitung besaran cicilan.') }}
+                                </p>
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <span class="mb-2 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
+                                    {{ __('Jangka Waktu') }}
+                                </span>
+                                <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3" data-tenor-list>
+                                    @forelse ($tenorCollection as $tenorOption)
+                                        @php
+                                            $isSelectedTenor = (string) $tenorOption === (string) ($selectedTenor ?? '');
+                                        @endphp
+                                        <label class="relative flex cursor-pointer flex-col gap-1 rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm shadow-sm transition focus-within:ring-2 focus-within:ring-indigo-500/20 dark:border-neutral-600 dark:bg-neutral-800" data-tenor-card>
+                                            <input
+                                                type="radio"
+                                                name="tenor_option_display"
+                                                value="{{ $tenorOption }}"
+                                                class="sr-only"
+                                                data-tenor-option
+                                                @checked($isSelectedTenor)
+                                            />
+                                            <span class="text-sm font-semibold text-neutral-900 dark:text-white" data-tenor-label>{{ $tenorOption }} {{ __('Bulan') }}</span>
+                                            <span class="text-xs text-neutral-500 dark:text-neutral-400" data-tenor-caption>{{ __('Pilih untuk menghitung angsuran.') }}</span>
+                                        </label>
+                                    @empty
+                                        <p class="col-span-full text-xs text-amber-600 dark:text-amber-400">{{ __('Belum ada opsi tenor yang dapat dipilih.') }}</p>
+                                    @endforelse
+                                </div>
+                                <input type="hidden" name="tenor_bulan" data-tenor-input value="{{ $selectedTenor ?? ($tenorCollection->first() ?? '') }}">
+                                @error('tenor_bulan')
+                                    <p class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
+                                @enderror
+                                <p class="mt-2 text-xs text-neutral-500 dark:text-neutral-400" data-tenor-meta>
+                                    {{ __('Pilih jangka waktu cicilan untuk melihat estimasi angsuran per bulan.') }}
                                 </p>
                             </div>
 
                             <div>
-                                <label for="tenor_bulan" class="mb-2 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
-                                    {{ __('Tenor (bulan)') }}
-                                </label>
-                                <input
-                                    type="number"
-                                    min="1"
-                                    id="tenor_bulan"
-                                    name="tenor_bulan"
-                                    data-tenor-input
-                                    value="{{ old('tenor_bulan') }}"
-                                    readonly
-                                    class="w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:outline-none dark:border-neutral-600 dark:bg-neutral-800 dark:text-white"
-                                />
-                                @error('tenor_bulan')
-                                    <p class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <div>
-                                <label for="besaran_angsuran" class="mb-2 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
+                                <label for="besaran_angsuran_display" class="mb-2 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
                                     {{ __('Estimasi Angsuran Bulanan') }}
                                 </label>
                                 <input
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    id="besaran_angsuran"
-                                    name="besaran_angsuran"
-                                    data-installment
-                                    value="{{ old('besaran_angsuran') }}"
+                                    type="text"
+                                    id="besaran_angsuran_display"
+                                    data-installment-output
+                                    value="{{ old('besaran_angsuran') ? number_format((float) old('besaran_angsuran'), 0, ',', '.') : '' }}"
                                     readonly
-                                    class="w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:outline-none dark:border-neutral-600 dark:bg-neutral-800 dark:text-white"
+                                    class="w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm font-semibold text-neutral-900 shadow-sm focus:outline-none dark:border-neutral-600 dark:bg-neutral-800 dark:text-white"
                                 />
+                                <input type="hidden" name="besaran_angsuran" data-installment value="{{ old('besaran_angsuran') }}">
                                 @error('besaran_angsuran')
                                     <p class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
                                 @enderror
@@ -269,125 +269,281 @@
         document.addEventListener('DOMContentLoaded', () => {
             const packages = @json($packagesCollection);
             const packageSelect = document.querySelector('[data-package-select]');
-            const optionSelect = document.querySelector('[data-option-select]');
             const packageMeta = document.querySelector('[data-package-meta]');
-            const optionMeta = document.querySelector('[data-option-meta]');
-            const downPaymentInput = document.querySelector('[data-down-payment]');
-            const tenorInput = document.querySelector('[data-tenor-input]');
-            const installmentInput = document.querySelector('[data-installment]');
+            const downPaymentInput = document.querySelector('[data-down-payment-input]');
+            const downPaymentHidden = document.querySelector('[data-down-payment-hidden]');
             const downPaymentDisplay = document.querySelector('[data-down-payment-display]');
+            const tenorHidden = document.querySelector('[data-tenor-input]');
+            const tenorMeta = document.querySelector('[data-tenor-meta]');
+            const tenorCards = Array.from(document.querySelectorAll('[data-tenor-card]'));
+            const tenorOptions = Array.from(document.querySelectorAll('[data-tenor-option]'));
+            const installmentHidden = document.querySelector('[data-installment]');
+            const installmentOutput = document.querySelector('[data-installment-output]');
             const installmentDisplay = document.querySelector('[data-installment-display]');
             const summaryPanel = document.querySelector('[data-summary-panel]');
             const summaryPackage = document.querySelector('[data-summary-package]');
             const summaryPrice = document.querySelector('[data-summary-price]');
             const summaryOption = document.querySelector('[data-summary-option]');
 
+            const findPackage = (id) => packages.find((pkg) => pkg.id === id);
+
             const formatCurrency = (value) =>
                 new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(
                     Number.isFinite(value) ? value : 0,
                 );
 
-            const findPackage = (id) => packages.find((pkg) => pkg.id === id);
+            const formatNumber = (value) =>
+                new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 }).format(
+                    Number.isFinite(value) ? Math.round(value) : 0,
+                );
 
-            const populateOptions = (pkg) => {
-                optionSelect.innerHTML = '';
-                const placeholder = document.createElement('option');
-                placeholder.value = '';
-                placeholder.textContent = '{{ __('Pilih kombinasi DP & tenor') }}';
-                optionSelect.appendChild(placeholder);
+            const parseCurrencyInput = (value) => {
+                const sanitized = String(value ?? '').replace(/[^0-9]/g, '');
+                return sanitized ? parseInt(sanitized, 10) : 0;
+            };
 
-                if (!pkg) {
-                    optionSelect.disabled = true;
-                    optionMeta.textContent = '{{ __('Pilih barang terlebih dahulu untuk melihat kombinasi DP & tenor yang tersedia.') }}';
-                    summaryOption.textContent = '';
-                    return;
+            const setDownPaymentValue = (value) => {
+                const normalized = Number.isFinite(value) ? Math.max(value, 0) : 0;
+                if (downPaymentHidden) {
+                    downPaymentHidden.value = (Math.round(normalized * 100) / 100).toFixed(2);
+                }
+                if (downPaymentInput) {
+                    downPaymentInput.value = formatNumber(normalized);
+                }
+            };
+
+            const toggleTenorCardsDisabled = (disabled) => {
+                tenorCards.forEach((card) => {
+                    const option = card.querySelector('[data-tenor-option]');
+                    if (option) {
+                        option.disabled = disabled;
+                    }
+                    if (disabled) {
+                        card.classList.add('pointer-events-none', 'opacity-60');
+                    } else {
+                        card.classList.remove('pointer-events-none', 'opacity-60');
+                    }
+                });
+            };
+
+            const updateTenorCardsState = (selectedValue) => {
+                tenorCards.forEach((card) => {
+                    const option = card.querySelector('[data-tenor-option]');
+                    if (!option) {
+                        return;
+                    }
+                    const isSelected = String(option.value) === String(selectedValue ?? '');
+                    card.classList.toggle('border-indigo-500', isSelected);
+                    card.classList.toggle('ring-2', isSelected);
+                    card.classList.toggle('ring-indigo-500/40', isSelected);
+                    card.classList.toggle('bg-indigo-50', isSelected);
+                    card.classList.toggle('dark:bg-indigo-500/10', isSelected);
+                });
+            };
+
+            const updateTenorCaptions = (totalPrice, downPayment) => {
+                tenorOptions.forEach((option) => {
+                    const card = option.closest('[data-tenor-card]');
+                    const caption = card?.querySelector('[data-tenor-caption]');
+                    if (!caption) {
+                        return;
+                    }
+                    if (!totalPrice) {
+                        caption.textContent = '{{ __('Pilih barang terlebih dahulu.') }}';
+                        return;
+                    }
+
+                    const tenorValue = Number(option.value);
+                    const remaining = Math.max(totalPrice - downPayment, 0);
+                    const installment = tenorValue > 0 ? Math.round((remaining / tenorValue) * 100) / 100 : 0;
+                    caption.textContent = `${formatCurrency(installment)} {{ __('per bulan') }}`;
+                });
+            };
+
+            const setCheckedTenor = (value) => {
+                tenorOptions.forEach((option) => {
+                    option.checked = String(option.value) === String(value ?? '');
+                });
+            };
+
+            const ensureTenorSelection = () => {
+                if (!tenorOptions.length) {
+                    if (tenorHidden) {
+                        tenorHidden.value = '';
+                    }
+                    return '';
                 }
 
-                (pkg.options || []).forEach((option) => {
-                    const optionElement = document.createElement('option');
-                    optionElement.value = option.id;
-                    optionElement.textContent = option.label;
-                    if ('{{ $selectedOptionId }}' === option.id) {
-                        optionElement.selected = true;
-                    }
-                    optionSelect.appendChild(optionElement);
-                });
+                const currentValue = tenorHidden?.value;
+                if (currentValue && tenorOptions.some((option) => String(option.value) === String(currentValue))) {
+                    setCheckedTenor(currentValue);
+                    return currentValue;
+                }
 
-                optionSelect.disabled = false;
-                optionMeta.textContent = '{{ __('Pilih kombinasi DP & tenor untuk menghitung estimasi angsuran.') }}';
+                const firstValue = tenorOptions[0].value;
+                setCheckedTenor(firstValue);
+                if (tenorHidden) {
+                    tenorHidden.value = firstValue;
+                }
+
+                return firstValue;
             };
 
             const updateOutputs = () => {
-                const selectedPackage = findPackage(packageSelect.value);
-                const selectedOption = selectedPackage
-                    ? (selectedPackage.options || []).find((option) => optionSelect.value && option.id === optionSelect.value)
-                    : undefined;
+                const selectedPackage = findPackage(packageSelect?.value);
+                const totalPrice = Number(selectedPackage?.harga ?? 0);
+                const hasPackage = Boolean(selectedPackage);
 
-                if (!selectedPackage) {
-                    downPaymentInput.value = '';
-                    tenorInput.value = '';
-                    installmentInput.value = '';
-                    downPaymentDisplay.textContent = '{{ __('Nilai DP akan dihitung otomatis setelah memilih barang dan kombinasi tenor.') }}';
-                    installmentDisplay.textContent = '{{ __('Besaran angsuran dihitung dari sisa harga emas dibagi tenor yang dipilih.') }}';
-                    packageMeta.textContent = '{{ __('Silakan pilih barang emas untuk melihat detail harga.') }}';
-                    summaryPanel.hidden = true;
-                    summaryPackage.textContent = '{{ __('Barang belum dipilih.') }}';
-                    summaryPrice.textContent = '';
-                    summaryOption.textContent = '';
+                toggleTenorCardsDisabled(!hasPackage);
+
+                let downPayment = Number.parseFloat(downPaymentHidden?.value ?? '0');
+                if (!Number.isFinite(downPayment) || downPayment < 0) {
+                    downPayment = 0;
+                }
+
+                if (hasPackage && totalPrice > 0 && downPayment > totalPrice) {
+                    downPayment = totalPrice;
+                    setDownPaymentValue(downPayment);
+                }
+
+                updateTenorCardsState(tenorHidden?.value);
+                updateTenorCaptions(totalPrice, downPayment);
+
+                if (!hasPackage) {
+                    if (packageMeta) {
+                        packageMeta.textContent = '{{ __('Silakan pilih barang emas untuk melihat detail harga.') }}';
+                    }
+                    if (downPaymentDisplay) {
+                        downPaymentDisplay.textContent = '{{ __('Masukkan uang muka untuk menghitung besaran cicilan.') }}';
+                    }
+                    if (tenorMeta) {
+                        tenorMeta.textContent = '{{ __('Pilih barang emas terlebih dahulu sebelum menentukan jangka waktu.') }}';
+                    }
+                    if (installmentHidden) {
+                        installmentHidden.value = '';
+                    }
+                    if (installmentOutput) {
+                        installmentOutput.value = '';
+                    }
+                    if (installmentDisplay) {
+                        installmentDisplay.textContent = '{{ __('Besaran angsuran dihitung dari sisa harga emas dibagi tenor yang dipilih.') }}';
+                    }
+                    if (summaryPanel) {
+                        summaryPanel.hidden = true;
+                    }
+                    if (summaryPackage) {
+                        summaryPackage.textContent = '{{ __('Barang belum dipilih.') }}';
+                    }
+                    if (summaryPrice) {
+                        summaryPrice.textContent = '';
+                    }
+                    if (summaryOption) {
+                        summaryOption.textContent = '';
+                    }
                     return;
                 }
 
-                const totalPrice = Number(selectedPackage.harga ?? 0);
                 const beratDisplay = Number(selectedPackage.berat ?? 0).toLocaleString('id-ID', {
                     minimumFractionDigits: 3,
                     maximumFractionDigits: 3,
                 });
                 const groupLabel = selectedPackage.kode_group || selectedPackage.kode_intern || '—';
 
-                packageMeta.textContent = `${selectedPackage.nama_barang} • ${beratDisplay} gr • ${groupLabel}`;
-                summaryPanel.hidden = false;
-                summaryPackage.textContent = `${selectedPackage.nama_barang} • ${beratDisplay} gr • ${groupLabel}`;
-                summaryPrice.textContent = `{{ __('Harga Barang') }}: ${formatCurrency(totalPrice)}`;
-
-                if (!selectedOption) {
-                    optionMeta.textContent = '{{ __('Pilih kombinasi DP & tenor untuk menghitung estimasi angsuran.') }}';
-                    downPaymentInput.value = '';
-                    tenorInput.value = '';
-                    installmentInput.value = '';
-                    downPaymentDisplay.textContent = '{{ __('Nilai DP akan dihitung otomatis setelah memilih barang dan kombinasi tenor.') }}';
-                    summaryOption.textContent = '{{ __('Belum ada kombinasi dipilih.') }}';
-                    return;
+                if (packageMeta) {
+                    packageMeta.textContent = `${selectedPackage.nama_barang} • ${beratDisplay} gr • ${groupLabel}`;
+                }
+                if (summaryPanel) {
+                    summaryPanel.hidden = false;
+                }
+                if (summaryPackage) {
+                    summaryPackage.textContent = `${selectedPackage.nama_barang} • ${beratDisplay} gr • ${groupLabel}`;
+                }
+                if (summaryPrice) {
+                    summaryPrice.textContent = `{{ __('Harga Barang') }}: ${formatCurrency(totalPrice)}`;
                 }
 
-                const downPayment = Math.round(totalPrice * Number(selectedOption.dp_percentage) * 100) / 100;
-                const tenor = Number(selectedOption.tenor || 0);
+                const tenorValue = Number(tenorHidden?.value ?? 0);
                 const remaining = Math.max(totalPrice - downPayment, 0);
-                const installment = tenor > 0 ? Math.round((remaining / tenor) * 100) / 100 : 0;
-                const percent = Math.round(Number(selectedOption.dp_percentage || 0) * 100);
+                const installment = tenorValue > 0 ? Math.round((remaining / tenorValue) * 100) / 100 : 0;
 
-                downPaymentInput.value = downPayment.toFixed(2);
-                tenorInput.value = tenor;
-                installmentInput.value = installment.toFixed(2);
+                if (installmentHidden) {
+                    installmentHidden.value = installment.toFixed(2);
+                }
+                if (installmentOutput) {
+                    installmentOutput.value = installment ? formatNumber(installment) : '';
+                }
 
-                downPaymentDisplay.textContent = `${formatCurrency(downPayment)} ({{ __('DP :persen%', ['persen' => ':persen']) }})`.replace(':persen', percent);
-                installmentDisplay.textContent = `${formatCurrency(installment)} • {{ __('Sisa cicilan dibagi :bulan bulan', ['bulan' => ':bulan']) }}`.replace(':bulan', tenor);
-                summaryOption.textContent = `${selectedOption.label} • {{ __('Angsuran') }} ${formatCurrency(installment)}`;
+                const percent = totalPrice > 0 ? Math.round((downPayment / totalPrice) * 10000) / 100 : 0;
+
+                if (downPaymentDisplay) {
+                    downPaymentDisplay.textContent = `${formatCurrency(downPayment)} • {{ __('Sekitar :persen% dari harga', ['persen' => ':persen']) }}`.replace(
+                        ':persen',
+                        percent.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 }),
+                    );
+                }
+                if (tenorMeta) {
+                    tenorMeta.textContent = tenorValue
+                        ? `{{ __('Cicilan selama :bulan bulan.', ['bulan' => ':bulan']) }}`.replace(':bulan', tenorValue)
+                        : '{{ __('Pilih jangka waktu cicilan untuk melihat estimasi angsuran per bulan.') }}';
+                }
+                if (installmentDisplay) {
+                    installmentDisplay.textContent = tenorValue
+                        ? `${formatCurrency(installment)} • {{ __('dibayar setiap bulan selama :bulan bulan', ['bulan' => ':bulan']) }}`.replace(':bulan', tenorValue)
+                        : '{{ __('Besaran angsuran dihitung dari sisa harga emas dibagi tenor yang dipilih.') }}';
+                }
+                if (summaryOption) {
+                    summaryOption.textContent = tenorValue
+                        ? `{{ __('Jangka waktu: :bulan bulan', ['bulan' => ':bulan']) }}`.replace(':bulan', tenorValue) + ` • {{ __('Angsuran') }} ${formatCurrency(installment)}`
+                        : '';
+                }
             };
 
-            packageSelect?.addEventListener('change', () => {
-                populateOptions(findPackage(packageSelect.value));
-                optionSelect.value = '';
-                updateOutputs();
-            });
+            const initialTenor = ensureTenorSelection();
+            updateTenorCardsState(initialTenor);
 
-            optionSelect?.addEventListener('change', () => {
-                updateOutputs();
-            });
-
-            if (packageSelect?.value) {
-                populateOptions(findPackage(packageSelect.value));
-                updateOutputs();
+            const initialHiddenValue = Number.parseFloat(downPaymentHidden?.value ?? '0');
+            if (!Number.isFinite(initialHiddenValue) || initialHiddenValue <= 0) {
+                const parsed = downPaymentInput ? parseCurrencyInput(downPaymentInput.value) : 0;
+                setDownPaymentValue(parsed);
+            } else if (downPaymentInput) {
+                downPaymentInput.value = formatNumber(initialHiddenValue);
             }
+
+            updateOutputs();
+
+            packageSelect?.addEventListener('change', () => {
+                updateOutputs();
+            });
+
+            if (downPaymentInput) {
+                downPaymentInput.addEventListener('input', () => {
+                    const raw = parseCurrencyInput(downPaymentInput.value);
+                    const selectedPackage = findPackage(packageSelect?.value);
+                    const totalPrice = Number(selectedPackage?.harga ?? 0);
+                    const adjusted = totalPrice > 0 ? Math.min(raw, totalPrice) : raw;
+                    setDownPaymentValue(adjusted);
+                    updateOutputs();
+                });
+
+                downPaymentInput.addEventListener('blur', () => {
+                    const hiddenValue = Number.parseFloat(downPaymentHidden?.value ?? '0');
+                    downPaymentInput.value = formatNumber(hiddenValue);
+                });
+            }
+
+            tenorOptions.forEach((option) => {
+                option.addEventListener('change', () => {
+                    if (!option.checked) {
+                        return;
+                    }
+                    if (tenorHidden) {
+                        tenorHidden.value = option.value;
+                    }
+                    setCheckedTenor(option.value);
+                    updateTenorCardsState(option.value);
+                    updateOutputs();
+                });
+            });
         });
     </script>
 </x-layouts.app>
