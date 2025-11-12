@@ -26,6 +26,7 @@
                     'laporan.batal-gadai',
                     'laporan.perpanjangan-gadai',
                     'laporan.lelang',
+                    'laporan.cicil-emas',
                 ];
                 $isLaporanActive = request()->routeIs(...$laporanRoutes);
                 $akuntansiRoutes = [
@@ -36,7 +37,13 @@
                     'akuntansi.neraca',
                 ];
                 $isAkuntansiActive = request()->routeIs(...$akuntansiRoutes);
-                $cicilEmasRoutes = ['cicil-emas.transaksi-emas', 'cicil-emas.daftar-cicilan'];
+                $cicilEmasRoutes = [
+                    'cicil-emas.transaksi-emas',
+                    'cicil-emas.daftar-cicilan',
+                    'cicil-emas.angsuran-rutin',
+                    'cicil-emas.riwayat-cicilan',
+                    'cicil-emas.pelunasan-cicilan',
+                ];
                 $isCicilEmasActive = request()->routeIs(...$cicilEmasRoutes);
                 $jualEmasRoutes = ['jual-emas.transaksi-penjualan', 'jual-emas.lihat-penjualan', 'jual-emas.batal-penjualan'];
                 $isJualEmasActive = request()->routeIs(...$jualEmasRoutes);
@@ -239,6 +246,39 @@
                             ])
                         >
                             {{ __('Daftar Cicilan') }}
+                        </a>
+                        <a
+                            href="{{ route('cicil-emas.angsuran-rutin') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('cicil-emas.angsuran-rutin'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('cicil-emas.angsuran-rutin'),
+                            ])
+                        >
+                            {{ __('Angsuran Rutin') }}
+                        </a>
+                        <a
+                            href="{{ route('cicil-emas.riwayat-cicilan') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('cicil-emas.riwayat-cicilan'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('cicil-emas.riwayat-cicilan'),
+                            ])
+                        >
+                            {{ __('Riwayat Cicilan') }}
+                        </a>
+                        <a
+                            href="{{ route('cicil-emas.pelunasan-cicilan') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('cicil-emas.pelunasan-cicilan'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('cicil-emas.pelunasan-cicilan'),
+                            ])
+                        >
+                            {{ __('Pelunasan Cicilan') }}
                         </a>
                     </div>
                 </div>
@@ -667,6 +707,17 @@
                             ])
                         >
                             {{ __('Laporan Lelang') }}
+                        </a>
+                        <a
+                            href="{{ route('laporan.cicil-emas') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('laporan.cicil-emas'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('laporan.cicil-emas'),
+                            ])
+                        >
+                            {{ __('Laporan Cicil Emas') }}
                         </a>
                     </div>
                 </div>
