@@ -137,11 +137,11 @@
                                                 </label>
                                                 <label class="flex flex-col gap-1 text-xs font-medium">
                                                     <span>{{ __('Harga Limit') }}</span>
-                                                    <input type="number" step="0.01" min="0" name="harga_limit" value="{{ old('harga_limit', $jadwal->harga_limit) }}" class="form-input rounded-md border-neutral-300 text-sm dark:border-neutral-600 dark:bg-neutral-900 dark:text-white">
+                                                    <input type="text" inputmode="decimal" name="harga_limit" value="{{ old('harga_limit', $jadwal->harga_limit) }}" class="form-input rounded-md border-neutral-300 text-sm dark:border-neutral-600 dark:bg-neutral-900 dark:text-white" data-currency-input>
                                                 </label>
                                                 <label class="flex flex-col gap-1 text-xs font-medium">
                                                     <span>{{ __('Estimasi Biaya') }}</span>
-                                                    <input type="number" step="0.01" min="0" name="estimasi_biaya" value="{{ old('estimasi_biaya', $jadwal->estimasi_biaya) }}" class="form-input rounded-md border-neutral-300 text-sm dark:border-neutral-600 dark:bg-neutral-900 dark:text-white">
+                                                    <input type="text" inputmode="decimal" name="estimasi_biaya" value="{{ old('estimasi_biaya', $jadwal->estimasi_biaya) }}" class="form-input rounded-md border-neutral-300 text-sm dark:border-neutral-600 dark:bg-neutral-900 dark:text-white" data-currency-input>
                                                 </label>
                                                 <label class="flex flex-col gap-1 text-xs font-medium">
                                                     <span>{{ __('Catatan') }}</span>
@@ -169,11 +169,11 @@
                                             <div class="grid grid-cols-1 gap-3">
                                                 <label class="flex flex-col gap-1 text-xs font-medium">
                                                     <span>{{ __('Harga Laku') }}</span>
-                                                    <input type="number" step="0.01" min="0" name="harga_laku" value="{{ old('harga_laku', $jadwal->harga_laku) }}" class="form-input rounded-md border-neutral-300 text-sm dark:border-neutral-600 dark:bg-neutral-900 dark:text-white">
+                                                    <input type="text" inputmode="decimal" name="harga_laku" value="{{ old('harga_laku', $jadwal->harga_laku) }}" class="form-input rounded-md border-neutral-300 text-sm dark:border-neutral-600 dark:bg-neutral-900 dark:text-white" data-currency-input>
                                                 </label>
                                                 <label class="flex flex-col gap-1 text-xs font-medium">
                                                     <span>{{ __('Biaya Lelang Aktual') }}</span>
-                                                    <input type="number" step="0.01" min="0" name="biaya_lelang" value="{{ old('biaya_lelang', $jadwal->biaya_lelang) }}" class="form-input rounded-md border-neutral-300 text-sm dark:border-neutral-600 dark:bg-neutral-900 dark:text-white">
+                                                    <input type="text" inputmode="decimal" name="biaya_lelang" value="{{ old('biaya_lelang', $jadwal->biaya_lelang) }}" class="form-input rounded-md border-neutral-300 text-sm dark:border-neutral-600 dark:bg-neutral-900 dark:text-white" data-currency-input>
                                                 </label>
                                                 <label class="flex flex-col gap-1 text-xs font-medium">
                                                     <span>{{ __('Catatan Hasil') }}</span>
