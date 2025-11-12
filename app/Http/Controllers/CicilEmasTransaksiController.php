@@ -14,6 +14,17 @@ use Illuminate\View\View;
 
 class CicilEmasTransaksiController extends Controller
 {
+    public function index(): View
+    {
+        $transactions = CicilEmasTransaction::with('nasabah')
+            ->latest()
+            ->get();
+
+        return view('cicil-emas.daftar-cicilan', [
+            'transactions' => $transactions,
+        ]);
+    }
+
     public function create(): View
     {
         $packages = $this->availablePackages()->values()->all();
