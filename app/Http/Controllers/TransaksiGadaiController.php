@@ -321,8 +321,8 @@ class TransaksiGadaiController extends Controller
         $pokokPinjaman = (float) $transaksi->uang_pinjaman;
         $actualDays = $this->calculateActualDays($transaksi->tanggal_gadai, $today);
         $sewaModalTerutang = $this->calculateSewaModal($pokokPinjaman, $tarifBungaHarian, $actualDays);
-        $biayaAdminAwal = (float) $transaksi->biaya_admin;
-        $totalTagihanPelunasan = $pokokPinjaman + $sewaModalTerutang + $biayaAdminAwal;
+        $biayaLainPelunasan = 0.0;
+        $totalTagihanPelunasan = $pokokPinjaman + $sewaModalTerutang + $biayaLainPelunasan;
 
         return view('gadai.pelunasan', [
             'transaksi' => $transaksi,
@@ -332,7 +332,7 @@ class TransaksiGadaiController extends Controller
                 'metode_pembayaran' => __('Tunai'),
                 'pokok_dibayar' => number_format($pokokPinjaman, 2, '.', ''),
                 'bunga_dibayar' => number_format($sewaModalTerutang, 2, '.', ''),
-                'biaya_lain_dibayar' => number_format($biayaAdminAwal, 2, '.', ''),
+                'biaya_lain_dibayar' => number_format($biayaLainPelunasan, 2, '.', ''),
                 'total_pelunasan' => number_format($totalTagihanPelunasan, 2, '.', ''),
             ],
             'perhitunganPelunasan' => [
@@ -340,7 +340,7 @@ class TransaksiGadaiController extends Controller
                 'actual_days' => $actualDays,
                 'pokok' => $pokokPinjaman,
                 'sewa_modal' => $sewaModalTerutang,
-                'biaya_admin' => $biayaAdminAwal,
+                'biaya_lain' => $biayaLainPelunasan,
                 'total_tagihan' => $totalTagihanPelunasan,
             ],
         ]);
@@ -365,8 +365,8 @@ class TransaksiGadaiController extends Controller
         $tanggalPelunasan = Carbon::parse($data['tanggal_pelunasan']);
         $actualDays = $this->calculateActualDays($transaksi->tanggal_gadai, $tanggalPelunasan);
         $sewaModalTerutang = $this->calculateSewaModal($pokokPinjaman, $tarifBungaHarian, $actualDays);
-        $biayaAdminAwal = (float) $transaksi->biaya_admin;
-        $minimalPelunasan = $pokokPinjaman + $sewaModalTerutang + $biayaAdminAwal;
+        $biayaLainDibayar = (float) $data['biaya_lain_dibayar'];
+        $minimalPelunasan = $pokokPinjaman + $sewaModalTerutang + $biayaLainDibayar;
 
         $total = (float) $data['total_pelunasan'];
         $formattedTotalPelunasan = $this->formatDecimal($total);
@@ -402,7 +402,7 @@ class TransaksiGadaiController extends Controller
             $tanggalPelunasan,
             $pokokPinjaman,
             $sewaModalTerutang,
-            $biayaAdminAwal,
+            $biayaLainDibayar,
             $total,
             $formattedTotalPelunasan
         ) {
@@ -410,7 +410,7 @@ class TransaksiGadaiController extends Controller
             $transaksi->tanggal_pelunasan = $tanggalPelunasan;
             $transaksi->pokok_dibayar = $this->formatDecimal($pokokPinjaman);
             $transaksi->bunga_dibayar = $this->formatDecimal($sewaModalTerutang);
-            $transaksi->biaya_lain_dibayar = $this->formatDecimal($biayaAdminAwal);
+            $transaksi->biaya_lain_dibayar = $this->formatDecimal($biayaLainDibayar);
             $transaksi->total_pelunasan = $this->formatDecimal($total);
             $transaksi->bunga_terutang_riil = $this->formatDecimal($sewaModalTerutang);
             $transaksi->metode_pembayaran = $data['metode_pembayaran'];
