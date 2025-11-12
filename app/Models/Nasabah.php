@@ -66,4 +66,9 @@ class Nasabah extends Model
     {
         return $this->hasMany(TransaksiGadai::class);
     }
+
+    public function cicilEmasTransactions()
+    {
+        return $this->hasMany(CicilEmasTransaction::class);
+    }
 }
