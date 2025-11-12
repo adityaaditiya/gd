@@ -23,6 +23,8 @@
                     'laporan.saldo-kas',
                     'laporan.transaksi-gadai',
                     'laporan.pelunasan-gadai',
+                    'laporan.batal-gadai',
+                    'laporan.perpanjangan-gadai',
                     'laporan.lelang',
                 ];
                 $isLaporanActive = request()->routeIs(...$laporanRoutes);
@@ -643,6 +645,17 @@
                             ])
                         >
                             {{ __('Laporan Pembatalan Gadai') }}
+                        </a>
+                        <a
+                            href="{{ route('laporan.perpanjangan-gadai') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('laporan.perpanjangan-gadai'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('laporan.perpanjangan-gadai'),
+                            ])
+                        >
+                            {{ __('Laporan Perpanjangan Gadai') }}
                         </a>
                         <a
                             href="{{ route('laporan.lelang') }}"
