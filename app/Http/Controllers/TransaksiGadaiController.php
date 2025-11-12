@@ -468,9 +468,7 @@ class TransaksiGadaiController extends Controller
 
         $targetStart = Carbon::parse($defaultMulai)->startOfDay();
         $originalStart = $this->resolveStartDate($transaksi, $targetStart);
-        $hasElapsed = $targetStart->greaterThan($originalStart);
-        $cutoffDate = $hasElapsed ? $targetStart->copy()->subDay() : $targetStart->copy();
-        $daysElapsed = $hasElapsed ? $this->calculateActualDays($originalStart, $cutoffDate) : 0;
+        $daysElapsed = max(0, $originalStart->diffInDays($targetStart));
         $pokok = (float) ($transaksi->uang_pinjaman ?? 0);
         $tarifBunga = $this->resolveTarifBunga($transaksi);
         $bungaBerjalan = $this->calculateSewaModal($pokok, $tarifBunga, $daysElapsed);
@@ -480,8 +478,6 @@ class TransaksiGadaiController extends Controller
             'defaultTanggalMulai' => $defaultMulai,
             'defaultTenor' => $defaultTenor,
             'bungaBerjalan' => $this->formatDecimal($bungaBerjalan),
-            'extensionCutoff' => $cutoffDate->toDateString(),
-            'extensionHasElapsed' => $hasElapsed,
             'listingQuery' => $this->extractListingQuery($request),
         ]);
     }
@@ -534,9 +530,7 @@ class TransaksiGadaiController extends Controller
         $tenorBaru = max(1, (int) $data['tenor_hari']);
         $tanggalJatuhTempoBaru = $tanggalMulaiBaru->copy()->addDays($tenorBaru - 1);
 
-        $hasElapsed = $tanggalMulaiBaru->greaterThan($originalStart);
-        $cutoffDate = $hasElapsed ? $tanggalMulaiBaru->copy()->subDay() : $tanggalMulaiBaru->copy();
-        $daysElapsed = $hasElapsed ? $this->calculateActualDays($originalStart, $cutoffDate) : 0;
+        $daysElapsed = max(0, $originalStart->diffInDays($tanggalMulaiBaru));
         $pokokPinjaman = (float) ($transaksi->uang_pinjaman ?? 0);
         $tarifBunga = $this->resolveTarifBunga($transaksi);
         $bungaSeharusnya = $this->calculateSewaModal($pokokPinjaman, $tarifBunga, $daysElapsed);
