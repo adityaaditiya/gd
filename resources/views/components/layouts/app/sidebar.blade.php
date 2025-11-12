@@ -39,6 +39,7 @@
                 $isAkuntansiActive = request()->routeIs(...$akuntansiRoutes);
                 $cicilEmasRoutes = [
                     'cicil-emas.transaksi-emas',
+                    'cicil-emas.transaksi-emas.store',
                     'cicil-emas.daftar-cicilan',
                     'cicil-emas.angsuran-rutin',
                     'cicil-emas.riwayat-cicilan',
@@ -51,6 +52,8 @@
                 $isBeliEmasActive = request()->routeIs(...$beliEmasRoutes);
                 $titipEmasRoutes = ['titip-emas.transaksi-titip-emas', 'titip-emas.lihat-titipan'];
                 $isTitipEmasActive = request()->routeIs(...$titipEmasRoutes);
+                $barangRoutes = ['barang.data-barang'];
+                $isBarangActive = request()->routeIs(...$barangRoutes);
                 $nasabahRoutes = [
                     'nasabah.tambah-nasabah',
                     'nasabah.data-nasabah',
@@ -505,6 +508,63 @@
                             ])
                         >
                             {{ __('Lihat Titipan') }}
+                        </a>
+                    </div>
+                </div>
+
+                <div>
+                    <button
+                        type="button"
+                        class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-neutral-700 transition-colors duration-200 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-700 dark:hover:text-white"
+                        data-accordion-toggle
+                        data-accordion-target="barang-menu"
+                        aria-expanded="{{ $isBarangActive ? 'true' : 'false' }}"
+                    >
+                        <span class="flex items-center gap-2">
+                            <svg
+                                class="size-5"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M3.375 19.5h17.25M4.5 8.25h15a.75.75 0 0 1 .75.75v9.75a.75.75 0 0 1-.75.75h-15a.75.75 0 0 1-.75-.75V9a.75.75 0 0 1 .75-.75Zm.75-3h13.5a.75.75 0 0 1 .75.75V8.25H4.5V6a.75.75 0 0 1 .75-.75Z"
+                                />
+                            </svg>
+                            <span>{{ __('Barang') }}</span>
+                        </span>
+                        <svg
+                            data-accordion-icon
+                            class="size-4 transform transition-transform duration-300 {{ $isBarangActive ? 'rotate-90' : '' }}"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                        >
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                        </svg>
+                    </button>
+                    <div
+                        id="barang-menu"
+                        class="ms-3 mt-1 space-y-1 overflow-hidden text-sm transition-all duration-300"
+                        style="max-height: {{ $isBarangActive ? '500px' : '0px' }};"
+                    >
+                        <a
+                            href="{{ route('barang.data-barang') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('barang.data-barang'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('barang.data-barang'),
+                            ])
+                        >
+                            {{ __('Data Barang') }}
                         </a>
                     </div>
                 </div>
