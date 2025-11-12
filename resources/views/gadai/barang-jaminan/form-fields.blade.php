@@ -87,6 +87,7 @@
             name="hps"
             value="{{ old('hps', $barang ? number_format((float) $barang->hps, 2, ',', '.') : '') }}"
             required
+            data-currency-input
             class="block w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
         />
         @error('hps')
@@ -103,6 +104,7 @@
             name="nilai_taksiran"
             value="{{ old('nilai_taksiran', $barang ? number_format((float) $barang->nilai_taksiran, 2, ',', '.') : '') }}"
             required
+            data-currency-input
             class="block w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
         />
         @error('nilai_taksiran')

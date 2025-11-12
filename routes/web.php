@@ -8,6 +8,7 @@ use App\Http\Controllers\LaporanTransaksiGadaiController;
 use App\Http\Controllers\LaporanPembatalanGadaiController;
 use App\Http\Controllers\LaporanLelangController;
 use App\Http\Controllers\LaporanSaldoKasController;
+use App\Http\Controllers\LaporanPerpanjanganGadaiController;
 use App\Http\Controllers\LelangController;
 use App\Http\Controllers\NasabahController;
 use App\Http\Controllers\TransaksiGadaiController;
@@ -46,6 +47,16 @@ Route::middleware(['auth'])->group(function () {
             Route::post('transaksi-gadai/{transaksi}/pelunasan', [TransaksiGadaiController::class, 'settle'])
                 ->whereNumber('transaksi')
                 ->name('transaksi-gadai.settle');
+            Route::get('transaksi-gadai/{transaksi}/perpanjangan', [TransaksiGadaiController::class, 'showExtensionForm'])
+                ->whereNumber('transaksi')
+                ->name('transaksi-gadai.extend-form');
+            Route::post('transaksi-gadai/{transaksi}/perpanjangan', [TransaksiGadaiController::class, 'extend'])
+                ->whereNumber('transaksi')
+                ->name('transaksi-gadai.extend');
+            Route::delete('transaksi-gadai/{transaksi}/perpanjangan/{perpanjangan}', [TransaksiGadaiController::class, 'cancelExtension'])
+                ->whereNumber('transaksi')
+                ->whereNumber('perpanjangan')
+                ->name('transaksi-gadai.extend-cancel');
             Route::get('lihat-barang-gadai', [BarangJaminanController::class, 'index'])->name('lihat-barang-gadai');
             Route::get('barang-gadai/tambah', [BarangJaminanController::class, 'create'])->name('barang-jaminan.create');
             Route::post('barang-gadai', [BarangJaminanController::class, 'store'])->name('barang-jaminan.store');
@@ -68,6 +79,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('transaksi-gadai', [LaporanTransaksiGadaiController::class, 'index'])->name('transaksi-gadai');
             Route::get('pelunasan-gadai', [LaporanPelunasanGadaiController::class, 'index'])->name('pelunasan-gadai');
             Route::get('batal-gadai', [LaporanPembatalanGadaiController::class, 'index'])->name('batal-gadai');
+            Route::get('perpanjangan-gadai', [LaporanPerpanjanganGadaiController::class, 'index'])->name('perpanjangan-gadai');
             Route::get('lelang', [LaporanLelangController::class, 'index'])->name('lelang');
         });
 
