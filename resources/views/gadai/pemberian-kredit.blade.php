@@ -211,6 +211,7 @@
                                     name="uang_pinjaman"
                                     value="{{ old('uang_pinjaman') }}"
                                     required
+                                    data-currency-input
                                     class="block w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
                                 />
                                 @error('uang_pinjaman')
@@ -226,6 +227,7 @@
                                     id="biaya_admin"
                                     name="biaya_admin"
                                     value="{{ old('biaya_admin') }}"
+                                    data-currency-input
                                     class="block w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
                                 />
                                 @error('biaya_admin')
@@ -241,6 +243,7 @@
                                     id="premi"
                                     name="premi"
                                     value="{{ old('premi') }}"
+                                    data-currency-input
                                     class="block w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
                                 />
                                 @error('premi')
