@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\UserAccessController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\BarangController;
 use App\Http\Controllers\BarangJaminanController;
 use App\Http\Controllers\CicilEmasTransaksiController;
 use App\Http\Controllers\LaporanPelunasanGadaiController;
@@ -132,7 +133,8 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('barang')
         ->as('barang.')
         ->group(function () {
-            Route::view('data-barang', 'barang.data-barang')->name('data-barang');
+            Route::get('data-barang', [BarangController::class, 'index'])->name('data-barang');
+            Route::post('data-barang', [BarangController::class, 'store'])->name('data-barang.store');
         });
 
     Route::prefix('nasabah')
