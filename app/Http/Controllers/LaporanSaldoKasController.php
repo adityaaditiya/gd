@@ -29,7 +29,10 @@ class LaporanSaldoKasController extends Controller
         $perPage = (int) ($validated['per_page'] ?? 25);
 
         $mutasiQuery = MutasiKas::query()
-            ->with('jadwalLelang.barang.transaksi.nasabah')
+            ->with([
+                'jadwalLelang.barang.transaksi.nasabah',
+                'transaksiGadai.nasabah',
+            ])
             ->when($tanggalDari, fn ($query) => $query->whereDate('tanggal', '>=', $tanggalDari))
             ->when($tanggalSampai, fn ($query) => $query->whereDate('tanggal', '<=', $tanggalSampai))
             ->when($tipe, fn ($query) => $query->where('tipe', $tipe))

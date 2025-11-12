@@ -303,18 +303,45 @@
                                             <span>{{ __('Batal Gadai') }}</span>
                                         </button>
                                         @php
-                                            $canSettle = !in_array($transaksi->status_transaksi, ['Lunas', 'Siap Lelang', 'Lelang', 'Batal'], true);
-                                            $settleQuery = collect([
+                                            $listingQuery = collect([
                                                 'search' => $search,
                                                 'tanggal_dari' => $tanggalDari,
                                                 'tanggal_sampai' => $tanggalSampai,
                                                 'per_page' => $perPage,
                                                 'page' => $transaksiGadai->currentPage(),
                                             ])->filter(fn ($value) => $value !== null && $value !== '')->all();
+                                            $canExtend = in_array($transaksi->status_transaksi, ['Aktif', 'Perpanjang'], true);
+                                            $extendUrl = $canExtend
+                                                ? route('gadai.transaksi-gadai.extend-form', array_merge(['transaksi' => $transaksi->transaksi_id], $listingQuery))
+                                                : null;
+                                            $canSettle = !in_array($transaksi->status_transaksi, ['Lunas', 'Siap Lelang', 'Lelang', 'Batal'], true);
                                             $settleUrl = $canSettle
-                                                ? route('gadai.transaksi-gadai.settle-form', array_merge(['transaksi' => $transaksi->transaksi_id], $settleQuery))
+                                                ? route('gadai.transaksi-gadai.settle-form', array_merge(['transaksi' => $transaksi->transaksi_id], $listingQuery))
                                                 : null;
                                         @endphp
+                                        @if ($canExtend)
+                                            <a
+                                                href="{{ $extendUrl }}"
+                                                class="flex w-full items-center gap-2 px-4 py-2 text-left text-neutral-700 transition hover:bg-neutral-50 focus:outline-none dark:text-neutral-200 dark:hover:bg-neutral-700/60"
+                                                role="menuitem"
+                                            >
+                                                <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 8.25V5.25H13.5M7.5 15.75V18.75H10.5M8.25 5.25H5.25V8.25M15.75 18.75H18.75V15.75M9 12a3 3 0 1 1 6 0 3 3 0 0 1-6 0Z" />
+                                                </svg>
+                                                <span>{{ __('Perpanjang Gadai') }}</span>
+                                            </a>
+                                        @else
+                                            <span
+                                                class="flex w-full items-center gap-2 px-4 py-2 text-left text-neutral-400 opacity-50 cursor-not-allowed dark:text-neutral-500"
+                                                role="menuitem"
+                                                aria-disabled="true"
+                                            >
+                                                <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 8.25V5.25H13.5M7.5 15.75V18.75H10.5M8.25 5.25H5.25V8.25M15.75 18.75H18.75V15.75M9 12a3 3 0 1 1 6 0 3 3 0 0 1-6 0Z" />
+                                                </svg>
+                                                <span>{{ __('Perpanjang Gadai') }}</span>
+                                            </span>
+                                        @endif
                                         @if ($canSettle)
                                             <a
                                                 href="{{ $settleUrl }}"
