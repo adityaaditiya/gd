@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\UserAccessController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\BarangJaminanController;
 use App\Http\Controllers\LaporanPelunasanGadaiController;
+use App\Http\Controllers\LaporanSaldoKasController;
 use App\Http\Controllers\LaporanTransaksiGadaiController;
 use App\Http\Controllers\LaporanPembatalanGadaiController;
 use App\Http\Controllers\NasabahController;
@@ -55,7 +56,8 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('laporan')
         ->as('laporan.')
         ->group(function () {
-            Route::view('saldo-kas', 'laporan.saldo-kas')->name('saldo-kas');
+            Route::get('saldo-kas', [LaporanSaldoKasController::class, 'index'])
+                ->name('saldo-kas');
             Route::get('transaksi-gadai', [LaporanTransaksiGadaiController::class, 'index'])->name('transaksi-gadai');
             Route::get('pelunasan-gadai', [LaporanPelunasanGadaiController::class, 'index'])->name('pelunasan-gadai');
             Route::get('batal-gadai', [LaporanPembatalanGadaiController::class, 'index'])->name('batal-gadai');
