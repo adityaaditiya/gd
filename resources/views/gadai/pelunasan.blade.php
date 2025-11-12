@@ -153,6 +153,7 @@
                                 value="{{ old('pokok_dibayar', $defaults['pokok_dibayar']) }}"
                                 required
                                 inputmode="decimal"
+                                data-currency-input
                                 class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
                                 placeholder="{{ __('Masukkan nominal pokok…') }}"
                             >
@@ -168,6 +169,7 @@
                                 name="bunga_dibayar"
                                 value="{{ old('bunga_dibayar', $defaults['bunga_dibayar']) }}"
                                 inputmode="decimal"
+                                data-currency-input
                                 class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
                                 placeholder="{{ __('Masukkan nominal bunga…') }}"
                             >
@@ -184,6 +186,7 @@
                             name="biaya_lain_dibayar"
                             value="{{ old('biaya_lain_dibayar', $defaults['biaya_lain_dibayar']) }}"
                             inputmode="decimal"
+                            data-currency-input
                             class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
                             placeholder="{{ __('Nominal biaya lain-lain yang harus dilunasi (jika ada)…') }}"
                         >
@@ -200,6 +203,7 @@
                             value="{{ old('total_pelunasan', $defaults['total_pelunasan']) }}"
                             required
                             inputmode="decimal"
+                            data-currency-input
                             class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
                             placeholder="{{ __('Total dana yang diterima kasir…') }}"
                         >
