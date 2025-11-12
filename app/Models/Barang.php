@@ -13,10 +13,13 @@ class Barang extends Model
         'kode_barcode',
         'nama_barang',
         'kode_intern',
+        'kode_group',
+        'berat',
         'harga',
     ];
 
     protected $casts = [
+        'berat' => 'decimal:3',
         'harga' => 'decimal:2',
     ];
 }

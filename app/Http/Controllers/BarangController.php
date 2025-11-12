@@ -18,6 +18,8 @@ class BarangController extends Controller
                 'kode_barcode',
                 'nama_barang',
                 'kode_intern',
+                'kode_group',
+                'berat',
                 'harga',
                 'created_at',
             ]);
@@ -33,6 +35,8 @@ class BarangController extends Controller
             'kode_barcode' => ['required', 'string', 'max:191', 'unique:barangs,kode_barcode'],
             'nama_barang' => ['required', 'string', 'max:191'],
             'kode_intern' => ['required', 'string', 'max:191', 'unique:barangs,kode_intern'],
+            'kode_group' => ['required', 'string', 'max:191'],
+            'berat' => ['required', 'numeric', 'min:0'],
             'harga' => ['required', 'numeric', 'min:0'],
         ]);
 

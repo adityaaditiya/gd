@@ -74,6 +74,39 @@
                     </div>
 
                     <div class="space-y-1.5">
+                        <label for="kode_group" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Kode Group') }}</label>
+                        <input
+                            type="text"
+                            id="kode_group"
+                            name="kode_group"
+                            value="{{ old('kode_group') }}"
+                            required
+                            maxlength="191"
+                            class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-950 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+                        />
+                        @error('kode_group')
+                            <p class="text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label for="berat" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Berat (gram)') }}</label>
+                        <input
+                            type="number"
+                            id="berat"
+                            name="berat"
+                            value="{{ old('berat') }}"
+                            required
+                            step="0.001"
+                            min="0"
+                            class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-950 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+                        />
+                        @error('berat')
+                            <p class="text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="space-y-1.5">
                         <label for="harga" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Harga (Rp)') }}</label>
                         <div class="flex rounded-lg border border-neutral-300 bg-white text-sm shadow-sm focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-950 dark:focus-within:border-emerald-400 dark:focus-within:ring-emerald-900/40">
                             <span class="flex items-center px-3 text-neutral-500 dark:text-neutral-400">Rp</span>
@@ -123,6 +156,8 @@
                                 <th scope="col" class="px-4 py-3">{{ __('Kode Barcode') }}</th>
                                 <th scope="col" class="px-4 py-3">{{ __('Nama Barang') }}</th>
                                 <th scope="col" class="px-4 py-3">{{ __('Kode Intern') }}</th>
+                                <th scope="col" class="px-4 py-3">{{ __('Kode Group') }}</th>
+                                <th scope="col" class="px-4 py-3 text-right">{{ __('Berat (gram)') }}</th>
                                 <th scope="col" class="px-4 py-3 text-right">{{ __('Harga') }}</th>
                                 <th scope="col" class="px-4 py-3">{{ __('Dibuat') }}</th>
                             </tr>
@@ -134,6 +169,8 @@
                                     <td class="px-4 py-3 align-top font-medium text-neutral-900 dark:text-white">{{ $barang->kode_barcode }}</td>
                                     <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">{{ $barang->nama_barang }}</td>
                                     <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">{{ $barang->kode_intern }}</td>
+                                    <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">{{ $barang->kode_group }}</td>
+                                    <td class="px-4 py-3 align-top text-right text-neutral-700 dark:text-neutral-200">{{ number_format((float) $barang->berat, 3, ',', '.') }}</td>
                                     <td class="px-4 py-3 align-top text-right font-semibold text-neutral-900 dark:text-white">{{ 'Rp '.number_format((float) $barang->harga, 2, ',', '.') }}</td>
                                     <td class="px-4 py-3 align-top text-neutral-500 dark:text-neutral-400">{{ optional($barang->created_at)->format('d M Y') }}</td>
                                 </tr>
