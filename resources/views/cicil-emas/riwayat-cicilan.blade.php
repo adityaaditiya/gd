@@ -7,8 +7,74 @@
             </p>
         </div>
 
+        <form method="GET" class="grid gap-4 rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+            <div class="flex flex-col gap-6 md:flex-row md:items-end">
+                <div class="flex-1">
+                    <label for="search" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Cari Nasabah') }}</label>
+                    <div class="mt-2">
+                        <input
+                            id="search"
+                            name="q"
+                            type="search"
+                            value="{{ $filters['query'] ?? '' }}"
+                            placeholder="{{ __('Nama atau kode member') }}"
+                            class="w-full rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm text-neutral-900 shadow-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-400 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white"
+                        >
+                    </div>
+                </div>
+
+                <div class="md:w-48">
+                    <label for="status" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Status') }}</label>
+                    <div class="mt-2">
+                        @php
+                            $statusOptions = [
+                                '' => __('Semua status'),
+                                'aktif' => __('Aktif'),
+                                'menunggak' => __('Menunggak'),
+                                'lunas' => __('Lunas'),
+                            ];
+                        @endphp
+                        <select
+                            id="status"
+                            name="status"
+                            class="w-full rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm text-neutral-900 shadow-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-400 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white"
+                        >
+                            @foreach($statusOptions as $value => $label)
+                                <option value="{{ $value }}" @selected(($filters['status'] ?? '') === $value)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 dark:focus:ring-offset-neutral-900">
+                        {{ __('Terapkan') }}
+                    </button>
+                    @if(($filters['query'] ?? null) || ($filters['status'] ?? null))
+                        <a href="{{ route('cicil-emas.riwayat-cicilan') }}" class="inline-flex items-center justify-center rounded-lg border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 dark:border-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-800 dark:focus:ring-offset-neutral-900">
+                            {{ __('Atur ulang') }}
+                        </a>
+                    @endif
+                </div>
+            </div>
+
+            @if(($insights instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator) && $insights->total())
+                <p class="text-sm text-neutral-600 dark:text-neutral-300">
+                    {{ __('Menampilkan :from–:to dari :total hasil', [
+                        'from' => number_format($insights->firstItem(), 0, ',', '.'),
+                        'to' => number_format($insights->lastItem(), 0, ',', '.'),
+                        'total' => number_format($insights->total(), 0, ',', '.'),
+                    ]) }}
+                </p>
+            @elseif(($insights->count() ?? 0) > 0 && $totalTransactions)
+                <p class="text-sm text-neutral-600 dark:text-neutral-300">
+                    {{ __('Menampilkan :count hasil', ['count' => number_format($insights->count(), 0, ',', '.')]) }}
+                </p>
+            @endif
+        </form>
+
         <section class="grid gap-4 rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
-            
+
         @if(($insights->count() ?? 0) === 0)
             <div class="rounded-xl border border-dashed border-neutral-300 bg-white p-10 text-center shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
                 <h3 class="text-lg font-semibold text-neutral-800 dark:text-white">{{ __('Belum ada riwayat cicilan.') }}</h3>
@@ -22,13 +88,17 @@
                         $transaction = $insight['model'];
                         $nasabah = $transaction->nasabah;
                         $barang = $insight['barang'];
+                        $installments = $insight['installments'];
+                        $visibleInstallments = $installments->take(4);
+                        $hiddenInstallments = $installments->slice(4);
+                        $today = now()->startOfDay();
                         $statusClass = [
                             'success' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
                             'danger' => 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-200',
                             'info' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-200',
                         ][$insight['status_style'] ?? 'info'] ?? 'bg-neutral-200 text-neutral-800 dark:bg-neutral-700 dark:text-neutral-200';
                     @endphp
-                    <article class="flex flex-col gap-6 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm transition hover:shadow-md dark:border-neutral-700 dark:bg-neutral-900">
+                    <article x-data="{ showAllInstallments: false }" class="flex flex-col gap-6 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm transition hover:shadow-md dark:border-neutral-700 dark:bg-neutral-900">
                         <header class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                             <div>
                                 <h3 class="text-lg font-semibold text-neutral-900 dark:text-white">
@@ -108,10 +178,10 @@
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-neutral-200 dark:divide-neutral-700">
-                                        @foreach($insight['installments'] as $installment)
+                                        @foreach($visibleInstallments as $installment)
                                             @php
                                                 $paid = $installment->paid_at !== null;
-                                                $isOverdue = ! $paid && $installment->due_date->lt(now()->startOfDay());
+                                                $isOverdue = ! $paid && $installment->due_date->lt($today);
                                             @endphp
                                             <tr class="bg-white hover:bg-neutral-50 dark:bg-neutral-900 dark:hover:bg-neutral-800/60">
                                                 <td class="px-4 py-3 font-medium text-neutral-800 dark:text-neutral-200">{{ __('Angsuran :sequence', ['sequence' => $installment->sequence]) }}</td>
@@ -129,12 +199,49 @@
                                                 </td>
                                             </tr>
                                         @endforeach
+                                        @foreach($hiddenInstallments as $installment)
+                                            @php
+                                                $paid = $installment->paid_at !== null;
+                                                $isOverdue = ! $paid && $installment->due_date->lt($today);
+                                            @endphp
+                                            <tr class="bg-white hover:bg-neutral-50 dark:bg-neutral-900 dark:hover:bg-neutral-800/60" x-show="showAllInstallments" x-transition>
+                                                <td class="px-4 py-3 font-medium text-neutral-800 dark:text-neutral-200">{{ __('Angsuran :sequence', ['sequence' => $installment->sequence]) }}</td>
+                                                <td class="px-4 py-3 text-neutral-600 dark:text-neutral-300">{{ $installment->due_date->translatedFormat('d M Y') }}</td>
+                                                <td class="px-4 py-3 text-neutral-600 dark:text-neutral-300">Rp {{ number_format($installment->amount, 0, ',', '.') }}</td>
+                                                <td class="px-4 py-3 text-neutral-600 dark:text-neutral-300">Rp {{ number_format($installment->penalty_amount ?? 0, 0, ',', '.') }}</td>
+                                                <td class="px-4 py-3">
+                                                    @if($paid)
+                                                        <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">{{ __('Lunas :tanggal', ['tanggal' => $installment->paid_at?->translatedFormat('d M Y')]) }}</span>
+                                                    @elseif($isOverdue)
+                                                        <span class="rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-700 dark:bg-rose-900/30 dark:text-rose-200">{{ __('Terlambat') }}</span>
+                                                    @else
+                                                        <span class="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-200">{{ __('Belum dibayar') }}</span>
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @endforeach
                                     </tbody>
                                 </table>
+                                @if($hiddenInstallments->isNotEmpty())
+                                    <div class="flex justify-end">
+                                        <button
+                                            type="button"
+                                            class="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-purple-600 hover:text-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 dark:text-purple-300 dark:hover:text-purple-200 dark:focus:ring-offset-neutral-900"
+                                            x-on:click="showAllInstallments = !showAllInstallments"
+                                            x-bind:aria-expanded="showAllInstallments"
+                                        >
+                                            <span x-show="!showAllInstallments">{{ __('Lihat semua angsuran (:count)', ['count' => $installments->count()]) }}</span>
+                                            <span x-show="showAllInstallments">{{ __('Sembunyikan riwayat lengkap') }}</span>
+                                        </button>
+                                    </div>
+                                @endif
                             </div>
                         </section>
                     </article>
                 @endforeach
+            </div>
+            <div class="mt-4">
+                {{ $insights->onEachSide(1)->links() }}
             </div>
         @endif
         <header class="flex items-center justify-between gap-4">
