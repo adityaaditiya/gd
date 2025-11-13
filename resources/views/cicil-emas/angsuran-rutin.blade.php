@@ -4,6 +4,7 @@
         $today = $today ?? \Illuminate\Support\Carbon::now();
         $filters = $filters ?? [];
         $hasFilters = $hasFilters ?? false;
+        $isDefaultingToToday = $isDefaultingToToday ?? false;
         $statusOptions = [
             'paid' => __('Lunas'),
             'overdue' => __('Terlambat'),
@@ -117,6 +118,11 @@
                         >
                             {{ __('Bersihkan Filter') }}
                         </a>
+                    @elseif ($isDefaultingToToday)
+                        <div class="space-y-1">
+                            <p class="text-base font-semibold text-neutral-800 dark:text-neutral-100">{{ __('Tidak ada angsuran jatuh tempo hari ini') }}</p>
+                            <p class="text-sm">{{ __('Periksa kembali nanti atau terapkan filter untuk meninjau jadwal angsuran lainnya.') }}</p>
+                        </div>
                     @else
                         <div class="space-y-1">
                             <p class="text-base font-semibold text-neutral-800 dark:text-neutral-100">{{ __('Belum ada jadwal angsuran') }}</p>
@@ -132,13 +138,20 @@
                 </div>
             @else
                 <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-2 text-xs font-medium text-neutral-600 dark:border-neutral-700 dark:bg-neutral-800/60 dark:text-neutral-300">
-                    <span>
-                        {{ __('Menampilkan :from-:to dari :total angsuran', [
-                            'from' => number_format($installments->firstItem(), 0, ',', '.'),
-                            'to' => number_format($installments->lastItem(), 0, ',', '.'),
-                            'total' => number_format($installments->total(), 0, ',', '.'),
-                        ]) }}
-                    </span>
+                    <div class="flex flex-col gap-1 text-left md:flex-row md:items-center md:gap-3">
+                        <span>
+                            {{ __('Menampilkan :from-:to dari :total angsuran', [
+                                'from' => number_format($installments->firstItem(), 0, ',', '.'),
+                                'to' => number_format($installments->lastItem(), 0, ',', '.'),
+                                'total' => number_format($installments->total(), 0, ',', '.'),
+                            ]) }}
+                        </span>
+                        @if ($isDefaultingToToday)
+                            <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200">
+                                {{ __('Fokus pada jatuh tempo hari ini (:date)', ['date' => $today->translatedFormat('d M Y')]) }}
+                            </span>
+                        @endif
+                    </div>
                     @if ($hasFilters)
                         <span class="inline-flex items-center gap-2 rounded-full bg-sky-100 px-3 py-1 text-sky-700 dark:bg-sky-900/40 dark:text-sky-200">
                             {{ __('Filter aktif') }}

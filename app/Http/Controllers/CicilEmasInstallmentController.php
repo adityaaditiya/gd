@@ -22,11 +22,24 @@ class CicilEmasInstallmentController extends Controller
 
         $today = Carbon::now()->startOfDay();
         $todayDateString = $today->toDateString();
+
+        $search = trim($filters['search'] ?? '');
+        $filters['search'] = $search;
+        $status = $filters['status'] ?? null;
+        $hasFilters = filled($search)
+            || filled($status)
+            || filled($filters['due_from'] ?? null)
+            || filled($filters['due_until'] ?? null);
+
         $query = CicilEmasInstallment::with(['transaction.nasabah'])
             ->orderBy('due_date')
             ->orderBy('sequence');
 
-        if (filled($search = trim($filters['search'] ?? ''))) {
+        if (! $hasFilters) {
+            $query->whereDate('due_date', '=', $todayDateString);
+        }
+
+        if (filled($search)) {
             $query->where(function ($query) use ($search) {
                 $query->whereHas('transaction.nasabah', function ($nasabahQuery) use ($search) {
                     $nasabahQuery->where('nama', 'like', "%{$search}%")
@@ -38,8 +51,6 @@ class CicilEmasInstallmentController extends Controller
                 });
             });
         }
-
-        $status = $filters['status'] ?? null;
 
         $query->when($status === 'paid', function ($query) {
             $query->whereNotNull('paid_at');
@@ -63,17 +74,13 @@ class CicilEmasInstallmentController extends Controller
 
         $installments = $query->paginate(25)->withQueryString();
 
-        $hasFilters = filled($search)
-            || filled($status)
-            || filled($filters['due_from'] ?? null)
-            || filled($filters['due_until'] ?? null);
-
         return view('cicil-emas.angsuran-rutin', [
             'installments' => $installments,
             'filters' => $filters,
             'hasFilters' => $hasFilters,
             'lateFeePercentagePerDay' => (float) config('cicil_emas.late_fee_percentage_per_day', 0.5),
             'today' => $today,
+            'isDefaultingToToday' => ! $hasFilters,
         ]);
     }
 
