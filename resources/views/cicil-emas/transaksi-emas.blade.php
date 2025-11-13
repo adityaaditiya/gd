@@ -119,7 +119,7 @@
             </div>
         @endif
 
-        <div class="grid gap-6 xl:grid-cols-3">
+        <!-- <div class="grid gap-6 xl:grid-cols-3">
             <div class="space-y-4">
                 <section class="flex flex-col gap-3 rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
                     <header class="flex flex-col gap-1">
@@ -144,7 +144,7 @@
                         <li>{{ __('Data simulasi akan menjadi acuan untuk penjadwalan angsuran berikutnya.') }}</li>
                     </ul>
                 </section>
-            </div>
+            </div> -->
 
             <div class="xl:col-span-2">
                 <div class="rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
@@ -225,14 +225,14 @@
                                     <button
                                         type="button"
                                         data-down-payment-mode-button="nominal"
-                                        class="flex-1 rounded-md px-3 py-1.5 transition"
+                                        class="flex-1 rounded-md px-8 py-2 transition whitespace-nowrap" 
                                     >
                                         {{ __('Nominal (Rp)') }}
                                     </button>
                                     <button
                                         type="button"
                                         data-down-payment-mode-button="percentage"
-                                        class="flex-1 rounded-md px-3 py-1.5 transition"
+                                        class="flex-1 rounded-md px-8 py-2 transition whitespace-nowrap"
                                     >
                                         {{ __('Persentase (%)') }}
                                     </button>
@@ -360,499 +360,514 @@
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const packages = @json($packagesCollection);
-            const marginConfigData = @json($resolvedMarginConfig);
-            const packageSelect = document.querySelector('[data-package-select]');
-            const packageMeta = document.querySelector('[data-package-meta]');
-            const downPaymentInput = document.querySelector('[data-down-payment-input]');
-            const downPaymentHidden = document.querySelector('[data-down-payment-hidden]');
-            const downPaymentDisplay = document.querySelector('[data-down-payment-display]');
-            const downPaymentModeButtons = Array.from(document.querySelectorAll('[data-down-payment-mode-button]'));
-            const downPaymentModeHidden = document.querySelector('[data-down-payment-mode]');
-            const downPaymentLabel = document.querySelector('[data-down-payment-label]');
-            const downPaymentPercentageHidden = document.querySelector('[data-down-payment-percentage]');
-            const tenorHidden = document.querySelector('[data-tenor-input]');
-            const tenorMeta = document.querySelector('[data-tenor-meta]');
-            const tenorCards = Array.from(document.querySelectorAll('[data-tenor-card]'));
-            const tenorOptions = Array.from(document.querySelectorAll('[data-tenor-option]'));
-            const installmentHidden = document.querySelector('[data-installment]');
-            const installmentOutput = document.querySelector('[data-installment-output]');
-            const installmentDisplay = document.querySelector('[data-installment-display]');
-            const marginDisplay = document.querySelector('[data-margin-display]');
-            const financingDisplay = document.querySelector('[data-financing-display]');
-            const summaryPanel = document.querySelector('[data-summary-panel]');
-            const summaryPackage = document.querySelector('[data-summary-package]');
-            const summaryPrice = document.querySelector('[data-summary-price]');
-            const summaryOption = document.querySelector('[data-summary-option]');
-            const summaryPrincipal = document.querySelector('[data-summary-principal]');
-            const summaryMargin = document.querySelector('[data-summary-margin]');
-            const summaryFinancing = document.querySelector('[data-summary-financing]');
+        <script>
+        (() => {
+            function initCicilEmas() {
+                const packages = @json($packagesCollection);
+                const marginConfig = @json($resolvedMarginConfig);
+                const packageSelect = document.querySelector('[data-package-select]');
+                const packageMeta = document.querySelector('[data-package-meta]');
+                const downPaymentInput = document.querySelector('[data-down-payment-input]');
+                const downPaymentHidden = document.querySelector('[data-down-payment-hidden]');
+                const downPaymentDisplay = document.querySelector('[data-down-payment-display]');
+                const downPaymentModeButtons = Array.from(document.querySelectorAll('[data-down-payment-mode-button]'));
+                const downPaymentModeHidden = document.querySelector('[data-down-payment-mode]');
+                const downPaymentLabel = document.querySelector('[data-down-payment-label]');
+                const downPaymentPercentageHidden = document.querySelector('[data-down-payment-percentage]');
+                const tenorHidden = document.querySelector('[data-tenor-input]');
+                const tenorMeta = document.querySelector('[data-tenor-meta]');
+                const tenorCards = Array.from(document.querySelectorAll('[data-tenor-card]'));
+                const tenorOptions = Array.from(document.querySelectorAll('[data-tenor-option]'));
+                const installmentHidden = document.querySelector('[data-installment]');
+                const installmentOutput = document.querySelector('[data-installment-output]');
+                const installmentDisplay = document.querySelector('[data-installment-display]');
+                const marginDisplay = document.querySelector('[data-margin-display]');
+                const financingDisplay = document.querySelector('[data-financing-display]');
+                const summaryPanel = document.querySelector('[data-summary-panel]');
+                const summaryPackage = document.querySelector('[data-summary-package]');
+                const summaryPrice = document.querySelector('[data-summary-price]');
+                const summaryOption = document.querySelector('[data-summary-option]');
+                const summaryPrincipal = document.querySelector('[data-summary-principal]');
+                const summaryMargin = document.querySelector('[data-summary-margin]');
+                const summaryFinancing = document.querySelector('[data-summary-financing]');
 
-            const findPackage = (id) => packages.find((pkg) => pkg.id === id);
-
-            const formatCurrency = (value) =>
-                new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(
-                    Number.isFinite(value) ? value : 0,
-                );
-
-            const formatNumber = (value) =>
-                new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 }).format(
-                    Number.isFinite(value) ? Math.round(value) : 0,
-                );
-
-            const formatCurrencyDetailed = (value) =>
-                new Intl.NumberFormat('id-ID', {
-                    style: 'currency',
-                    currency: 'IDR',
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 2,
-                }).format(Number.isFinite(value) ? value : 0);
-
-            const formatNumberDetailed = (value) =>
-                new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(
-                    Number.isFinite(value) ? value : 0,
-                );
-
-            const formatPercentage = (value) =>
-                new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 }).format(
-                    Number.isFinite(value) ? value : 0,
-                );
-
-            const resolveMarginRate = (tenor) => {
-                const overrides = marginConfigData?.tenor_overrides ?? {};
-                const key = String(Number(tenor));
-
-                if (Object.prototype.hasOwnProperty.call(overrides, key)) {
-                    const overrideValue = Number(overrides[key]);
-                    if (Number.isFinite(overrideValue)) {
-                        return overrideValue;
-                    }
-                }
-
-                const defaultValue = Number(marginConfigData?.default_percentage ?? 0);
-
-                return Number.isFinite(defaultValue) ? defaultValue : 0;
-            };
-
-            const parseCurrencyInput = (value) => {
-                const sanitized = String(value ?? '').replace(/[^0-9]/g, '');
-                return sanitized ? parseInt(sanitized, 10) : 0;
-            };
-
-            const parsePercentageInput = (value) => {
-                const sanitized = String(value ?? '')
-                    .replace(/[^0-9.,-]/g, '')
-                    .replace(',', '.');
-                const parsed = parseFloat(sanitized);
-                return Number.isFinite(parsed) ? parsed : 0;
-            };
-
-            const getDownPaymentMode = () =>
-                downPaymentModeHidden?.value === 'percentage' ? 'percentage' : 'nominal';
-
-            const refreshModeButtons = (mode) => {
-                downPaymentModeButtons.forEach((button) => {
-                    const buttonMode = button.getAttribute('data-down-payment-mode-button');
-                    const isActive = buttonMode === mode;
-                    button.classList.toggle('bg-white', isActive);
-                    button.classList.toggle('text-indigo-600', isActive);
-                    button.classList.toggle('shadow', isActive);
-                    button.classList.toggle('dark:bg-neutral-700', isActive);
-                    button.classList.toggle('dark:text-white', isActive);
-                });
-            };
-
-            const refreshModeLabel = (mode) => {
-                if (!downPaymentLabel) {
-                    return;
-                }
-                downPaymentLabel.textContent = mode === 'percentage'
-                    ? '{{ __('Persen') }}'
-                    : '{{ __('Rupiah') }}';
-            };
-
-            const getNominalValue = () => {
-                const value = Number.parseFloat(downPaymentHidden?.value ?? '0');
-                return Number.isFinite(value) ? value : 0;
-            };
-
-            const setNominalValue = (value) => {
-                const sanitized = Number.isFinite(value) ? Math.max(value, 0) : 0;
-                if (downPaymentHidden) {
-                    downPaymentHidden.value = (Math.round(sanitized * 100) / 100).toFixed(2);
-                }
-                if (getDownPaymentMode() === 'nominal' && downPaymentInput) {
-                    downPaymentInput.value = formatNumber(sanitized);
-                }
-            };
-
-            const getPercentageValue = () => {
-                const value = Number.parseFloat(downPaymentPercentageHidden?.value ?? '0');
-                return Number.isFinite(value) ? value : 0;
-            };
-
-            const setPercentageValue = (value) => {
-                let sanitized = Number.isFinite(value) ? value : 0;
-                sanitized = Math.min(Math.max(sanitized, 0), 100);
-                if (downPaymentPercentageHidden) {
-                    downPaymentPercentageHidden.value = (Math.round(sanitized * 100) / 100).toFixed(2);
-                }
-                if (getDownPaymentMode() === 'percentage' && downPaymentInput) {
-                    downPaymentInput.value = formatPercentage(sanitized);
-                }
-            };
-
-            const refreshDownPaymentInput = () => {
-                const mode = getDownPaymentMode();
-                if (mode === 'percentage') {
-                    if (downPaymentInput) {
-                        downPaymentInput.value = formatPercentage(getPercentageValue());
-                    }
-                } else if (downPaymentInput) {
-                    downPaymentInput.value = formatNumber(getNominalValue());
-                }
-            };
-
-            const toggleTenorCardsDisabled = (disabled) => {
-                tenorCards.forEach((card) => {
-                    const option = card.querySelector('[data-tenor-option]');
-                    if (option) {
-                        option.disabled = disabled;
-                    }
-                    if (disabled) {
-                        card.classList.add('pointer-events-none', 'opacity-60');
-                    } else {
-                        card.classList.remove('pointer-events-none', 'opacity-60');
-                    }
-                });
-            };
-
-            const updateTenorCardsState = (selectedValue) => {
-                tenorCards.forEach((card) => {
-                    const option = card.querySelector('[data-tenor-option]');
-                    if (!option) {
-                        return;
-                    }
-                    const isSelected = String(option.value) === String(selectedValue ?? '');
-                    card.classList.toggle('border-indigo-500', isSelected);
-                    card.classList.toggle('ring-2', isSelected);
-                    card.classList.toggle('ring-indigo-500/40', isSelected);
-                    card.classList.toggle('bg-indigo-50', isSelected);
-                    card.classList.toggle('dark:bg-indigo-500/10', isSelected);
-                });
-            };
-
-            const updateTenorCaptions = (totalPrice, downPayment) => {
-                tenorOptions.forEach((option) => {
-                    const card = option.closest('[data-tenor-card]');
-                    const caption = card?.querySelector('[data-tenor-caption]');
-                    if (!caption) {
-                        return;
-                    }
-                    if (!totalPrice) {
-                        caption.textContent = '{{ __('Pilih barang terlebih dahulu.') }}';
-                        return;
-                    }
-
-                    const tenorValue = Number(option.value);
-                    const remaining = Math.max(totalPrice - downPayment, 0);
-                    const marginRate = resolveMarginRate(tenorValue);
-                    const marginAmount = Math.round((remaining * (marginRate / 100)) * 100) / 100;
-                    const financing = remaining + marginAmount;
-                    const installment = tenorValue > 0 ? Math.round((financing / tenorValue) * 100) / 100 : 0;
-                    const marginLabel = marginRate.toLocaleString('id-ID', { maximumFractionDigits: 2 });
-                    caption.textContent = `${formatCurrencyDetailed(installment)} {{ __('per bulan') }} • {{ __('Margin') }} ${marginLabel}%`;
-                });
-            };
-
-            const setCheckedTenor = (value) => {
-                tenorOptions.forEach((option) => {
-                    option.checked = String(option.value) === String(value ?? '');
-                });
-            };
-
-            const ensureTenorSelection = () => {
-                if (!tenorOptions.length) {
-                    if (tenorHidden) {
-                        tenorHidden.value = '';
-                    }
-                    return '';
-                }
-
-                const currentValue = tenorHidden?.value;
-                if (currentValue && tenorOptions.some((option) => String(option.value) === String(currentValue))) {
-                    setCheckedTenor(currentValue);
-                    return currentValue;
-                }
-
-                const firstValue = tenorOptions[0].value;
-                setCheckedTenor(firstValue);
-                if (tenorHidden) {
-                    tenorHidden.value = firstValue;
-                }
-
-                return firstValue;
-            };
-
-            const updateOutputs = () => {
-                const selectedPackage = findPackage(packageSelect?.value);
-                const totalPrice = Number(selectedPackage?.harga ?? 0);
-                const hasPackage = Boolean(selectedPackage);
-                const mode = getDownPaymentMode();
-
-                toggleTenorCardsDisabled(!hasPackage);
-
-                let downPaymentAmount = 0;
-                let percentValue = 0;
-
-                if (mode === 'percentage') {
-                    let percent = getPercentageValue();
-                    if (!Number.isFinite(percent)) {
-                        percent = 0;
-                    }
-                    percent = Math.min(Math.max(percent, 0), 100);
-                    setPercentageValue(percent);
-                    percentValue = percent;
-                    const computed = hasPackage && totalPrice > 0 ? (totalPrice * percent) / 100 : 0;
-                    downPaymentAmount = Math.round(computed * 100) / 100;
-                    setNominalValue(downPaymentAmount);
-                } else {
-                    let nominal = getNominalValue();
-                    if (!Number.isFinite(nominal) || nominal < 0) {
-                        nominal = 0;
-                    }
-                    if (hasPackage && totalPrice > 0 && nominal > totalPrice) {
-                        nominal = totalPrice;
-                    }
-                    setNominalValue(nominal);
-                    percentValue = totalPrice > 0
-                        ? Math.round((nominal / totalPrice) * 100 * 100) / 100
-                        : 0;
-                    setPercentageValue(percentValue);
-                    downPaymentAmount = nominal;
-                }
-
-                refreshDownPaymentInput();
-
-                updateTenorCardsState(tenorHidden?.value);
-                updateTenorCaptions(totalPrice, downPaymentAmount);
-
-                if (!hasPackage) {
-                    if (packageMeta) {
-                        packageMeta.textContent = '{{ __('Silakan pilih barang emas untuk melihat detail harga.') }}';
-                    }
-                    if (downPaymentDisplay) {
-                        downPaymentDisplay.textContent = mode === 'percentage'
-                            ? '{{ __('Masukkan persentase uang muka (0-100%) untuk melihat estimasi cicilan.') }}'
-                            : '{{ __('Masukkan uang muka untuk menghitung besaran cicilan.') }}';
-                    }
-                    if (tenorMeta) {
-                        tenorMeta.textContent = '{{ __('Pilih barang emas terlebih dahulu sebelum menentukan jangka waktu.') }}';
-                    }
-                    if (installmentHidden) {
-                        installmentHidden.value = '';
-                    }
-                    if (installmentOutput) {
-                        installmentOutput.value = '';
-                    }
-                    if (installmentDisplay) {
-                        installmentDisplay.textContent = '{{ __('Besaran angsuran dihitung dari sisa harga emas dibagi tenor yang dipilih.') }}';
-                    }
-                    if (marginDisplay) {
-                        marginDisplay.textContent = '{{ __('Margin akan dihitung setelah paket dan tenor dipilih.') }}';
-                    }
-                    if (financingDisplay) {
-                        financingDisplay.textContent = '{{ __('Total pembiayaan akan tampil setelah simulasi lengkap.') }}';
-                    }
-                    if (summaryPanel) {
-                        summaryPanel.hidden = true;
-                    }
-                    if (summaryPackage) {
-                        summaryPackage.textContent = '{{ __('Barang belum dipilih.') }}';
-                    }
-                    if (summaryPrice) {
-                        summaryPrice.textContent = '';
-                    }
-                    if (summaryOption) {
-                        summaryOption.textContent = '';
-                    }
-                    if (summaryPrincipal) {
-                        summaryPrincipal.textContent = '';
-                    }
-                    if (summaryMargin) {
-                        summaryMargin.textContent = '';
-                    }
-                    if (summaryFinancing) {
-                        summaryFinancing.textContent = '';
-                    }
+                if (!packageSelect) {
+                    // DOM belum siap atau kita bukan di halaman ini
                     return;
                 }
 
-                const beratDisplay = Number(selectedPackage.berat ?? 0).toLocaleString('id-ID', {
-                    minimumFractionDigits: 3,
-                    maximumFractionDigits: 3,
-                });
-                const groupLabel = selectedPackage.kode_group || selectedPackage.kode_intern || '—';
+                const findPackage = (id) => packages.find((pkg) => String(pkg.id) === String(id));
 
-                if (packageMeta) {
-                    packageMeta.textContent = `${selectedPackage.nama_barang} • ${beratDisplay} gr • ${groupLabel}`;
-                }
-                if (summaryPanel) {
-                    summaryPanel.hidden = false;
-                }
-                if (summaryPackage) {
-                    summaryPackage.textContent = `${selectedPackage.nama_barang} • ${beratDisplay} gr • ${groupLabel}`;
-                }
-                if (summaryPrice) {
-                    summaryPrice.textContent = `{{ __('Harga Barang') }}: ${formatCurrencyDetailed(totalPrice)}`;
-                }
+                const formatCurrency = (value) =>
+                    new Intl.NumberFormat('id-ID', {
+                        style: 'currency',
+                        currency: 'IDR',
+                        maximumFractionDigits: 0,
+                    }).format(Number.isFinite(value) ? value : 0);
 
-                const tenorValue = Number(tenorHidden?.value ?? 0);
-                const principalBalance = Math.max(totalPrice - downPaymentAmount, 0);
-                const marginRate = resolveMarginRate(tenorValue);
-                const marginAmount = Math.round((principalBalance * (marginRate / 100)) * 100) / 100;
-                const financingTotal = principalBalance + marginAmount;
-                const installment = tenorValue > 0 ? Math.round((financingTotal / tenorValue) * 100) / 100 : 0;
-                const marginLabel = Number.isFinite(marginRate)
-                    ? marginRate.toLocaleString('id-ID', { maximumFractionDigits: 2 })
-                    : '0';
+                const formatNumber = (value) =>
+                    new Intl.NumberFormat('id-ID', {
+                        maximumFractionDigits: 0,
+                    }).format(Number.isFinite(value) ? Math.round(value) : 0);
 
-                if (installmentHidden) {
-                    installmentHidden.value = Number.isFinite(installment) ? installment.toFixed(2) : '';
-                }
-                if (installmentOutput) {
-                    installmentOutput.value = installment ? formatNumberDetailed(installment) : '';
-                }
-
-                if (downPaymentDisplay) {
-                    const percentText = percentValue.toLocaleString('id-ID', {
-                        minimumFractionDigits: 0,
+                const formatPercentage = (value) =>
+                    new Intl.NumberFormat('id-ID', {
                         maximumFractionDigits: 2,
+                    }).format(Number.isFinite(value) ? value : 0);
+
+                const parseCurrencyInput = (value) => {
+                    const sanitized = String(value ?? '').replace(/[^0-9]/g, '');
+                    return sanitized ? parseInt(sanitized, 10) : 0;
+                };
+
+                const parsePercentageInput = (value) => {
+                    const sanitized = String(value ?? '')
+                        .replace(/[^0-9.,-]/g, '')
+                        .replace(',', '.');
+                    const parsed = parseFloat(sanitized);
+                    return Number.isFinite(parsed) ? parsed : 0;
+                };
+
+                const getDownPaymentMode = () =>
+                    downPaymentModeHidden?.value === 'percentage' ? 'percentage' : 'nominal';
+
+                const resolveMarginPercentage = (tenor) => {
+                    if (!Number.isFinite(Number(tenor))) {
+                        return Number(marginConfig?.default_percentage ?? 0);
+                    }
+
+                    const overrides = marginConfig?.tenor_overrides ?? {};
+                    const tenorKey = String(tenor);
+                    if (Object.prototype.hasOwnProperty.call(overrides, tenorKey)) {
+                        const overrideValue = Number(overrides[tenorKey]);
+                        return Number.isFinite(overrideValue)
+                            ? overrideValue
+                            : Number(marginConfig?.default_percentage ?? 0);
+                    }
+
+                    return Number(marginConfig?.default_percentage ?? 0);
+                };
+
+                const refreshModeButtons = (mode) => {
+                    downPaymentModeButtons.forEach((button) => {
+                        const buttonMode = button.getAttribute('data-down-payment-mode-button');
+                        const isActive = buttonMode === mode;
+                        button.classList.toggle('bg-white', isActive);
+                        button.classList.toggle('text-indigo-600', isActive);
+                        button.classList.toggle('shadow', isActive);
+                        button.classList.toggle('dark:bg-neutral-700', isActive);
+                        button.classList.toggle('dark:text-white', isActive);
                     });
-                    downPaymentDisplay.textContent = `${formatCurrencyDetailed(downPaymentAmount)} • ${percentText}% {{ __('dari harga barang') }}`;
-                }
-                if (tenorMeta) {
-                    tenorMeta.textContent = tenorValue
-                        ? `{{ __('Cicilan selama :bulan bulan.', ['bulan' => ':bulan']) }}`.replace(':bulan', tenorValue)
-                        : '{{ __('Pilih jangka waktu cicilan untuk melihat estimasi angsuran per bulan.') }}';
-                }
-                if (installmentDisplay) {
-                    installmentDisplay.textContent = tenorValue
-                        ? `${formatCurrencyDetailed(installment)} • {{ __('selama :bulan bulan', ['bulan' => ':bulan']) }}`.replace(':bulan', tenorValue) + ` • {{ __('Margin') }} ${marginLabel}%`
-                        : '{{ __('Besaran angsuran dihitung dari sisa harga emas dibagi tenor yang dipilih.') }}';
-                }
-                if (marginDisplay) {
-                    marginDisplay.textContent = tenorValue
-                        ? `{{ __('Margin') }} ${marginLabel}% • ${formatCurrencyDetailed(marginAmount)}`
-                        : '{{ __('Margin akan dihitung setelah paket dan tenor dipilih.') }}';
-                }
-                if (financingDisplay) {
-                    financingDisplay.textContent = tenorValue
-                        ? `{{ __('Total pembiayaan (pokok + margin)') }}: ${formatCurrencyDetailed(financingTotal)}`
-                        : '{{ __('Total pembiayaan akan tampil setelah simulasi lengkap.') }}';
-                }
-                if (summaryOption) {
-                    summaryOption.textContent = tenorValue
-                        ? `{{ __('Jangka waktu: :bulan bulan', ['bulan' => ':bulan']) }}`.replace(':bulan', tenorValue) + ` • {{ __('Angsuran') }} ${formatCurrencyDetailed(installment)} • {{ __('Margin') }} ${marginLabel}%`
-                        : '';
-                }
-                if (summaryPrincipal) {
-                    summaryPrincipal.textContent = `{{ __('Pokok pembiayaan') }}: ${formatCurrencyDetailed(principalBalance)}`;
-                }
-                if (summaryMargin) {
-                    summaryMargin.textContent = `{{ __('Margin') }} ${marginLabel}% • ${formatCurrencyDetailed(marginAmount)}`;
-                }
-                if (summaryFinancing) {
-                    summaryFinancing.textContent = `{{ __('Total pembiayaan') }}: ${formatCurrencyDetailed(financingTotal)}`;
-                }
-            };
+                };
 
-            const applyDownPaymentMode = (mode) => {
-                const sanitizedMode = mode === 'percentage' ? 'percentage' : 'nominal';
-                if (downPaymentModeHidden) {
-                    downPaymentModeHidden.value = sanitizedMode;
-                }
+                const refreshModeLabel = (mode) => {
+                    if (!downPaymentLabel) return;
+                    downPaymentLabel.textContent =
+                        mode === 'percentage'
+                            ? '{{ __('Persen') }}'
+                            : '{{ __('Rupiah') }}';
+                };
 
-                const selectedPackage = findPackage(packageSelect?.value);
-                const totalPrice = Number(selectedPackage?.harga ?? 0);
+                const getNominalValue = () => {
+                    const value = Number.parseFloat(downPaymentHidden?.value ?? '0');
+                    return Number.isFinite(value) ? value : 0;
+                };
 
-                if (sanitizedMode === 'percentage') {
-                    const nominal = getNominalValue();
-                    if (totalPrice > 0) {
-                        const percentFromNominal = (nominal / totalPrice) * 100;
-                        setPercentageValue(percentFromNominal);
+                const setNominalValue = (value) => {
+                    const sanitized = Number.isFinite(value) ? Math.max(value, 0) : 0;
+                    if (downPaymentHidden) {
+                        downPaymentHidden.value = (Math.round(sanitized * 100) / 100).toFixed(2);
                     }
-                    setPercentageValue(getPercentageValue());
-                } else {
-                    const percent = getPercentageValue();
-                    if (totalPrice > 0) {
-                        const nominalFromPercent = (totalPrice * percent) / 100;
-                        setNominalValue(nominalFromPercent);
+                    if (getDownPaymentMode() === 'nominal' && downPaymentInput) {
+                        downPaymentInput.value = formatNumber(sanitized);
                     }
-                    setNominalValue(getNominalValue());
-                }
+                };
 
-                refreshModeButtons(sanitizedMode);
-                refreshModeLabel(sanitizedMode);
-                refreshDownPaymentInput();
-                updateOutputs();
-            };
+                const getPercentageValue = () => {
+                    const value = Number.parseFloat(downPaymentPercentageHidden?.value ?? '0');
+                    return Number.isFinite(value) ? value : 0;
+                };
 
-            const initialTenor = ensureTenorSelection();
-            updateTenorCardsState(initialTenor);
+                const setPercentageValue = (value) => {
+                    let sanitized = Number.isFinite(value) ? value : 0;
+                    sanitized = Math.min(Math.max(sanitized, 0), 100);
+                    if (downPaymentPercentageHidden) {
+                        downPaymentPercentageHidden.value = (Math.round(sanitized * 100) / 100).toFixed(2);
+                    }
+                    if (getDownPaymentMode() === 'percentage' && downPaymentInput) {
+                        downPaymentInput.value = formatPercentage(sanitized);
+                    }
+                };
 
-            setNominalValue(getNominalValue());
-            setPercentageValue(getPercentageValue());
-            refreshModeButtons(getDownPaymentMode());
-            refreshModeLabel(getDownPaymentMode());
-            refreshDownPaymentInput();
-
-            updateOutputs();
-
-            packageSelect?.addEventListener('change', () => {
-                updateOutputs();
-            });
-
-            if (downPaymentInput) {
-                downPaymentInput.addEventListener('input', () => {
+                const refreshDownPaymentInput = () => {
                     const mode = getDownPaymentMode();
                     if (mode === 'percentage') {
-                        const rawPercent = parsePercentageInput(downPaymentInput.value);
-                        setPercentageValue(rawPercent);
-                    } else {
-                        const rawNominal = parseCurrencyInput(downPaymentInput.value);
-                        setNominalValue(rawNominal);
+                        if (downPaymentInput) {
+                            downPaymentInput.value = formatPercentage(getPercentageValue());
+                        }
+                    } else if (downPaymentInput) {
+                        downPaymentInput.value = formatNumber(getNominalValue());
                     }
+                };
+
+                const toggleTenorCardsDisabled = (disabled) => {
+                    tenorCards.forEach((card) => {
+                        const option = card.querySelector('[data-tenor-option]');
+                        if (option) {
+                            option.disabled = disabled;
+                        }
+                        if (disabled) {
+                            card.classList.add('pointer-events-none', 'opacity-60');
+                        } else {
+                            card.classList.remove('pointer-events-none', 'opacity-60');
+                        }
+                    });
+                };
+
+                const updateTenorCardsState = (selectedValue) => {
+                    tenorCards.forEach((card) => {
+                        const option = card.querySelector('[data-tenor-option]');
+                        if (!option) return;
+                        const isSelected = String(option.value) === String(selectedValue ?? '');
+                        card.classList.toggle('border-indigo-500', isSelected);
+                        card.classList.toggle('ring-2', isSelected);
+                        card.classList.toggle('ring-indigo-500/40', isSelected);
+                        card.classList.toggle('bg-indigo-50', isSelected);
+                        card.classList.toggle('dark:bg-indigo-500/10', isSelected);
+                    });
+                };
+
+                const updateTenorCaptions = (totalPrice, downPayment) => {
+                    tenorOptions.forEach((option) => {
+                        const card = option.closest('[data-tenor-card]');
+                        const caption = card?.querySelector('[data-tenor-caption]');
+                        if (!caption) return;
+
+                        if (!totalPrice) {
+                            caption.textContent = '{{ __('Pilih barang terlebih dahulu.') }}';
+                            return;
+                        }
+
+                        const tenorValue = Number(option.value);
+                        const principalBalance = Math.max(totalPrice - downPayment, 0);
+                        const marginPercentage = resolveMarginPercentage(tenorValue);
+                        const marginAmount =
+                            Math.round(principalBalance * (marginPercentage / 100) * 100) / 100;
+                        const totalFinanced = principalBalance + marginAmount;
+                        const installment =
+                            tenorValue > 0 ? Math.round((totalFinanced / tenorValue) * 100) / 100 : 0;
+                        caption.textContent = `${formatCurrency(installment)} {{ __('per bulan') }}`;
+                    });
+                };
+
+                const setCheckedTenor = (value) => {
+                    tenorOptions.forEach((option) => {
+                        option.checked = String(option.value) === String(value ?? '');
+                    });
+                };
+
+                const ensureTenorSelection = () => {
+                    if (!tenorOptions.length) {
+                        if (tenorHidden) {
+                            tenorHidden.value = '';
+                        }
+                        return '';
+                    }
+
+                    const currentValue = tenorHidden?.value;
+                    if (
+                        currentValue &&
+                        tenorOptions.some(
+                            (option) => String(option.value) === String(currentValue),
+                        )
+                    ) {
+                        setCheckedTenor(currentValue);
+                        return currentValue;
+                    }
+
+                    const firstValue = tenorOptions[0].value;
+                    setCheckedTenor(firstValue);
+                    if (tenorHidden) {
+                        tenorHidden.value = firstValue;
+                    }
+
+                    return firstValue;
+                };
+
+                const updateOutputs = () => {
+                    const selectedPackage = findPackage(packageSelect?.value);
+                    const totalPrice = Number(selectedPackage?.harga ?? 0);
+                    const hasPackage = Boolean(selectedPackage);
+                    const mode = getDownPaymentMode();
+
+                    toggleTenorCardsDisabled(!hasPackage);
+
+                    let downPaymentAmount = 0;
+                    let percentValue = 0;
+
+                    if (mode === 'percentage') {
+                        let percent = getPercentageValue();
+                        if (!Number.isFinite(percent)) {
+                            percent = 0;
+                        }
+                        percent = Math.min(Math.max(percent, 0), 100);
+                        setPercentageValue(percent);
+                        percentValue = percent;
+                        const computed =
+                            hasPackage && totalPrice > 0
+                                ? (totalPrice * percent) / 100
+                                : 0;
+                        downPaymentAmount = Math.round(computed * 100) / 100;
+                        setNominalValue(downPaymentAmount);
+                    } else {
+                        let nominal = getNominalValue();
+                        if (!Number.isFinite(nominal) || nominal < 0) {
+                            nominal = 0;
+                        }
+                        if (hasPackage && totalPrice > 0 && nominal > totalPrice) {
+                            nominal = totalPrice;
+                        }
+                        setNominalValue(nominal);
+                        percentValue =
+                            totalPrice > 0
+                                ? Math.round((nominal / totalPrice) * 100 * 100) / 100
+                                : 0;
+                        setPercentageValue(percentValue);
+                        downPaymentAmount = nominal;
+                    }
+
+                    refreshDownPaymentInput();
+                    updateTenorCardsState(tenorHidden?.value);
+                    updateTenorCaptions(totalPrice, downPaymentAmount);
+
+                    if (!hasPackage) {
+                        if (packageMeta) {
+                            packageMeta.textContent =
+                                '{{ __('Silakan pilih barang emas untuk melihat detail harga.') }}';
+                        }
+                        if (downPaymentDisplay) {
+                            downPaymentDisplay.textContent =
+                                mode === 'percentage'
+                                    ? '{{ __('Masukkan persentase uang muka (0-100%) untuk melihat estimasi cicilan.') }}'
+                                    : '{{ __('Masukkan uang muka untuk menghitung besaran cicilan.') }}';
+                        }
+                        if (tenorMeta) {
+                            tenorMeta.textContent =
+                                '{{ __('Pilih barang emas terlebih dahulu sebelum menentukan jangka waktu.') }}';
+                        }
+                        if (installmentHidden) installmentHidden.value = '';
+                        if (installmentOutput) installmentOutput.value = '';
+                        if (installmentDisplay) {
+                            installmentDisplay.textContent =
+                                '{{ __('Besaran angsuran dihitung dari sisa harga emas dibagi tenor yang dipilih.') }}';
+                        }
+                        if (marginDisplay) {
+                            marginDisplay.textContent =
+                                '{{ __('Margin akan dihitung setelah paket dan tenor dipilih.') }}';
+                        }
+                        if (financingDisplay) {
+                            financingDisplay.textContent =
+                                '{{ __('Total pembiayaan akan tampil setelah simulasi lengkap.') }}';
+                        }
+                        if (summaryPanel) summaryPanel.hidden = true;
+                        if (summaryPackage) {
+                            summaryPackage.textContent =
+                                '{{ __('Barang belum dipilih.') }}';
+                        }
+                        if (summaryPrice) summaryPrice.textContent = '';
+                        if (summaryOption) summaryOption.textContent = '';
+                        if (summaryPrincipal) summaryPrincipal.textContent = '';
+                        if (summaryMargin) summaryMargin.textContent = '';
+                        if (summaryFinancing) summaryFinancing.textContent = '';
+                        return;
+                    }
+
+                    const beratDisplay = Number(selectedPackage.berat ?? 0).toLocaleString('id-ID', {
+                        minimumFractionDigits: 3,
+                        maximumFractionDigits: 3,
+                    });
+                    const groupLabel =
+                        selectedPackage.kode_group ||
+                        selectedPackage.kode_intern ||
+                        '—';
+
+                    if (packageMeta) {
+                        packageMeta.textContent = `${selectedPackage.nama_barang} • ${beratDisplay} gr • ${groupLabel}`;
+                    }
+                    if (summaryPanel) summaryPanel.hidden = false;
+                    if (summaryPackage) {
+                        summaryPackage.textContent = `${selectedPackage.nama_barang} • ${beratDisplay} gr • ${groupLabel}`;
+                    }
+                    if (summaryPrice) {
+                        summaryPrice.textContent =
+                            `{{ __('Harga Barang') }}: ${formatCurrency(totalPrice)}`;
+                    }
+
+                    const tenorValue = Number(tenorHidden?.value ?? 0);
+                    const principalBalance = Math.max(totalPrice - downPaymentAmount, 0);
+                    const marginPercentage = resolveMarginPercentage(tenorValue);
+                    const marginAmount =
+                        Math.round(principalBalance * (marginPercentage / 100) * 100) / 100;
+                    const totalFinanced = principalBalance + marginAmount;
+                    const installment =
+                        tenorValue > 0
+                            ? Math.round((totalFinanced / tenorValue) * 100) / 100
+                            : 0;
+
+                    if (installmentHidden) {
+                        installmentHidden.value = installment.toFixed(2);
+                    }
+                    if (installmentOutput) {
+                        installmentOutput.value = installment
+                            ? formatNumber(installment)
+                            : '';
+                    }
+
+                    if (downPaymentDisplay) {
+                        const percentText = percentValue.toLocaleString('id-ID', {
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 2,
+                        });
+                        downPaymentDisplay.textContent =
+                            `${formatCurrency(downPaymentAmount)} • ${percentText}% {{ __('dari harga barang') }}`;
+                    }
+                    if (tenorMeta) {
+                        tenorMeta.textContent = tenorValue
+                            ? `{{ __('Cicilan selama :bulan bulan.', ['bulan' => ':bulan']) }}`.replace(
+                                  ':bulan',
+                                  tenorValue,
+                              )
+                            : '{{ __('Pilih jangka waktu cicilan untuk melihat estimasi angsuran per bulan.') }}';
+                    }
+                    if (installmentDisplay) {
+                        installmentDisplay.textContent = tenorValue
+                            ? `${formatCurrency(installment)} • {{ __('dibayar setiap bulan selama :bulan bulan', ['bulan' => ':bulan']) }}`.replace(
+                                  ':bulan',
+                                  tenorValue,
+                              )
+                            : '{{ __('Besaran angsuran dihitung dari sisa harga emas dibagi tenor yang dipilih.') }}';
+                    }
+                    if (marginDisplay) {
+                        marginDisplay.textContent = tenorValue
+                            ? `${formatCurrency(marginAmount)} • ${formatPercentage(marginPercentage)}% {{ __('tarif margin') }}`
+                            : '{{ __('Margin akan dihitung setelah paket dan tenor dipilih.') }}';
+                    }
+                    if (financingDisplay) {
+                        financingDisplay.textContent = tenorValue
+                            ? `{{ __('Total Pembiayaan') }}: ${formatCurrency(totalFinanced)} • {{ __('Pokok Pembiayaan') }} ${formatCurrency(principalBalance)}`
+                            : '{{ __('Total pembiayaan akan tampil setelah simulasi lengkap.') }}';
+                    }
+                    if (summaryOption) {
+                        summaryOption.textContent = tenorValue
+                            ? `{{ __('Jangka waktu: :bulan bulan', ['bulan' => ':bulan']) }}`.replace(
+                                  ':bulan',
+                                  tenorValue,
+                              ) +
+                              ` • {{ __('Angsuran') }} ${formatCurrency(installment)}`
+                            : '';
+                    }
+                    if (summaryPrincipal) {
+                        summaryPrincipal.textContent = `{{ __('Pokok Pembiayaan') }}: ${formatCurrency(principalBalance)}`;
+                    }
+                    if (summaryMargin) {
+                        summaryMargin.textContent = `{{ __('Margin') }}: ${formatCurrency(marginAmount)} • ${formatPercentage(marginPercentage)}%`;
+                    }
+                    if (summaryFinancing) {
+                        summaryFinancing.textContent = `{{ __('Total Pembiayaan') }}: ${formatCurrency(totalFinanced)}`;
+                    }
+                };
+
+                const applyDownPaymentMode = (mode) => {
+                    const sanitizedMode = mode === 'percentage' ? 'percentage' : 'nominal';
+                    if (downPaymentModeHidden) {
+                        downPaymentModeHidden.value = sanitizedMode;
+                    }
+
+                    const selectedPackage = findPackage(packageSelect?.value);
+                    const totalPrice = Number(selectedPackage?.harga ?? 0);
+
+                    if (sanitizedMode === 'percentage') {
+                        const nominal = getNominalValue();
+                        if (totalPrice > 0) {
+                            const percentFromNominal = (nominal / totalPrice) * 100;
+                            setPercentageValue(percentFromNominal);
+                        }
+                        setPercentageValue(getPercentageValue());
+                    } else {
+                        const percent = getPercentageValue();
+                        if (totalPrice > 0) {
+                            const nominalFromPercent = (totalPrice * percent) / 100;
+                            setNominalValue(nominalFromPercent);
+                        }
+                        setNominalValue(getNominalValue());
+                    }
+
+                    refreshModeButtons(sanitizedMode);
+                    refreshModeLabel(sanitizedMode);
+                    refreshDownPaymentInput();
+                    updateOutputs();
+                };
+
+                const initialTenor = ensureTenorSelection();
+                updateTenorCardsState(initialTenor);
+                setNominalValue(getNominalValue());
+                setPercentageValue(getPercentageValue());
+                refreshModeButtons(getDownPaymentMode());
+                refreshModeLabel(getDownPaymentMode());
+                refreshDownPaymentInput();
+                updateOutputs();
+
+                packageSelect?.addEventListener('change', () => {
                     updateOutputs();
                 });
 
-                downPaymentInput.addEventListener('blur', () => {
-                    refreshDownPaymentInput();
+                if (downPaymentInput) {
+                    downPaymentInput.addEventListener('input', () => {
+                        const mode = getDownPaymentMode();
+                        if (mode === 'percentage') {
+                            const rawPercent = parsePercentageInput(downPaymentInput.value);
+                            setPercentageValue(rawPercent);
+                        } else {
+                            const rawNominal = parseCurrencyInput(downPaymentInput.value);
+                            setNominalValue(rawNominal);
+                        }
+                        updateOutputs();
+                    });
+
+                    downPaymentInput.addEventListener('blur', () => {
+                        refreshDownPaymentInput();
+                    });
+                }
+
+                downPaymentModeButtons.forEach((button) => {
+                    button.addEventListener('click', () => {
+                        const mode = button.getAttribute('data-down-payment-mode-button');
+                        applyDownPaymentMode(mode);
+                    });
+                });
+
+                tenorOptions.forEach((option) => {
+                    option.addEventListener('change', () => {
+                        if (!option.checked) return;
+                        if (tenorHidden) {
+                            tenorHidden.value = option.value;
+                        }
+                        setCheckedTenor(option.value);
+                        updateTenorCardsState(option.value);
+                        updateOutputs();
+                    });
                 });
             }
 
-            downPaymentModeButtons.forEach((button) => {
-                button.addEventListener('click', () => {
-                    const mode = button.getAttribute('data-down-payment-mode-button');
-                    applyDownPaymentMode(mode);
-                });
-            });
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initCicilEmas, { once: true });
+            } else {
+                initCicilEmas();
+            }
 
-            tenorOptions.forEach((option) => {
-                option.addEventListener('change', () => {
-                    if (!option.checked) {
-                        return;
-                    }
-                    if (tenorHidden) {
-                        tenorHidden.value = option.value;
-                    }
-                    setCheckedTenor(option.value);
-                    updateTenorCardsState(option.value);
-                    updateOutputs();
-                });
+            document.addEventListener('livewire:navigated', () => {
+                initCicilEmas();
             });
-        });
+        })();
     </script>
 </x-layouts.app>
