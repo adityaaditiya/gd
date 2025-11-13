@@ -45,6 +45,7 @@
                                 <th scope="col" class="px-4 py-3 text-right">{{ __('Harga') }}</th>
                                 <th scope="col" class="px-4 py-3 text-right">{{ __('Uang Muka') }}</th>
                                 <th scope="col" class="px-4 py-3 text-right">{{ __('Margin') }}</th>
+                                <th scope="col" class="px-4 py-3 text-right">{{ __('Administrasi') }}</th>
                                 <th scope="col" class="px-4 py-3 text-right">{{ __('Angsuran / Bln') }}</th>
                                 <th scope="col" class="px-4 py-3 text-center">{{ __('Tenor') }}</th>
                             </tr>
@@ -78,22 +79,25 @@
                                         </div>
                                     </td>
                                     <td class="px-4 py-3 align-top text-right text-neutral-700 dark:text-neutral-200">
-                                        {{ number_format((float) $transaction->harga_emas, 2, ',', '.') }}
+                                        {{ number_format((float) $transaction->harga_emas, 0, ',', '.') }}
                                     </td>
                                     <td class="px-4 py-3 align-top text-right text-neutral-700 dark:text-neutral-200">
                                         <div class="flex flex-col items-end">
-                                            <span class="font-semibold text-neutral-900 dark:text-white">{{ number_format((float) $transaction->estimasi_uang_muka, 2, ',', '.') }}</span>
+                                            <span class="font-semibold text-neutral-900 dark:text-white">{{ number_format((float) $transaction->estimasi_uang_muka, 0, ',', '.') }}</span>
                                             <span class="text-xs text-neutral-500 dark:text-neutral-400">{{ number_format((float) $transaction->dp_percentage, 2, ',', '.') }}%</span>
                                         </div>
                                     </td>
                                     <td class="px-4 py-3 align-top text-right text-neutral-700 dark:text-neutral-200">
                                         <div class="flex flex-col items-end">
-                                            <span class="font-semibold text-neutral-900 dark:text-white">{{ number_format((float) $transaction->margin_amount, 2, ',', '.') }}</span>
+                                            <span class="font-semibold text-neutral-900 dark:text-white">{{ number_format((float) $transaction->margin_amount, 0, ',', '.') }}</span>
                                             <span class="text-xs text-neutral-500 dark:text-neutral-400">{{ number_format((float) $transaction->margin_percentage, 2, ',', '.') }}%</span>
                                         </div>
                                     </td>
                                     <td class="px-4 py-3 align-top text-right text-neutral-700 dark:text-neutral-200">
-                                        {{ number_format((float) $transaction->besaran_angsuran, 2, ',', '.') }}
+                                        {{ number_format((float) $transaction->administrasi, 0, ',', '.') }}
+                                    </td>
+                                    <td class="px-4 py-3 align-top text-right text-neutral-700 dark:text-neutral-200">
+                                        {{ number_format((float) $transaction->besaran_angsuran, 0, ',', '.') }}
                                     </td>
                                     <td class="px-4 py-3 align-top text-center text-neutral-700 dark:text-neutral-200">
                                         <span class="inline-flex rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200">{{ $transaction->tenor_bulan }} {{ __('Bulan') }}</span>

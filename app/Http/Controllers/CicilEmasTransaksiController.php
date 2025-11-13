@@ -78,6 +78,7 @@ class CicilEmasTransaksiController extends Controller
             ],
             'tenor_bulan' => ['required', 'integer', Rule::in($tenorOptions->all())],
             'besaran_angsuran' => ['required', 'numeric', 'min:0'],
+            'administrasi' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         $package = $packages->get($validated['package_id']);
@@ -101,6 +102,7 @@ class CicilEmasTransaksiController extends Controller
             $downPayment = max($downPayment, 0);
         }
         $tenor = (int) $validated['tenor_bulan'];
+        $administrationFee = round((float) ($validated['administrasi'] ?? 0), 2);
 
         if ($downPayment < 0) {
             throw ValidationException::withMessages([
@@ -111,7 +113,7 @@ class CicilEmasTransaksiController extends Controller
         $principalBalance = max($totalPrice - $downPayment, 0);
         $marginPercentage = $this->resolveMarginPercentage($tenor);
         $marginAmount = round($principalBalance * ($marginPercentage / 100), 2);
-        $totalFinanced = $principalBalance + $marginAmount;
+        $totalFinanced = $principalBalance + $marginAmount + $administrationFee;
         $installment = $tenor > 0
             ? round($totalFinanced / $tenor, 2)
             : 0.0;
@@ -136,6 +138,7 @@ class CicilEmasTransaksiController extends Controller
             'pokok_pembiayaan' => $principalBalance,
             'margin_percentage' => $marginPercentage,
             'margin_amount' => $marginAmount,
+            'administrasi' => $administrationFee,
             'total_pembiayaan' => $totalFinanced,
             'tenor_bulan' => $tenor,
             'besaran_angsuran' => $installment,
@@ -165,6 +168,7 @@ class CicilEmasTransaksiController extends Controller
                 'margin_amount' => $marginAmount,
                 'total_pembiayaan' => $totalFinanced,
                 'pokok_pembiayaan' => $principalBalance,
+                'administrasi' => $administrationFee,
                 'total' => $totalPrice,
                 'transaksi_id' => $transaction->id,
             ]);
