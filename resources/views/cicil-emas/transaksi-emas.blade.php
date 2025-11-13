@@ -93,6 +93,14 @@
                             @endif
                         </div>
                         <div class="space-y-1">
+                            <dt class="font-semibold text-neutral-900 dark:text-white">{{ __('Biaya Administrasi') }}</dt>
+                            @if (isset($summary['administrasi']))
+                                <dd>{{ number_format($summary['administrasi'], 2, ',', '.') }}</dd>
+                            @else
+                                <dd>—</dd>
+                            @endif
+                        </div>
+                        <div class="space-y-1">
                             <dt class="font-semibold text-neutral-900 dark:text-white">{{ __('Total Pembiayaan') }}</dt>
                             @if (isset($summary['total_pembiayaan']))
                                 <dd class="space-y-1">
@@ -306,7 +314,35 @@
                                 </p>
                             </div>
 
-                            <div>
+                            <div class="md:col-span-1">
+                                <label for="administrasi" class="mb-2 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
+                                    {{ __('Biaya Administrasi') }}
+                                    <span class="font-normal text-xs text-neutral-500 dark:text-neutral-400">({{ __('opsional') }})</span>
+                                </label>
+                                <div class="flex overflow-hidden rounded-lg border border-neutral-300 bg-white shadow-sm dark:border-neutral-600 dark:bg-neutral-800">
+                                    <span class="flex items-center justify-center bg-neutral-100 px-3 text-xs font-semibold uppercase tracking-wide text-neutral-600 dark:bg-neutral-700 dark:text-neutral-200">
+                                        {{ __('Rp') }}
+                                    </span>
+                                    <input
+                                        id="administrasi"
+                                        name="administrasi"
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        value="{{ old('administrasi', '0') }}"
+                                        class="w-full border-0 bg-transparent px-3 py-2 text-sm font-semibold text-neutral-900 focus:outline-none focus:ring-0 dark:text-white"
+                                        data-administration-input
+                                    >
+                                </div>
+                                @error('administrasi')
+                                    <p class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
+                                @enderror
+                                <p class="mt-2 text-xs text-neutral-500 dark:text-neutral-400" data-administration-display>
+                                    {{ __('Jika diisi, biaya administrasi akan ditambahkan ke total pembiayaan cicilan.') }}
+                                </p>
+                            </div>
+
+                            <div class="md:col-span-1">
                                 <label for="besaran_angsuran_display" class="mb-2 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
                                     {{ __('Estimasi Angsuran Bulanan') }}
                                 </label>
@@ -342,6 +378,7 @@
                                 <li data-summary-option></li>
                                 <li data-summary-principal></li>
                                 <li data-summary-margin></li>
+                                <li data-summary-administration></li>
                                 <li data-summary-financing></li>
                             </ul>
                         </div>
@@ -390,6 +427,9 @@
                 const summaryPrincipal = document.querySelector('[data-summary-principal]');
                 const summaryMargin = document.querySelector('[data-summary-margin]');
                 const summaryFinancing = document.querySelector('[data-summary-financing]');
+                const administrationInput = document.querySelector('[data-administration-input]');
+                const administrationDisplay = document.querySelector('[data-administration-display]');
+                const summaryAdministration = document.querySelector('[data-summary-administration]');
 
                 if (!packageSelect) {
                     // DOM belum siap atau kita bukan di halaman ini
@@ -430,6 +470,26 @@
 
                 const getDownPaymentMode = () =>
                     downPaymentModeHidden?.value === 'percentage' ? 'percentage' : 'nominal';
+
+                const getAdministrationValue = () => {
+                    if (!administrationInput) {
+                        return 0;
+                    }
+
+                    const raw = administrationInput.value;
+
+                    if (raw === '' || raw === null || raw === undefined) {
+                        return 0;
+                    }
+
+                    const parsed = Number.parseFloat(raw);
+
+                    if (!Number.isFinite(parsed) || parsed < 0) {
+                        return 0;
+                    }
+
+                    return parsed;
+                };
 
                 const resolveMarginPercentage = (tenor) => {
                     if (!Number.isFinite(Number(tenor))) {
@@ -537,7 +597,7 @@
                     });
                 };
 
-                const updateTenorCaptions = (totalPrice, downPayment) => {
+                const updateTenorCaptions = (totalPrice, downPayment, administration) => {
                     tenorOptions.forEach((option) => {
                         const card = option.closest('[data-tenor-card]');
                         const caption = card?.querySelector('[data-tenor-caption]');
@@ -550,10 +610,11 @@
 
                         const tenorValue = Number(option.value);
                         const principalBalance = Math.max(totalPrice - downPayment, 0);
+                        const administrationAmount = Math.max(Number(administration) || 0, 0);
                         const marginPercentage = resolveMarginPercentage(tenorValue);
                         const marginAmount =
                             Math.round(principalBalance * (marginPercentage / 100) * 100) / 100;
-                        const totalFinanced = principalBalance + marginAmount;
+                        const totalFinanced = principalBalance + marginAmount + administrationAmount;
                         const installment =
                             tenorValue > 0 ? Math.round((totalFinanced / tenorValue) * 100) / 100 : 0;
                         caption.textContent = `${formatCurrency(installment)} {{ __('per bulan') }}`;
@@ -638,7 +699,8 @@
 
                     refreshDownPaymentInput();
                     updateTenorCardsState(tenorHidden?.value);
-                    updateTenorCaptions(totalPrice, downPaymentAmount);
+                    const administrationAmount = Math.max(getAdministrationValue(), 0);
+                    updateTenorCaptions(totalPrice, downPaymentAmount, administrationAmount);
 
                     if (!hasPackage) {
                         if (packageMeta) {
@@ -678,7 +740,12 @@
                         if (summaryOption) summaryOption.textContent = '';
                         if (summaryPrincipal) summaryPrincipal.textContent = '';
                         if (summaryMargin) summaryMargin.textContent = '';
+                        if (summaryAdministration) summaryAdministration.textContent = '';
                         if (summaryFinancing) summaryFinancing.textContent = '';
+                        if (administrationDisplay) {
+                            administrationDisplay.textContent =
+                                '{{ __('Jika diisi, biaya administrasi akan ditambahkan ke total pembiayaan cicilan.') }}';
+                        }
                         return;
                     }
 
@@ -708,7 +775,7 @@
                     const marginPercentage = resolveMarginPercentage(tenorValue);
                     const marginAmount =
                         Math.round(principalBalance * (marginPercentage / 100) * 100) / 100;
-                    const totalFinanced = principalBalance + marginAmount;
+                    const totalFinanced = principalBalance + marginAmount + administrationAmount;
                     const installment =
                         tenorValue > 0
                             ? Math.round((totalFinanced / tenorValue) * 100) / 100
@@ -752,9 +819,14 @@
                             ? `${formatCurrency(marginAmount)} • ${formatPercentage(marginPercentage)}% {{ __('tarif margin') }}`
                             : '{{ __('Margin akan dihitung setelah paket dan tenor dipilih.') }}';
                     }
+                    if (administrationDisplay) {
+                        administrationDisplay.textContent = administrationAmount > 0
+                            ? `{{ __('Biaya Administrasi') }}: ${formatCurrency(administrationAmount)} {{ __('akan ditambahkan ke total pembiayaan.') }}`
+                            : '{{ __('Jika diisi, biaya administrasi akan ditambahkan ke total pembiayaan cicilan.') }}';
+                    }
                     if (financingDisplay) {
                         financingDisplay.textContent = tenorValue
-                            ? `{{ __('Total Pembiayaan') }}: ${formatCurrency(totalFinanced)} • {{ __('Pokok Pembiayaan') }} ${formatCurrency(principalBalance)}`
+                            ? `{{ __('Total Pembiayaan') }}: ${formatCurrency(totalFinanced)} • {{ __('Pokok Pembiayaan') }} ${formatCurrency(principalBalance)} • {{ __('Margin') }} ${formatCurrency(marginAmount)} • {{ __('Administrasi') }} ${formatCurrency(administrationAmount)}`
                             : '{{ __('Total pembiayaan akan tampil setelah simulasi lengkap.') }}';
                     }
                     if (summaryOption) {
@@ -771,6 +843,9 @@
                     }
                     if (summaryMargin) {
                         summaryMargin.textContent = `{{ __('Margin') }}: ${formatCurrency(marginAmount)} • ${formatPercentage(marginPercentage)}%`;
+                    }
+                    if (summaryAdministration) {
+                        summaryAdministration.textContent = `{{ __('Biaya Administrasi') }}: ${formatCurrency(administrationAmount)}`;
                     }
                     if (summaryFinancing) {
                         summaryFinancing.textContent = `{{ __('Total Pembiayaan') }}: ${formatCurrency(totalFinanced)}`;
@@ -856,6 +931,25 @@
                         updateTenorCardsState(option.value);
                         updateOutputs();
                     });
+                });
+
+                administrationInput?.addEventListener('input', () => {
+                    if (administrationInput.value !== '' && Number.parseFloat(administrationInput.value ?? '0') < 0) {
+                        administrationInput.value = '0';
+                    }
+
+                    updateOutputs();
+                });
+
+                administrationInput?.addEventListener('blur', () => {
+                    let value = getAdministrationValue();
+
+                    if (!Number.isFinite(value) || value < 0) {
+                        value = 0;
+                    }
+
+                    administrationInput.value = value ? value.toFixed(2) : '0';
+                    updateOutputs();
                 });
             }
 

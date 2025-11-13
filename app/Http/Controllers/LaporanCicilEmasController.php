@@ -72,6 +72,7 @@ class LaporanCicilEmasController extends Controller
         $totalPrincipal = (float) $insights->sum('principal_without_margin');
         $totalFinanced = (float) $insights->sum('total_financed');
         $totalMargin = (float) $insights->sum('margin_amount');
+        $totalAdministration = (float) $insights->sum('administrasi');
         $totalOutstanding = (float) $insights->sum(function ($insight) {
             return (float) ($insight['outstanding_balance'] ?? $insight['outstanding_principal'] ?? 0);
         });
@@ -107,6 +108,7 @@ class LaporanCicilEmasController extends Controller
             'total_principal' => $totalPrincipal,
             'total_financed' => $totalFinanced,
             'total_margin' => $totalMargin,
+            'total_administration' => $totalAdministration,
             'total_outstanding' => $totalOutstanding,
             'total_penalty' => $totalPenalty,
             'total_paid' => $totalPaid,
