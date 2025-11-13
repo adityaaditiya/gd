@@ -60,6 +60,10 @@
                     <dd class="text-xl font-semibold text-purple-600 dark:text-purple-300">Rp {{ number_format($metrics['total_margin'] ?? 0, 0, ',', '.') }}</dd>
                 </div>
                 <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
+                    <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Administrasi') }}</dt>
+                    <dd class="text-xl font-semibold text-neutral-900 dark:text-white">Rp {{ number_format($metrics['total_administration'] ?? 0, 0, ',', '.') }}</dd>
+                </div>
+                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
                     <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Saldo Pembiayaan Tersisa') }}</dt>
                     <dd class="text-xl font-semibold text-amber-600 dark:text-amber-300">Rp {{ number_format($metrics['total_outstanding'] ?? 0, 0, ',', '.') }}</dd>
                 </div>
@@ -140,6 +144,7 @@
                                 <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Nilai Emas Awal') }}</th>
                                 <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Pokok Pembiayaan') }}</th>
                                 <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Margin') }}</th>
+                                <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Administrasi') }}</th>
                                 <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Total Pembiayaan') }}</th>
                                 <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Saldo Pembiayaan Tersisa') }}</th>
                                 <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Total Dibayar') }}</th>
@@ -158,6 +163,8 @@
                                         'danger' => 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-200',
                                         'info' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-200',
                                     ][$insight['status_style'] ?? 'info'] ?? 'bg-neutral-200 text-neutral-800 dark:bg-neutral-700 dark:text-neutral-200';
+                                    $items = collect($insight['items'] ?? []);
+                                    $primaryItem = $items->first();
                                 @endphp
                                 <tr class="hover:bg-neutral-50 dark:hover:bg-neutral-800/60">
                                     <td class="px-4 py-3 text-neutral-600 dark:text-neutral-300">{{ $transaction->created_at?->translatedFormat('d M Y H:i') }}</td>
@@ -169,8 +176,24 @@
                                     </td>
                                     <td class="px-4 py-3 text-neutral-600 dark:text-neutral-300">
                                         <div class="flex flex-col">
-                                            <span>{{ $barang?->nama_barang ?? $transaction->pabrikan }}</span>
-                                            <span class="text-xs text-neutral-500 dark:text-neutral-400">{{ number_format($transaction->berat_gram, 3, ',', '.') }} gr · {{ $transaction->kadar }}</span>
+                                            @if ($items->count() === 1)
+                                                <span>{{ $primaryItem['nama_barang'] ?? $transaction->pabrikan }}</span>
+                                                <span class="text-xs text-neutral-500 dark:text-neutral-400">{{ number_format((float) ($primaryItem['berat'] ?? $transaction->berat_gram), 3, ',', '.') }} gr · {{ $primaryItem['kode'] ?? $transaction->kadar }}</span>
+                                            @elseif ($items->count() > 1)
+                                                <span>{{ __(':count barang', ['count' => $items->count()]) }}</span>
+                                                <span class="text-xs text-neutral-500 dark:text-neutral-400">{{ number_format($transaction->berat_gram, 3, ',', '.') }} gr · {{ $transaction->kadar }}</span>
+                                                <ul class="mt-1 list-disc space-y-1 ps-4 text-[11px] text-neutral-500 dark:text-neutral-400">
+                                                    @foreach ($items->take(3) as $item)
+                                                        <li>{{ $item['nama_barang'] ?? __('Barang') }} • {{ number_format((float) ($item['berat'] ?? 0), 3, ',', '.') }} gr • {{ $item['kode'] ?? '—' }}</li>
+                                                    @endforeach
+                                                    @if ($items->count() > 3)
+                                                        <li>+ {{ $items->count() - 3 }} {{ __('barang lainnya') }}</li>
+                                                    @endif
+                                                </ul>
+                                            @else
+                                                <span>{{ $transaction->pabrikan }}</span>
+                                                <span class="text-xs text-neutral-500 dark:text-neutral-400">{{ number_format($transaction->berat_gram, 3, ',', '.') }} gr · {{ $transaction->kadar }}</span>
+                                            @endif
                                         </div>
                                     </td>
                                     <td class="px-4 py-3 text-neutral-600 dark:text-neutral-300">{{ $transaction->tenor_bulan }} {{ __('bulan') }}</td>
@@ -179,6 +202,7 @@
                                     <td class="px-4 py-3 text-neutral-600 dark:text-neutral-300">
                                         {{ number_format($insight['margin_percentage'] ?? 0, 2, ',', '.') }}% • Rp {{ number_format($insight['margin_amount'] ?? 0, 0, ',', '.') }}
                                     </td>
+                                    <td class="px-4 py-3 text-neutral-600 dark:text-neutral-300">Rp {{ number_format($insight['administrasi'] ?? 0, 0, ',', '.') }}</td>
                                     <td class="px-4 py-3 text-neutral-600 dark:text-neutral-300">Rp {{ number_format($insight['total_financed'] ?? 0, 0, ',', '.') }}</td>
                                     <td class="px-4 py-3 text-neutral-600 dark:text-neutral-300">Rp {{ number_format($insight['outstanding_principal'], 0, ',', '.') }}</td>
                                     <td class="px-4 py-3 text-neutral-600 dark:text-neutral-300">Rp {{ number_format($insight['total_paid'], 0, ',', '.') }}</td>
