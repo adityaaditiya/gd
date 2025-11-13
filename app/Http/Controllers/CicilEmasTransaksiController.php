@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Barang;
 use App\Models\CicilEmasTransaction;
 use App\Models\Nasabah;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -29,7 +31,13 @@ class CicilEmasTransaksiController extends Controller
 
     public function create(): View
     {
-        $packages = $this->availablePackages()->values()->all();
+        $selectedPackageIds = collect(session()->getOldInput('package_ids', []))
+            ->map(fn ($value) => $this->decodePackageKey($value))
+            ->filter(fn ($value) => $value !== null)
+            ->unique()
+            ->values();
+
+        $packages = $this->packageCollectionForIds($selectedPackageIds)->values()->all();
         $nasabahs = Nasabah::orderBy('nama')
             ->get(['id', 'nama', 'kode_member']);
 
@@ -53,17 +61,24 @@ class CicilEmasTransaksiController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $packages = $this->availablePackages();
+        $rawPackageIds = collect($request->input('package_ids', []));
+        $normalizedPackageIds = $rawPackageIds
+            ->map(fn ($value) => $this->decodePackageKey($value))
+            ->filter(fn ($value) => $value !== null)
+            ->values();
+
+        $packages = $this->packageCollectionForIds($normalizedPackageIds);
+
         $tenorOptions = collect(config('cicil_emas.tenor_options', []))
             ->filter(fn ($value) => is_numeric($value) && $value > 0)
             ->map(fn ($value) => (int) $value)
             ->unique()
             ->values();
 
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'nasabah_id' => ['required', 'exists:nasabahs,id'],
             'package_ids' => ['required', 'array', 'min:1'],
-            'package_ids.*' => ['distinct', Rule::in($packages->keys()->all())],
+            'package_ids.*' => ['distinct'],
             'down_payment_mode' => ['required', Rule::in(['nominal', 'percentage'])],
             'estimasi_uang_muka' => [
                 'nullable',
@@ -82,6 +97,28 @@ class CicilEmasTransaksiController extends Controller
             'besaran_angsuran' => ['required', 'numeric', 'min:0'],
             'administrasi' => ['nullable', 'numeric', 'min:0'],
         ]);
+
+        $validator->after(function ($validator) use ($packages, $normalizedPackageIds, $rawPackageIds) {
+            if ($normalizedPackageIds->isEmpty()) {
+                $validator->errors()->add('package_ids', __('Silakan pilih minimal satu barang.'));
+                return;
+            }
+
+            if ($packages->isEmpty()) {
+                $validator->errors()->add('package_ids', __('Barang yang dipilih tidak ditemukan.'));
+                return;
+            }
+
+            if ($packages->count() !== $normalizedPackageIds->unique()->count()) {
+                $validator->errors()->add('package_ids', __('Beberapa barang yang dipilih tidak tersedia.'));
+            }
+
+            if ($normalizedPackageIds->count() !== $rawPackageIds->count()) {
+                $validator->errors()->add('package_ids', __('Format data barang tidak valid.'));
+            }
+        });
+
+        $validated = $validator->validate();
 
         $selectedPackageIds = collect($validated['package_ids'] ?? [])
             ->map(fn ($id) => (string) $id)
@@ -231,24 +268,112 @@ class CicilEmasTransaksiController extends Controller
             ]);
     }
 
-    private function availablePackages(): Collection
+    public function searchPackages(Request $request): JsonResponse
     {
-        return Barang::orderBy('nama_barang')
-            ->get(['id', 'kode_barcode', 'nama_barang', 'kode_intern', 'kode_group', 'berat', 'harga'])
-            ->mapWithKeys(function (Barang $barang) {
-                $packageId = 'barang-'.$barang->id;
+        $queryInput = (string) $request->input('q', '');
+        $query = Str::of($queryInput)->lower()->trim();
+        $page = max((int) $request->integer('page', 1), 1);
+        $perPage = min(max((int) $request->integer('per_page', 20), 1), 50);
+        $exclude = collect($request->input('exclude', []))
+            ->map(fn ($value) => $this->decodePackageKey($value))
+            ->filter(fn ($value) => $value !== null)
+            ->unique()
+            ->values();
 
-                return [$packageId => [
-                    'id' => $packageId,
-                    'barang_id' => $barang->id,
-                    'kode_barcode' => $barang->kode_barcode,
-                    'nama_barang' => $barang->nama_barang,
-                    'kode_intern' => $barang->kode_intern,
-                    'kode_group' => $barang->kode_group,
-                    'berat' => $barang->berat,
-                    'harga' => $barang->harga,
-                ]];
+        $builder = Barang::query()->orderBy('nama_barang');
+
+        if ($query->isNotEmpty()) {
+            $term = '%'.$query->value().'%';
+            $builder->where(function ($q) use ($term) {
+                $q->where('nama_barang', 'like', $term)
+                    ->orWhere('kode_barcode', 'like', $term)
+                    ->orWhere('kode_intern', 'like', $term)
+                    ->orWhere('kode_group', 'like', $term);
             });
+        }
+
+        if ($exclude->isNotEmpty()) {
+            $builder->whereNotIn('id', $exclude->all());
+        }
+
+        $offset = ($page - 1) * $perPage;
+
+        $items = (clone $builder)
+            ->skip($offset)
+            ->take($perPage + 1)
+            ->get(['id', 'kode_barcode', 'nama_barang', 'kode_intern', 'kode_group', 'berat', 'harga']);
+
+        $hasMore = $items->count() > $perPage;
+        $items = $items->take($perPage);
+
+        return response()->json([
+            'data' => $items->map(fn (Barang $barang) => $this->transformBarang($barang))->values(),
+            'meta' => [
+                'page' => $page,
+                'per_page' => $perPage,
+                'has_more' => $hasMore,
+                'query' => $query->value(),
+            ],
+        ]);
+    }
+
+    private function packageCollectionForIds(Collection $barangIds): Collection
+    {
+        if ($barangIds->isEmpty()) {
+            return collect();
+        }
+
+        $packages = Barang::query()
+            ->whereIn('id', $barangIds->all())
+            ->get(['id', 'kode_barcode', 'nama_barang', 'kode_intern', 'kode_group', 'berat', 'harga'])
+            ->mapWithKeys(fn (Barang $barang) => [$this->encodePackageKey($barang->id) => $this->transformBarang($barang)]);
+
+        $ordered = collect();
+
+        foreach ($barangIds as $id) {
+            $key = $this->encodePackageKey($id);
+            if ($packages->has($key)) {
+                $ordered->put($key, $packages->get($key));
+            }
+        }
+
+        return $ordered;
+    }
+
+    private function transformBarang(Barang $barang): array
+    {
+        $packageId = $this->encodePackageKey($barang->id);
+
+        return [
+            'id' => $packageId,
+            'barang_id' => $barang->id,
+            'kode_barcode' => $barang->kode_barcode,
+            'nama_barang' => $barang->nama_barang,
+            'kode_intern' => $barang->kode_intern,
+            'kode_group' => $barang->kode_group,
+            'berat' => $barang->berat,
+            'harga' => $barang->harga,
+        ];
+    }
+
+    private function encodePackageKey(int $id): string
+    {
+        return 'barang-'.$id;
+    }
+
+    private function decodePackageKey($value): ?int
+    {
+        if (! is_string($value) && ! is_numeric($value)) {
+            return null;
+        }
+
+        $stringValue = (string) $value;
+
+        if (Str::startsWith($stringValue, 'barang-')) {
+            $stringValue = Str::after($stringValue, 'barang-');
+        }
+
+        return ctype_digit($stringValue) ? (int) $stringValue : null;
     }
 
     private function generateInstallments(CicilEmasTransaction $transaction, int $tenor, float $amount): void
