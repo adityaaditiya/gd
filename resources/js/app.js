@@ -79,16 +79,61 @@ const initCurrencyInputs = () => {
     }
 
     const formatCurrency = (value) => {
-        const digitsOnly = (value ?? '')
-            .toString()
-            .replace(/\D/g, '');
-        const normalized = digitsOnly.replace(/^0+(?=\d)/, '');
+        const trimmed = (value ?? '').toString().trim();
 
-        if (!normalized) {
+        if (!trimmed) {
             return '';
         }
 
-        return normalized.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        let sanitized = trimmed.replace(/[^0-9,.-]/g, '');
+
+        if (!sanitized) {
+            return '';
+        }
+
+        const lastComma = sanitized.lastIndexOf(',');
+        const lastDot = sanitized.lastIndexOf('.');
+
+        if (lastComma !== -1 && lastDot !== -1) {
+            if (lastComma > lastDot) {
+                sanitized = sanitized.replace(/\./g, '').replace(',', '.');
+            } else {
+                sanitized = sanitized.replace(/,/g, '');
+            }
+        } else if (lastComma !== -1) {
+            sanitized = sanitized.replace(/\./g, '').replace(',', '.');
+        } else if (lastDot !== -1) {
+            const decimals = sanitized.length - lastDot - 1;
+
+            if (decimals > 0 && decimals <= 2) {
+                sanitized = sanitized.replace(/,/g, '');
+            } else {
+                sanitized = sanitized.replace(/\./g, '');
+            }
+        } else {
+            sanitized = sanitized.replace(/,/g, '');
+        }
+
+        if (!sanitized || sanitized === '-' || sanitized === '.') {
+            return '';
+        }
+
+        const number = Number.parseFloat(sanitized);
+
+        if (Number.isNaN(number)) {
+            return '';
+        }
+
+        const isNegative = number < 0;
+        const absolute = Math.abs(number);
+        const decimalSegment = sanitized.split('.')[1] ?? '';
+        const precision = decimalSegment.length;
+        const fixed = absolute.toFixed(precision);
+        const [integerPartRaw, fractionPartRaw = ''] = fixed.split('.');
+        const formattedInteger = integerPartRaw.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        const signedInteger = isNegative && formattedInteger ? `-${formattedInteger}` : formattedInteger;
+
+        return fractionPartRaw ? `${signedInteger},${fractionPartRaw}` : signedInteger;
     };
 
     const countDigitsBefore = (value, cursorPosition) => {
@@ -116,7 +161,7 @@ const initCurrencyInputs = () => {
             return '';
         }
 
-        return value.replace(/\D/g, '');
+        return value.replace(/\./g, '').replace(',', '.');
     };
 
     const allowedNavigationKeys = new Set([

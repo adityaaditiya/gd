@@ -206,13 +206,12 @@
                                 <label for="uang_pinjaman" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Nominal Pinjaman') }}</label>
                                 <input
                                     type="text"
-                                    inputmode="numeric"
+                                    inputmode="decimal"
                                     id="uang_pinjaman"
                                     name="uang_pinjaman"
                                     value="{{ old('uang_pinjaman') }}"
                                     required
                                     data-currency-input
-                                    pattern="[0-9]*"
                                     class="block w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
                                 />
                                 @error('uang_pinjaman')
@@ -224,12 +223,11 @@
                                 <label for="biaya_admin" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Biaya Administrasi') }}</label>
                                 <input
                                     type="text"
-                                    inputmode="numeric"
+                                    inputmode="decimal"
                                     id="biaya_admin"
                                     name="biaya_admin"
                                     value="{{ old('biaya_admin') }}"
                                     data-currency-input
-                                    pattern="[0-9]*"
                                     class="block w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
                                 />
                                 @error('biaya_admin')
@@ -241,12 +239,11 @@
                                 <label for="premi" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Premi') }}</label>
                                 <input
                                     type="text"
-                                    inputmode="numeric"
+                                    inputmode="decimal"
                                     id="premi"
                                     name="premi"
                                     value="{{ old('premi') }}"
                                     data-currency-input
-                                    pattern="[0-9]*"
                                     class="block w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
                                 />
                                 @error('premi')
@@ -372,17 +369,34 @@
 
                     const parseDecimal = (rawValue) => {
                         if (rawValue === null || rawValue === undefined) return 0;
-                        if (typeof rawValue === 'number' && Number.isFinite(rawValue)) {
-                            return rawValue;
+                        if (typeof rawValue !== 'string') {
+                            const numeric = Number(rawValue);
+                            return Number.isNaN(numeric) ? 0 : numeric;
                         }
 
-                        const digitsOnly = rawValue
-                            .toString()
-                            .replace(/\D/g, '');
+                        let value = rawValue.trim();
+                        if (value === '') return 0;
 
-                        if (!digitsOnly) return 0;
+                        value = value.replace(/[^0-9,.-]/g, '');
+                        const lastComma = value.lastIndexOf(',');
+                        const lastDot = value.lastIndexOf('.');
 
-                        return Number.parseInt(digitsOnly, 10) || 0;
+                        if (lastComma !== -1 && lastDot !== -1) {
+                            if (lastComma > lastDot) {
+                                value = value.replace(/\./g, '');
+                                value = value.replace(/,/g, '.');
+                            } else {
+                                value = value.replace(/,/g, '');
+                            }
+                        } else if (lastComma !== -1) {
+                            value = value.replace(/\./g, '');
+                            value = value.replace(/,/g, '.');
+                        } else {
+                            value = value.replace(/,/g, '');
+                        }
+
+                        const parsed = Number.parseFloat(value);
+                        return Number.isNaN(parsed) ? 0 : parsed;
                     };
 
                     const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
