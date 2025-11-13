@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CicilEmasInstallment> $installments
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CicilEmasTransactionItem> $items
  */
 class CicilEmasTransaction extends Model
 {
@@ -26,6 +27,7 @@ class CicilEmasTransaction extends Model
         'pokok_pembiayaan',
         'margin_percentage',
         'margin_amount',
+        'administrasi',
         'total_pembiayaan',
         'tenor_bulan',
         'besaran_angsuran',
@@ -41,6 +43,7 @@ class CicilEmasTransaction extends Model
         'pokok_pembiayaan' => 'float',
         'margin_percentage' => 'float',
         'margin_amount' => 'float',
+        'administrasi' => 'float',
         'total_pembiayaan' => 'float',
         'tenor_bulan' => 'integer',
         'besaran_angsuran' => 'float',
@@ -54,5 +57,10 @@ class CicilEmasTransaction extends Model
     public function installments(): HasMany
     {
         return $this->hasMany(CicilEmasInstallment::class);
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(CicilEmasTransactionItem::class, 'transaction_id');
     }
 }

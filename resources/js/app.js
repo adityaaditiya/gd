@@ -79,61 +79,16 @@ const initCurrencyInputs = () => {
     }
 
     const formatCurrency = (value) => {
-        const trimmed = (value ?? '').toString().trim();
+        const digitsOnly = (value ?? '')
+            .toString()
+            .replace(/\D/g, '');
+        const normalized = digitsOnly.replace(/^0+(?=\d)/, '');
 
-        if (!trimmed) {
+        if (!normalized) {
             return '';
         }
 
-        let sanitized = trimmed.replace(/[^0-9,.-]/g, '');
-
-        if (!sanitized) {
-            return '';
-        }
-
-        const lastComma = sanitized.lastIndexOf(',');
-        const lastDot = sanitized.lastIndexOf('.');
-
-        if (lastComma !== -1 && lastDot !== -1) {
-            if (lastComma > lastDot) {
-                sanitized = sanitized.replace(/\./g, '').replace(',', '.');
-            } else {
-                sanitized = sanitized.replace(/,/g, '');
-            }
-        } else if (lastComma !== -1) {
-            sanitized = sanitized.replace(/\./g, '').replace(',', '.');
-        } else if (lastDot !== -1) {
-            const decimals = sanitized.length - lastDot - 1;
-
-            if (decimals > 0 && decimals <= 2) {
-                sanitized = sanitized.replace(/,/g, '');
-            } else {
-                sanitized = sanitized.replace(/\./g, '');
-            }
-        } else {
-            sanitized = sanitized.replace(/,/g, '');
-        }
-
-        if (!sanitized || sanitized === '-' || sanitized === '.') {
-            return '';
-        }
-
-        const number = Number.parseFloat(sanitized);
-
-        if (Number.isNaN(number)) {
-            return '';
-        }
-
-        const isNegative = number < 0;
-        const absolute = Math.abs(number);
-        const decimalSegment = sanitized.split('.')[1] ?? '';
-        const precision = decimalSegment.length;
-        const fixed = absolute.toFixed(precision);
-        const [integerPartRaw, fractionPartRaw = ''] = fixed.split('.');
-        const formattedInteger = integerPartRaw.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        const signedInteger = isNegative && formattedInteger ? `-${formattedInteger}` : formattedInteger;
-
-        return fractionPartRaw ? `${signedInteger},${fractionPartRaw}` : signedInteger;
+        return normalized.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     };
 
     const countDigitsBefore = (value, cursorPosition) => {
@@ -161,8 +116,21 @@ const initCurrencyInputs = () => {
             return '';
         }
 
-        return value.replace(/\./g, '').replace(',', '.');
+        return value.replace(/\D/g, '');
     };
+
+    const allowedNavigationKeys = new Set([
+        'Backspace',
+        'Delete',
+        'ArrowLeft',
+        'ArrowRight',
+        'ArrowUp',
+        'ArrowDown',
+        'Home',
+        'End',
+        'Tab',
+        'Enter',
+    ]);
 
     inputs.forEach((input) => {
         const initial = input.value;
@@ -170,6 +138,43 @@ const initCurrencyInputs = () => {
         if (initial) {
             input.value = formatCurrency(initial);
         }
+
+        input.addEventListener('keydown', (event) => {
+            const isControlCombo = event.ctrlKey || event.metaKey || event.altKey;
+
+            if (isControlCombo) {
+                return;
+            }
+
+            if (allowedNavigationKeys.has(event.key)) {
+                return;
+            }
+
+            if (/^\d$/.test(event.key)) {
+                return;
+            }
+
+            event.preventDefault();
+        });
+
+        input.addEventListener('beforeinput', (event) => {
+            const { data } = event;
+            const inputType = event.inputType || '';
+
+            if (inputType.startsWith('delete')) {
+                return;
+            }
+
+            if (!data) {
+                return;
+            }
+
+            if (/^\d+$/.test(data)) {
+                return;
+            }
+
+            event.preventDefault();
+        });
 
         input.addEventListener('input', (event) => {
             const target = event.target;
@@ -198,7 +203,13 @@ const initCurrencyInputs = () => {
     });
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+const bootstrap = () => {
     initTransaksiGadaiTableDropdown();
     initCurrencyInputs();
-});
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootstrap, { once: true });
+} else {
+    bootstrap();
+}
