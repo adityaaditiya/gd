@@ -18,17 +18,27 @@ class CicilEmasMonitoringController extends Controller
             'query' => $request->string('q')->trim()->value(),
         ];
 
+        $hasQuery = filled($filters['query']);
+
+        if (! $hasQuery) {
+            return view('cicil-emas.riwayat-cicilan', [
+                'insights' => collect(),
+                'portfolio' => $this->buildPortfolioMetrics(collect()),
+                'filters' => $filters,
+                'totalTransactions' => 0,
+                'hasQuery' => false,
+            ]);
+        }
+
         $transactionsQuery = CicilEmasTransaction::with([
             'nasabah',
             'installments' => fn ($query) => $query->orderBy('sequence'),
         ])->orderByDesc('created_at');
 
-        if ($filters['query']) {
-            $transactionsQuery->whereHas('nasabah', function ($query) use ($filters) {
-                $query->where('nama', 'like', '%' . $filters['query'] . '%')
-                    ->orWhere('kode_member', 'like', '%' . $filters['query'] . '%');
-            });
-        }
+        $transactionsQuery->whereHas('nasabah', function ($query) use ($filters) {
+            $query->where('nama', 'like', '%' . $filters['query'] . '%')
+                ->orWhere('kode_member', 'like', '%' . $filters['query'] . '%');
+        });
 
         if ($filters['status']) {
             $today = now()->startOfDay();
@@ -106,6 +116,7 @@ class CicilEmasMonitoringController extends Controller
             'portfolio' => $portfolio,
             'filters' => $filters,
             'totalTransactions' => $allTransactions->count(),
+            'hasQuery' => $hasQuery,
         ]);
     }
 

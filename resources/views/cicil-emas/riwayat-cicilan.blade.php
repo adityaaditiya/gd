@@ -58,7 +58,7 @@
                 </div>
             </div>
 
-            @if(($insights instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator) && $insights->total())
+            @if(($hasQuery ?? false) && ($insights instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator) && $insights->total())
                 <p class="text-sm text-neutral-600 dark:text-neutral-300">
                     {{ __('Menampilkan :from–:to dari :total hasil', [
                         'from' => number_format($insights->firstItem(), 0, ',', '.'),
@@ -66,7 +66,7 @@
                         'total' => number_format($insights->total(), 0, ',', '.'),
                     ]) }}
                 </p>
-            @elseif(($insights->count() ?? 0) > 0 && $totalTransactions)
+            @elseif(($hasQuery ?? false) && ($insights->count() ?? 0) > 0 && $totalTransactions)
                 <p class="text-sm text-neutral-600 dark:text-neutral-300">
                     {{ __('Menampilkan :count hasil', ['count' => number_format($insights->count(), 0, ',', '.')]) }}
                 </p>
@@ -75,30 +75,37 @@
 
         <section class="grid gap-4 rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
 
-        @if(($insights->count() ?? 0) === 0)
-            <div class="rounded-xl border border-dashed border-neutral-300 bg-white p-10 text-center shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
-                <h3 class="text-lg font-semibold text-neutral-800 dark:text-white">{{ __('Belum ada riwayat cicilan.') }}</h3>
-                <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-300">{{ __('Mulai dari menu Transaksi Cicil Emas untuk menyimpan simulasi dan jadwal angsuran nasabah.') }}</p>
-                <a href="{{ route('cicil-emas.transaksi-emas') }}" class="mt-4 inline-flex items-center justify-center rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-RED shadow hover:bg-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 dark:focus:ring-offset-neutral-900">{{ __('Buat Transaksi Baru') }}</a>
-            </div>
-        @else
-            <div class="flex flex-col gap-6">
-                @foreach($insights as $insight)
-                    @php
-                        $transaction = $insight['model'];
-                        $nasabah = $transaction->nasabah;
-                        $barang = $insight['barang'];
-                        $installments = $insight['installments'];
-                        $visibleInstallments = $installments->take(4);
-                        $hiddenInstallments = $installments->slice(4);
-                        $today = now()->startOfDay();
-                        $statusClass = [
-                            'success' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
-                            'danger' => 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-200',
-                            'info' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-200',
-                        ][$insight['status_style'] ?? 'info'] ?? 'bg-neutral-200 text-neutral-800 dark:bg-neutral-700 dark:text-neutral-200';
-                    @endphp
-                    <article x-data="{ showAllInstallments: false }" class="flex flex-col gap-6 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm transition hover:shadow-md dark:border-neutral-700 dark:bg-neutral-900">
+            @if(! ($hasQuery ?? false))
+                <div class="rounded-xl border border-dashed border-neutral-300 bg-white p-10 text-center shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+                    <h3 class="text-lg font-semibold text-neutral-800 dark:text-white">{{ __('Cari riwayat cicilan nasabah') }}</h3>
+                    <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-300">{{ __('Mulai dengan memasukkan nama atau kode member pada kolom pencarian di atas untuk menampilkan data cicilan.') }}</p>
+                </div>
+            @elseif(($insights->count() ?? 0) === 0)
+                <div class="rounded-xl border border-dashed border-neutral-300 bg-white p-10 text-center shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+                    <h3 class="text-lg font-semibold text-neutral-800 dark:text-white">{{ __('Tidak ditemukan riwayat cicilan.') }}</h3>
+                    <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-300">
+                        {{ __('Tidak ada nasabah yang cocok dengan pencarian ":query".', ['query' => $filters['query'] ?? '']) }}
+                    </p>
+                    <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">{{ __('Coba gunakan nama lengkap atau kode member lainnya.') }}</p>
+                </div>
+            @else
+                <div class="flex flex-col gap-6">
+                    @foreach($insights as $insight)
+                        @php
+                            $transaction = $insight['model'];
+                            $nasabah = $transaction->nasabah;
+                            $barang = $insight['barang'];
+                            $installments = $insight['installments'];
+                            $visibleInstallments = $installments->take(4);
+                            $hiddenInstallments = $installments->slice(4);
+                            $today = now()->startOfDay();
+                            $statusClass = [
+                                'success' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
+                                'danger' => 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-200',
+                                'info' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-200',
+                            ][$insight['status_style'] ?? 'info'] ?? 'bg-neutral-200 text-neutral-800 dark:bg-neutral-700 dark:text-neutral-200';
+                        @endphp
+                        <article x-data="{ showAllInstallments: false }" class="flex flex-col gap-6 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm transition hover:shadow-md dark:border-neutral-700 dark:bg-neutral-900">
                         <header class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                             <div>
                                 <h3 class="text-lg font-semibold text-neutral-900 dark:text-white">
@@ -241,10 +248,14 @@
                 @endforeach
             </div>
             <div class="mt-4">
-                {{ $insights->onEachSide(1)->links() }}
+                @if($insights instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator)
+                    {{ $insights->onEachSide(1)->links() }}
+                @endif
             </div>
         @endif
-        <header class="flex items-center justify-between gap-4">
+
+        @if($hasQuery ?? false)
+            <header class="flex items-center justify-between gap-4">
                 <div>
                     <span class="text-xs font-semibold uppercase tracking-wide text-purple-500">{{ __('Ringkasan Portofolio') }}</span>
                     <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Snapshot Kinerja Cicil Emas') }}</h2>
@@ -293,7 +304,8 @@
                     </div>
                 @endforeach
             </div>
+        @endif
         </section>
     </div>
-    
+
 </x-layouts.app>
