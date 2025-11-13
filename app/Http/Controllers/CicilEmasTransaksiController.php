@@ -238,13 +238,15 @@ class CicilEmasTransaksiController extends Controller
                 'kode_member' => $nasabah?->kode_member,
                 'paket' => $selectedPackages->map(function ($pkg) {
                     $label = $pkg['nama_barang'] ?? __('Barang');
-                    $group = $pkg['kode_group'] ?? $pkg['kode_intern'] ?? '—';
-                    return $label.' • '.number_format((float) ($pkg['berat'] ?? 0), 3, ',', '.').' gr • '.$group;
+                    $code = $pkg['kode_intern'] ?? $pkg['kode_group'] ?? '—';
+                    $barcode = $pkg['kode_barcode'] ?? '—';
+                    return $label.' • '.number_format((float) ($pkg['berat'] ?? 0), 3, ',', '.').' gr • '.$code.' • '.$barcode;
                 })->implode(PHP_EOL),
                 'packages' => $selectedPackages->map(function ($pkg) {
                     return [
                         'nama_barang' => $pkg['nama_barang'] ?? __('Barang'),
-                        'kode' => $pkg['kode_group'] ?? $pkg['kode_intern'],
+                        'kode' => $pkg['kode_intern'] ?? $pkg['kode_group'],
+                        'barcode' => $pkg['kode_barcode'] ?? null,
                         'berat' => (float) ($pkg['berat'] ?? 0),
                         'harga' => (float) ($pkg['harga'] ?? 0),
                     ];

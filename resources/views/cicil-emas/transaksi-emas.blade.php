@@ -29,11 +29,12 @@
             ->filter(fn ($package) => $selectedPackageKeys->contains((string) ($package['id'] ?? '')))
             ->values();
         $selectedSummaryLines = $selectedPackages->map(function ($package) {
-            $group = $package['kode_group'] ?? $package['kode_intern'] ?? '—';
+            $code = $package['kode_intern'] ?? $package['kode_group'] ?? '—';
+            $barcode = $package['kode_barcode'] ?? '—';
             $weight = number_format((float) ($package['berat'] ?? 0), 3, ',', '.');
             $price = number_format((float) ($package['harga'] ?? 0), 0, ',', '.');
 
-            return ($package['nama_barang'] ?? __('Barang')).' • '.$weight.' gr • '.$group.' • Rp '.$price;
+            return ($package['nama_barang'] ?? __('Barang')).' • '.$weight.' gr • '.$code.' • '.$barcode.' • Rp '.$price;
         });
         $selectedTotalWeight = (float) $selectedPackages->sum(fn ($pkg) => (float) ($pkg['berat'] ?? 0));
         $selectedTotalPrice = (float) $selectedPackages->sum(fn ($pkg) => (float) ($pkg['harga'] ?? 0));
@@ -115,6 +116,7 @@
                                                 {{ $package['nama_barang'] ?? __('Barang') }} •
                                                 {{ number_format((float) ($package['berat'] ?? 0), 3, ',', '.') }} gr •
                                                 {{ $package['kode'] ?? '—' }} •
+                                                {{ $package['barcode'] ?? '—' }} •
                                                 Rp {{ number_format((float) ($package['harga'] ?? 0), 0, ',', '.') }}
                                             </li>
                                         @endforeach
@@ -229,19 +231,33 @@
                         @csrf
 
                         <div class="grid gap-6 md:grid-cols-2">
-                            <div class="md:col-span-2">
-                                <label for="nasabah_id" class="mb-2 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
-                                    {{ __('Nasabah') }}
-                                </label>
+                            <div class="md:col-span-2" data-customer-selector>
+                                <div class="mb-2 flex items-center justify-between gap-2">
+                                    <label for="nasabah_id" class="block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
+                                        {{ __('Nasabah') }}
+                                    </label>
+                                    <label for="nasabah_search" class="sr-only">{{ __('Cari Nasabah') }}</label>
+                                    <input
+                                        type="search"
+                                        id="nasabah_search"
+                                        data-customer-search
+                                        placeholder="{{ __('Cari nasabah…') }}"
+                                        class="block w-48 rounded-lg border border-neutral-300 bg-white px-2 py-1 text-xs text-neutral-700 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-200 dark:focus:border-indigo-400 dark:focus:ring-indigo-900/40"
+                                    />
+                                </div>
                                 <select
                                     id="nasabah_id"
                                     name="nasabah_id"
+                                    data-customer-select
                                     class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white"
                                     required
                                 >
                                     <option value="">{{ __('Pilih nasabah') }}</option>
                                     @foreach ($nasabahs as $nasabah)
-                                        <option value="{{ $nasabah->id }}" @selected(old('nasabah_id') == $nasabah->id)>
+                                        @php
+                                            $searchTokens = strtolower(trim(($nasabah->nama ?? '').' '.($nasabah->kode_member ?? '')));
+                                        @endphp
+                                        <option value="{{ $nasabah->id }}" data-search="{{ $searchTokens }}" @selected(old('nasabah_id') == $nasabah->id)>
                                             {{ $nasabah->nama }}
                                             @if ($nasabah->kode_member)
                                                 ({{ $nasabah->kode_member }})
@@ -249,6 +265,9 @@
                                         </option>
                                     @endforeach
                                 </select>
+                                <p class="mt-2 text-xs text-neutral-500 dark:text-neutral-400" data-customer-meta>
+                                    {{ __('Gunakan kotak pencarian untuk memfilter daftar nasabah.') }}
+                                </p>
                                 @error('nasabah_id')
                                     <p class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
                                 @enderror
@@ -302,7 +321,7 @@
                                                         data-search="{{ $searchTokens }}"
                                                         {{ $selectedPackageKeys->contains((string) ($package['id'] ?? '')) ? 'selected' : '' }}
                                                     >
-                                                        {{ $package['nama_barang'] ?? __('Barang') }} — {{ $package['kode_group'] ?? $package['kode_intern'] ?? '—' }} ({{ number_format((float) ($package['berat'] ?? 0), 3, ',', '.') }} gr • Rp {{ number_format((float) ($package['harga'] ?? 0), 0, ',', '.') }})
+                                                        {{ $package['nama_barang'] ?? __('Barang') }} — {{ $package['kode_intern'] ?? '—' }} • {{ $package['kode_barcode'] ?? '—' }} ({{ number_format((float) ($package['berat'] ?? 0), 3, ',', '.') }} gr • Rp {{ number_format((float) ($package['harga'] ?? 0), 0, ',', '.') }})
                                                     </option>
                                                 @endforeach
                                             </select>
@@ -533,6 +552,10 @@
             function initCicilEmas() {
                 const packages = @json($packagesCollection);
                 const marginConfig = @json($resolvedMarginConfig);
+                const customerSelector = document.querySelector('[data-customer-selector]');
+                const customerSelect = customerSelector?.querySelector('[data-customer-select]') ?? null;
+                const customerSearch = customerSelector?.querySelector('[data-customer-search]') ?? null;
+                const customerMeta = customerSelector?.querySelector('[data-customer-meta]') ?? null;
                 const packageSelector = document.querySelector('[data-package-selector]');
                 const packageSelect = packageSelector?.querySelector('[data-package-select]') ?? null;
                 const packageSearch = packageSelector?.querySelector('[data-package-search]') ?? null;
@@ -568,6 +591,80 @@
                 const summaryFinancing = document.querySelector('[data-summary-financing]');
                 const administrationInput = document.querySelector('[data-administration-input]');
                 const administrationDisplay = document.querySelector('[data-administration-display]');
+
+                const normalizeText = (value) => {
+                    const raw = String(value ?? '').toLowerCase();
+                    const normalized = typeof raw.normalize === 'function' ? raw.normalize('NFKD') : raw;
+                    return normalized
+                        .replace(/[^a-z0-9\s]/g, ' ')
+                        .replace(/\s+/g, ' ')
+                        .trim();
+                };
+
+                const customerOptions = customerSelect ? Array.from(customerSelect.options) : [];
+                const totalCustomers = customerOptions.filter((option) => option.value).length;
+                const defaultCustomerMeta = @json(__('Menampilkan :visible dari :total nasabah. Gunakan pencarian untuk menyaring daftar.'));
+                const foundCustomerMeta = @json(__('Ditemukan :visible nasabah yang cocok.'));
+                const emptyCustomerMeta = @json(__('Tidak ada nasabah yang cocok dengan pencarian ini.'));
+
+                const updateCustomerMeta = (visibleCount, term) => {
+                    if (!customerMeta) {
+                        return;
+                    }
+
+                    if (!term) {
+                        customerMeta.textContent = defaultCustomerMeta
+                            .replace(':visible', String(visibleCount))
+                            .replace(':total', String(totalCustomers));
+                        return;
+                    }
+
+                    if (visibleCount === 0) {
+                        customerMeta.textContent = emptyCustomerMeta;
+                        return;
+                    }
+
+                    customerMeta.textContent = foundCustomerMeta.replace(':visible', String(visibleCount));
+                };
+
+                const filterCustomers = (term) => {
+                    if (!customerOptions.length) {
+                        updateCustomerMeta(0, normalizeText(term));
+                        return;
+                    }
+
+                    const normalized = normalizeText(term);
+                    let visible = 0;
+
+                    customerOptions.forEach((option) => {
+                        if (!option.value) {
+                            option.hidden = false;
+                            option.disabled = false;
+                            return;
+                        }
+
+                        const optionTokens = normalizeText(option.dataset.search ?? option.textContent ?? '');
+                        const matches = !normalized || optionTokens.includes(normalized);
+                        const shouldHide = !matches && !option.selected;
+                        option.hidden = shouldHide;
+                        option.disabled = shouldHide;
+
+                        if (!shouldHide) {
+                            visible += 1;
+                        }
+                    });
+
+                    updateCustomerMeta(visible, normalized);
+                };
+
+                if (customerSearch && customerSelect) {
+                    filterCustomers(customerSearch.value ?? '');
+                    customerSearch.addEventListener('input', (event) => {
+                        filterCustomers(event.target.value ?? '');
+                    });
+                } else if (customerMeta) {
+                    updateCustomerMeta(totalCustomers, '');
+                }
 
                 if (!packageSelector || !packageSelect) {
                     return;
@@ -746,8 +843,9 @@
 
                 const buildSummaryLines = (selectedPackages) =>
                     selectedPackages.map((pkg) => {
-                        const group = pkg?.kode_group ?? pkg?.kode_intern ?? pkg?.kode_barcode ?? '—';
-                        return `${pkg?.nama_barang ?? '{{ __('Barang') }}'} • ${formatWeight(pkg?.berat ?? 0)} gr • ${group} • ${formatCurrency(Number(pkg?.harga ?? 0))}`;
+                        const code = pkg?.kode_intern ?? pkg?.kode_group ?? '—';
+                        const barcode = pkg?.kode_barcode ?? '—';
+                        return `${pkg?.nama_barang ?? '{{ __('Barang') }}'} • ${formatWeight(pkg?.berat ?? 0)} gr • ${code} • ${barcode} • ${formatCurrency(Number(pkg?.harga ?? 0))}`;
                     });
 
                 const updatePackageSummaryList = (summaryLines) => {
@@ -884,7 +982,7 @@
                         return;
                     }
 
-                    const term = (packageSearch?.value ?? '').trim().toLowerCase();
+                    const term = normalizeText(packageSearch?.value ?? '');
 
                     Array.from(packageSelect.options).forEach((option) => {
                         if (!option) {
@@ -896,7 +994,7 @@
                             return;
                         }
 
-                        const datasetValue = (option.dataset.search ?? '').toLowerCase();
+                        const datasetValue = normalizeText(option.dataset.search ?? option.textContent ?? '');
                         const match = datasetValue.includes(term);
                         option.hidden = !match && !option.selected;
                     });
