@@ -95,7 +95,7 @@
                         <div class="space-y-1">
                             <dt class="font-semibold text-neutral-900 dark:text-white">{{ __('Biaya Administrasi') }}</dt>
                             @if (isset($summary['administrasi']))
-                                <dd>{{ number_format($summary['administrasi'], 2, ',', '.') }}</dd>
+                                <dd>{{ number_format($summary['administrasi'], 0, ',', '.') }}</dd>
                             @else
                                 <dd>—</dd>
                             @endif
@@ -328,7 +328,7 @@
                                         name="administrasi"
                                         type="number"
                                         min="0"
-                                        step="0.01"
+                                        step="1"
                                         value="{{ old('administrasi', '0') }}"
                                         class="w-full border-0 bg-transparent px-3 py-2 text-sm font-semibold text-neutral-900 focus:outline-none focus:ring-0 dark:text-white"
                                         data-administration-input
@@ -488,7 +488,7 @@
                         return 0;
                     }
 
-                    return parsed;
+                    return Math.round(parsed);
                 };
 
                 const resolveMarginPercentage = (tenor) => {
@@ -948,7 +948,7 @@
                         value = 0;
                     }
 
-                    administrationInput.value = value ? value.toFixed(2) : '0';
+                    administrationInput.value = value ? String(Math.round(value)) : '0';
                     updateOutputs();
                 });
             }

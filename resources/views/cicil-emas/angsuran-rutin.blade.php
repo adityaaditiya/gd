@@ -207,7 +207,7 @@
                                         </div>
                                     </td>
                                     <td class="px-4 py-3 align-top text-right text-neutral-700 dark:text-neutral-200">
-                                        {{ number_format((float) $installment->amount, 2, ',', '.') }}
+                                        {{ number_format((float) $installment->amount, 0, ',', '.') }}
                                     </td>
                                     <td class="px-4 py-3 align-top text-center text-neutral-700 dark:text-neutral-200">
                                         @if ($isPaid)
@@ -228,7 +228,7 @@
                                     </td>
                                     <td class="px-4 py-3 align-top text-right text-neutral-700 dark:text-neutral-200">
                                         <div class="flex flex-col items-end">
-                                            <span class="font-semibold text-neutral-900 dark:text-white">{{ number_format((float) $penaltyAmount, 2, ',', '.') }}</span>
+                                            <span class="font-semibold text-neutral-900 dark:text-white">{{ number_format((float) $penaltyAmount, 0, ',', '.') }}</span>
                                             <span class="text-xs text-neutral-500 dark:text-neutral-400">{{ __(':hari hari • :rate%/hari', ['hari' => $daysLate, 'rate' => number_format($penaltyRate, 2, ',', '.')]) }}</span>
                                         </div>
                                     </td>
@@ -252,10 +252,10 @@
                                                     <span class="text-neutral-500 dark:text-neutral-400">{{ __('Nominal Bayar') }}</span>
                                                     <input
                                                         type="number"
-                                                        step="0.01"
+                                                        step="1"
                                                         min="0"
                                                         name="paid_amount"
-                                                        value="{{ number_format((float) $installment->amount, 2, '.', '') }}"
+                                                        value="{{ number_format((float) $installment->amount, 0, '.', '') }}"
                                                         class="w-28 rounded-md border border-neutral-300 px-2 py-1 text-right text-sm text-neutral-900 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100"
                                                         required
                                                     >
