@@ -42,6 +42,12 @@
                                 <div class="mt-1 text-sm text-neutral-600 dark:text-neutral-300">
                                     {{ $barang?->nama_barang ?? $transaction->pabrikan }} · {{ number_format($transaction->berat_gram, 3, ',', '.') }} gr · {{ $transaction->kadar }}
                                 </div>
+                                <div class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                                    {{ __('Margin') }} {{ number_format($insight['margin_percentage'] ?? 0, 2, ',', '.') }}% • Rp {{ number_format($insight['margin_amount'] ?? 0, 0, ',', '.') }}
+                                </div>
+                                <div class="text-xs text-neutral-500 dark:text-neutral-400">
+                                    {{ __('Pokok pembiayaan: Rp :amount', ['amount' => number_format($insight['principal_without_margin'] ?? 0, 0, ',', '.')]) }}
+                                </div>
                             </div>
                             <div class="flex flex-col items-end gap-2">
                                 <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $statusClass }}">
@@ -64,9 +70,14 @@
                                 <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Δ :value', ['value' => ( $insight['gold_delta'] >= 0 ? '+' : '−') . 'Rp ' . number_format(abs($insight['gold_delta']), 0, ',', '.') ]) }}</p>
                             </div>
                             <div class="rounded-lg border border-neutral-200 p-4 dark:border-neutral-700">
-                                <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Saldo Pokok Tersisa') }}</dt>
+                                <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Saldo Pembiayaan Tersisa') }}</dt>
                                 <dd class="mt-1 text-lg font-semibold text-amber-600 dark:text-amber-300">Rp {{ number_format($insight['outstanding_principal'], 0, ',', '.') }}</dd>
-                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Tenor :bulan bulan · Angsuran Rp :angsuran', ['bulan' => $transaction->tenor_bulan, 'angsuran' => number_format($transaction->besaran_angsuran, 0, ',', '.')]) }}</p>
+                                <p class="text-xs text-neutral-500 dark:text-neutral-400">
+                                    {{ __('Tenor :bulan bulan · Angsuran Rp :angsuran', ['bulan' => $transaction->tenor_bulan, 'angsuran' => number_format($transaction->besaran_angsuran, 0, ',', '.')]) }}
+                                </p>
+                                <p class="text-xs text-neutral-500 dark:text-neutral-400">
+                                    {{ __('Total pembiayaan: Rp :amount', ['amount' => number_format($insight['total_financed'] ?? 0, 0, ',', '.')]) }}
+                                </p>
                             </div>
                             <div class="rounded-lg border border-neutral-200 p-4 dark:border-neutral-700">
                                 <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Pembayaran Terakhir') }}</dt>

@@ -24,6 +24,16 @@
             $defaultDownPaymentPercentageValue = $defaultDownPaymentPercentage ?? 10;
         }
         $defaultDownPaymentPercentageValue = min(max((float) $defaultDownPaymentPercentageValue, 0), 100);
+
+        $marginConfigCollection = collect($marginConfig ?? []);
+        $marginDefaultPercentage = (float) ($marginConfigCollection['default_percentage'] ?? 0);
+        $marginOverridesCollection = collect($marginConfigCollection['tenor_overrides'] ?? [])
+            ->filter(fn ($value, $key) => is_numeric($key) && is_numeric($value))
+            ->mapWithKeys(fn ($value, $key) => [(int) $key => (float) $value]);
+        $resolvedMarginConfig = [
+            'default_percentage' => $marginDefaultPercentage,
+            'tenor_overrides' => $marginOverridesCollection->all(),
+        ];
     @endphp
     <div class="space-y-8">
         <div class="flex flex-col gap-2">
@@ -62,6 +72,34 @@
                                     @if (isset($summary['dp_percentage']))
                                         <span class="block text-xs text-neutral-500 dark:text-neutral-400">
                                             {{ __('Sekitar :persen% dari harga', ['persen' => number_format($summary['dp_percentage'], 2, ',', '.')]) }}
+                                        </span>
+                                    @endif
+                                </dd>
+                            @else
+                                <dd>—</dd>
+                            @endif
+                        </div>
+                        <div class="space-y-1">
+                            <dt class="font-semibold text-neutral-900 dark:text-white">{{ __('Margin Pembiayaan') }}</dt>
+                            @if (isset($summary['margin_amount']))
+                                <dd class="space-y-1">
+                                    <span>{{ number_format($summary['margin_amount'], 2, ',', '.') }}</span>
+                                    <span class="block text-xs text-neutral-500 dark:text-neutral-400">
+                                        {{ __('Tarif margin :persen%', ['persen' => number_format($summary['margin_percentage'] ?? 0, 2, ',', '.')]) }}
+                                    </span>
+                                </dd>
+                            @else
+                                <dd>—</dd>
+                            @endif
+                        </div>
+                        <div class="space-y-1">
+                            <dt class="font-semibold text-neutral-900 dark:text-white">{{ __('Total Pembiayaan') }}</dt>
+                            @if (isset($summary['total_pembiayaan']))
+                                <dd class="space-y-1">
+                                    <span>{{ number_format($summary['total_pembiayaan'], 2, ',', '.') }}</span>
+                                    @if (isset($summary['pokok_pembiayaan']))
+                                        <span class="block text-xs text-neutral-500 dark:text-neutral-400">
+                                            {{ __('Pokok :pokok', ['pokok' => number_format($summary['pokok_pembiayaan'], 2, ',', '.')]) }}
                                         </span>
                                     @endif
                                 </dd>
@@ -287,6 +325,12 @@
                                 <p class="mt-2 text-xs text-neutral-500 dark:text-neutral-400" data-installment-display>
                                     {{ __('Besaran angsuran dihitung dari sisa harga emas dibagi tenor yang dipilih.') }}
                                 </p>
+                                <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400" data-margin-display>
+                                    {{ __('Margin akan dihitung setelah paket dan tenor dipilih.') }}
+                                </p>
+                                <p class="text-xs text-neutral-500 dark:text-neutral-400" data-financing-display>
+                                    {{ __('Total pembiayaan akan tampil setelah simulasi lengkap.') }}
+                                </p>
                             </div>
                         </div>
 
@@ -296,6 +340,9 @@
                                 <li data-summary-package>{{ __('Barang belum dipilih.') }}</li>
                                 <li data-summary-price></li>
                                 <li data-summary-option></li>
+                                <li data-summary-principal></li>
+                                <li data-summary-margin></li>
+                                <li data-summary-financing></li>
                             </ul>
                         </div>
 

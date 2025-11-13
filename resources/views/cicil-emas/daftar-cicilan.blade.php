@@ -44,6 +44,7 @@
                                 <th scope="col" class="px-4 py-3 text-left">{{ __('Paket Emas') }}</th>
                                 <th scope="col" class="px-4 py-3 text-right">{{ __('Harga') }}</th>
                                 <th scope="col" class="px-4 py-3 text-right">{{ __('Uang Muka') }}</th>
+                                <th scope="col" class="px-4 py-3 text-right">{{ __('Margin') }}</th>
                                 <th scope="col" class="px-4 py-3 text-right">{{ __('Angsuran / Bln') }}</th>
                                 <th scope="col" class="px-4 py-3 text-center">{{ __('Tenor') }}</th>
                             </tr>
@@ -83,6 +84,12 @@
                                         <div class="flex flex-col items-end">
                                             <span class="font-semibold text-neutral-900 dark:text-white">{{ number_format((float) $transaction->estimasi_uang_muka, 2, ',', '.') }}</span>
                                             <span class="text-xs text-neutral-500 dark:text-neutral-400">{{ number_format((float) $transaction->dp_percentage, 2, ',', '.') }}%</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 align-top text-right text-neutral-700 dark:text-neutral-200">
+                                        <div class="flex flex-col items-end">
+                                            <span class="font-semibold text-neutral-900 dark:text-white">{{ number_format((float) $transaction->margin_amount, 2, ',', '.') }}</span>
+                                            <span class="text-xs text-neutral-500 dark:text-neutral-400">{{ number_format((float) $transaction->margin_percentage, 2, ',', '.') }}%</span>
                                         </div>
                                     </td>
                                     <td class="px-4 py-3 align-top text-right text-neutral-700 dark:text-neutral-200">

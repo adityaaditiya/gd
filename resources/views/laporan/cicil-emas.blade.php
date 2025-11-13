@@ -46,13 +46,21 @@
                 </span>
             </header>
 
-            <dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
+                    <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Pembiayaan') }}</dt>
+                    <dd class="text-xl font-semibold text-neutral-900 dark:text-white">Rp {{ number_format($metrics['total_financed'] ?? 0, 0, ',', '.') }}</dd>
+                </div>
                 <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
                     <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Pokok Tercatat') }}</dt>
                     <dd class="text-xl font-semibold text-neutral-900 dark:text-white">Rp {{ number_format($metrics['total_principal'] ?? 0, 0, ',', '.') }}</dd>
                 </div>
                 <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
-                    <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Saldo Pokok Tersisa') }}</dt>
+                    <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Margin Terjadwal') }}</dt>
+                    <dd class="text-xl font-semibold text-purple-600 dark:text-purple-300">Rp {{ number_format($metrics['total_margin'] ?? 0, 0, ',', '.') }}</dd>
+                </div>
+                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
+                    <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Saldo Pembiayaan Tersisa') }}</dt>
                     <dd class="text-xl font-semibold text-amber-600 dark:text-amber-300">Rp {{ number_format($metrics['total_outstanding'] ?? 0, 0, ',', '.') }}</dd>
                 </div>
                 <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
@@ -130,7 +138,10 @@
                                 <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Paket Emas') }}</th>
                                 <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Tenor') }}</th>
                                 <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Nilai Emas Awal') }}</th>
-                                <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Saldo Pokok Tersisa') }}</th>
+                                <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Pokok Pembiayaan') }}</th>
+                                <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Margin') }}</th>
+                                <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Total Pembiayaan') }}</th>
+                                <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Saldo Pembiayaan Tersisa') }}</th>
                                 <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Total Dibayar') }}</th>
                                 <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Total Denda') }}</th>
                                 <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Status') }}</th>
@@ -164,6 +175,11 @@
                                     </td>
                                     <td class="px-4 py-3 text-neutral-600 dark:text-neutral-300">{{ $transaction->tenor_bulan }} {{ __('bulan') }}</td>
                                     <td class="px-4 py-3 text-neutral-600 dark:text-neutral-300">Rp {{ number_format($transaction->harga_emas, 0, ',', '.') }}</td>
+                                    <td class="px-4 py-3 text-neutral-600 dark:text-neutral-300">Rp {{ number_format($insight['principal_without_margin'] ?? 0, 0, ',', '.') }}</td>
+                                    <td class="px-4 py-3 text-neutral-600 dark:text-neutral-300">
+                                        {{ number_format($insight['margin_percentage'] ?? 0, 2, ',', '.') }}% • Rp {{ number_format($insight['margin_amount'] ?? 0, 0, ',', '.') }}
+                                    </td>
+                                    <td class="px-4 py-3 text-neutral-600 dark:text-neutral-300">Rp {{ number_format($insight['total_financed'] ?? 0, 0, ',', '.') }}</td>
                                     <td class="px-4 py-3 text-neutral-600 dark:text-neutral-300">Rp {{ number_format($insight['outstanding_principal'], 0, ',', '.') }}</td>
                                     <td class="px-4 py-3 text-neutral-600 dark:text-neutral-300">Rp {{ number_format($insight['total_paid'], 0, ',', '.') }}</td>
                                     <td class="px-4 py-3 text-neutral-600 dark:text-neutral-300">Rp {{ number_format($insight['total_penalty'], 0, ',', '.') }}</td>

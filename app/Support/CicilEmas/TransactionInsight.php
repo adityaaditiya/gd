@@ -34,7 +34,7 @@ class TransactionInsight
         $now = Carbon::now();
         $today = $now->copy()->startOfDay();
 
-        $totalPrincipal = (float) $installments->sum('amount');
+        $totalFinanced = (float) $installments->sum('amount');
         $totalPenaltyAccrued = (float) $installments->sum(function (CicilEmasInstallment $installment) {
             return $installment->penalty_amount ?? 0.0;
         });
@@ -42,11 +42,29 @@ class TransactionInsight
             return $installment->paid_amount ?? 0.0;
         });
 
+        $principalWithoutMargin = (float) ($transaction->pokok_pembiayaan
+            ?? max($transaction->harga_emas - $transaction->estimasi_uang_muka, 0));
+
+        if ($principalWithoutMargin <= 0 && $transaction->harga_emas > 0) {
+            $principalWithoutMargin = max($totalFinanced - ($transaction->margin_amount ?? 0), 0);
+        }
+
         $outstandingPrincipal = (float) $installments->sum(function (CicilEmasInstallment $installment) {
             $paid = $installment->paid_amount ?? 0.0;
 
             return max($installment->amount - $paid, 0.0);
         });
+
+        $marginAmount = (float) ($transaction->margin_amount ?? ($totalFinanced - $principalWithoutMargin));
+        if ($marginAmount < 0) {
+            $marginAmount = 0.0;
+        }
+
+        $marginPercentage = (float) ($transaction->margin_percentage ?? (
+            $principalWithoutMargin > 0
+                ? round(($marginAmount / $principalWithoutMargin) * 100, 2)
+                : 0.0
+        ));
 
         $overdueInstallments = $installments->filter(function (CicilEmasInstallment $installment) use ($today) {
             if ($installment->paid_at) {
@@ -70,8 +88,8 @@ class TransactionInsight
             $statusStyle = 'danger';
         }
 
-        $completionRatio = $totalPrincipal > 0
-            ? round(min(($totalPaid / $totalPrincipal) * 100, 100), 2)
+        $completionRatio = $totalFinanced > 0
+            ? round(min(($totalPaid / $totalFinanced) * 100, 100), 2)
             : 0.0;
 
         $nextInstallment = $installments
@@ -99,10 +117,15 @@ class TransactionInsight
             'status' => $status,
             'status_style' => $statusStyle,
             'completion_ratio' => $completionRatio,
-            'total_principal' => $totalPrincipal,
+            'total_principal' => $principalWithoutMargin,
+            'principal_without_margin' => $principalWithoutMargin,
+            'total_financed' => $totalFinanced,
             'total_paid' => $totalPaid,
             'total_penalty' => $totalPenaltyAccrued,
             'outstanding_principal' => max($outstandingPrincipal, 0.0),
+            'outstanding_balance' => max($outstandingPrincipal, 0.0),
+            'margin_amount' => $marginAmount,
+            'margin_percentage' => $marginPercentage,
             'overdue_installments' => $overdueInstallments,
             'next_installment' => $nextInstallment,
             'last_payment' => $lastPayment,

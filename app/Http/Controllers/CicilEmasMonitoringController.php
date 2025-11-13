@@ -43,8 +43,12 @@ class CicilEmasMonitoringController extends Controller
 
     private function buildPortfolioMetrics(Collection $insights): array
     {
-        $totalPrincipal = (float) $insights->sum('total_principal');
-        $totalOutstanding = (float) $insights->sum('outstanding_principal');
+        $totalPrincipal = (float) $insights->sum('principal_without_margin');
+        $totalFinanced = (float) $insights->sum('total_financed');
+        $totalMargin = (float) $insights->sum('margin_amount');
+        $totalOutstanding = (float) $insights->sum(function ($insight) {
+            return (float) ($insight['outstanding_balance'] ?? $insight['outstanding_principal'] ?? 0);
+        });
         $totalPenalty = (float) $insights->sum('total_penalty');
         $totalPaid = (float) $insights->sum('total_paid');
         $count = $insights->count();
@@ -71,6 +75,8 @@ class CicilEmasMonitoringController extends Controller
         return [
             'total_transactions' => $count,
             'total_principal' => $totalPrincipal,
+            'total_financed' => $totalFinanced,
+            'total_margin' => $totalMargin,
             'total_outstanding' => $totalOutstanding,
             'total_penalty' => $totalPenalty,
             'total_paid' => $totalPaid,

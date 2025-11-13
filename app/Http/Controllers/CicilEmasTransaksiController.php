@@ -46,6 +46,7 @@ class CicilEmasTransaksiController extends Controller
             'defaultDownPayment' => (int) config('cicil_emas.default_down_payment', 1_000_000),
             'defaultDownPaymentPercentage' => (float) config('cicil_emas.default_down_payment_percentage', 10),
             'tenorOptions' => $tenorOptions,
+            'marginConfig' => $this->marginConfiguration(),
         ]);
     }
 
@@ -107,9 +108,12 @@ class CicilEmasTransaksiController extends Controller
             ]);
         }
 
-        $remaining = max($totalPrice - $downPayment, 0);
+        $principalBalance = max($totalPrice - $downPayment, 0);
+        $marginPercentage = $this->resolveMarginPercentage($tenor);
+        $marginAmount = round($principalBalance * ($marginPercentage / 100), 2);
+        $totalFinanced = $principalBalance + $marginAmount;
         $installment = $tenor > 0
-            ? round($remaining / $tenor, 2)
+            ? round($totalFinanced / $tenor, 2)
             : 0.0;
 
         $dpPercentage = $totalPrice > 0
@@ -129,6 +133,10 @@ class CicilEmasTransaksiController extends Controller
             'harga_emas' => $totalPrice,
             'dp_percentage' => $dpPercentage,
             'estimasi_uang_muka' => $downPayment,
+            'pokok_pembiayaan' => $principalBalance,
+            'margin_percentage' => $marginPercentage,
+            'margin_amount' => $marginAmount,
+            'total_pembiayaan' => $totalFinanced,
             'tenor_bulan' => $tenor,
             'besaran_angsuran' => $installment,
             'option_id' => 'manual-tenor-'.$tenor,
@@ -153,6 +161,10 @@ class CicilEmasTransaksiController extends Controller
                 'dp_percentage' => $dpPercentage,
                 'tenor' => $tenor,
                 'angsuran' => $installment,
+                'margin_percentage' => $marginPercentage,
+                'margin_amount' => $marginAmount,
+                'total_pembiayaan' => $totalFinanced,
+                'pokok_pembiayaan' => $principalBalance,
                 'total' => $totalPrice,
                 'transaksi_id' => $transaction->id,
             ]);
@@ -193,5 +205,30 @@ class CicilEmasTransaksiController extends Controller
                 'penalty_rate' => $penaltyRate,
             ]);
         }
+    }
+
+    private function marginConfiguration(): array
+    {
+        $config = config('cicil_emas.margin', []);
+
+        return [
+            'default_percentage' => (float) ($config['default_percentage'] ?? 0),
+            'tenor_overrides' => collect($config['tenor_overrides'] ?? [])
+                ->filter(fn ($value, $key) => is_numeric($key) && is_numeric($value))
+                ->mapWithKeys(fn ($value, $key) => [(int) $key => (float) $value])
+                ->all(),
+        ];
+    }
+
+    private function resolveMarginPercentage(int $tenor): float
+    {
+        $config = $this->marginConfiguration();
+        $overrides = $config['tenor_overrides'] ?? [];
+
+        if (array_key_exists($tenor, $overrides)) {
+            return (float) $overrides[$tenor];
+        }
+
+        return (float) ($config['default_percentage'] ?? 0);
     }
 }
