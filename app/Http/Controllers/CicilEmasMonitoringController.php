@@ -33,6 +33,7 @@ class CicilEmasMonitoringController extends Controller
         $transactionsQuery = CicilEmasTransaction::with([
             'nasabah',
             'installments' => fn ($query) => $query->orderBy('sequence'),
+            'items',
         ])->orderByDesc('created_at');
 
         $transactionsQuery->whereHas('nasabah', function ($query) use ($filters) {
@@ -89,7 +90,7 @@ class CicilEmasMonitoringController extends Controller
         $paginatedTransactions = $transactionsQuery->paginate(6)->withQueryString();
 
         $barangIds = $allTransactions
-            ->map(fn (CicilEmasTransaction $transaction) => TransactionInsight::extractBarangId($transaction->package_id))
+            ->flatMap(fn (CicilEmasTransaction $transaction) => $transaction->items->pluck('barang_id'))
             ->filter()
             ->unique();
 
@@ -99,10 +100,7 @@ class CicilEmasMonitoringController extends Controller
 
         $allInsights = $allTransactions
             ->mapWithKeys(function (CicilEmasTransaction $transaction) use ($barangMap) {
-                $barangId = TransactionInsight::extractBarangId($transaction->package_id);
-                $barang = $barangId ? $barangMap->get($barangId) : null;
-
-                return [$transaction->getKey() => TransactionInsight::summarize($transaction, $barang)];
+                return [$transaction->getKey() => TransactionInsight::summarize($transaction, $barangMap)];
             });
 
         $insights = $paginatedTransactions->through(function (CicilEmasTransaction $transaction) use ($allInsights) {

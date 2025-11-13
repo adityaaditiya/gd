@@ -94,7 +94,8 @@
                         @php
                             $transaction = $insight['model'];
                             $nasabah = $transaction->nasabah;
-                            $barang = $insight['barang'];
+                            $items = collect($insight['items'] ?? []);
+                            $primaryItem = $items->first();
                             $installments = $insight['installments'];
                             $visibleInstallments = $installments->take(4);
                             $hiddenInstallments = $installments->slice(4);
@@ -117,8 +118,32 @@
                                     <span>{{ __('Dibuat :tanggal', ['tanggal' => $transaction->created_at?->translatedFormat('d F Y H:i')]) }}</span>
                                 </div>
                                 <div class="mt-1 text-sm text-neutral-600 dark:text-neutral-300">
-                                    {{ $barang?->nama_barang ?? $transaction->pabrikan }} · {{ number_format($transaction->berat_gram, 3, ',', '.') }} gr · {{ $transaction->kadar }}
+                                    @if ($items->count() === 1)
+                                        {{ $primaryItem['nama_barang'] ?? $transaction->pabrikan }} ·
+                                        {{ number_format((float) ($primaryItem['berat'] ?? $transaction->berat_gram), 3, ',', '.') }} gr ·
+                                        {{ $primaryItem['kode'] ?? $transaction->kadar }}
+                                    @elseif ($items->count() > 1)
+                                        {{ __(':count barang', ['count' => $items->count()]) }} ·
+                                        {{ number_format($transaction->berat_gram, 3, ',', '.') }} gr ·
+                                        {{ $transaction->kadar }}
+                                    @else
+                                        {{ $transaction->pabrikan }} · {{ number_format($transaction->berat_gram, 3, ',', '.') }} gr · {{ $transaction->kadar }}
+                                    @endif
                                 </div>
+                                @if ($items->count() > 1)
+                                    <ul class="mt-1 list-disc space-y-1 ps-5 text-xs text-neutral-500 dark:text-neutral-400">
+                                        @foreach ($items->take(3) as $item)
+                                            <li>
+                                                {{ $item['nama_barang'] ?? __('Barang') }} •
+                                                {{ number_format((float) ($item['berat'] ?? 0), 3, ',', '.') }} gr •
+                                                {{ $item['kode'] ?? '—' }}
+                                            </li>
+                                        @endforeach
+                                        @if ($items->count() > 3)
+                                            <li>+ {{ $items->count() - 3 }} {{ __('barang lainnya') }}</li>
+                                        @endif
+                                    </ul>
+                                @endif
                                 <div class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
                                     {{ __('Margin') }} {{ number_format($insight['margin_percentage'] ?? 0, 2, ',', '.') }}% • Rp {{ number_format($insight['margin_amount'] ?? 0, 0, ',', '.') }}
                                 </div>

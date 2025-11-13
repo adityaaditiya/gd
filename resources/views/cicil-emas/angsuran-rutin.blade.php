@@ -198,8 +198,37 @@
                                     <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">
                                         <div class="flex flex-col">
                                             <span class="font-semibold text-neutral-900 dark:text-white">{{ $nasabah->nama ?? __('Tidak diketahui') }}</span>
+                                            @php
+                                                $items = $transaction?->relationLoaded('items') ? $transaction->items : collect();
+                                            @endphp
+                                            @if ($items->count() === 1)
+                                                @php $item = $items->first(); @endphp
+                                                <span class="text-xs text-neutral-500 dark:text-neutral-400">
+                                                    {{ $item->nama_barang ?? $transaction?->pabrikan }} •
+                                                    {{ number_format((float) ($item->berat ?? $transaction?->berat_gram ?? 0), 3, ',', '.') }} gr •
+                                                    {{ $item->kode_group ?? $item->kode_intern ?? $transaction?->kadar }}
+                                                </span>
+                                            @elseif ($items->count() > 1)
+                                                <span class="text-xs text-neutral-500 dark:text-neutral-400">
+                                                    {{ __(':count barang', ['count' => $items->count()]) }} •
+                                                    {{ number_format((float) ($transaction?->berat_gram ?? 0), 3, ',', '.') }} gr •
+                                                    {{ $transaction?->kadar }}
+                                                </span>
+                                                <ul class="mt-1 list-disc space-y-1 ps-4 text-[11px] text-neutral-500 dark:text-neutral-400">
+                                                    @foreach ($items->take(3) as $item)
+                                                        <li>{{ $item->nama_barang }} • {{ number_format((float) ($item->berat ?? 0), 3, ',', '.') }} gr • {{ $item->kode_group ?? $item->kode_intern ?? '—' }}</li>
+                                                    @endforeach
+                                                    @if ($items->count() > 3)
+                                                        <li>+ {{ $items->count() - 3 }} {{ __('barang lainnya') }}</li>
+                                                    @endif
+                                                </ul>
+                                            @else
+                                                <span class="text-xs text-neutral-500 dark:text-neutral-400">
+                                                    {{ $transaction?->pabrikan }} • {{ number_format((float) ($transaction?->berat_gram ?? 0), 3, ',', '.') }} gr
+                                                </span>
+                                            @endif
                                             <span class="text-xs text-neutral-500 dark:text-neutral-400">
-                                                {{ $transaction?->pabrikan }} • {{ number_format((float) ($transaction?->berat_gram ?? 0), 3, ',', '.') }} gr
+                                                {{ __('Administrasi: Rp :amount', ['amount' => number_format((float) ($transaction?->administrasi ?? 0), 0, ',', '.')]) }}
                                             </span>
                                             <span class="text-xs text-neutral-500 dark:text-neutral-400">
                                                 {{ __('Administrasi: Rp :amount', ['amount' => number_format((float) ($transaction?->administrasi ?? 0), 0, ',', '.')]) }}
