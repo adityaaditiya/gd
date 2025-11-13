@@ -61,7 +61,7 @@
                                             data-search="{{ strtolower($barang->jenis_barang . ' ' . $barang->merek . ' ' . ($barang->kode_barang ?? '')) }}"
                                             {{ in_array((string) $barang->barang_id, $barangDipilih, true) ? 'selected' : '' }}
                                         >
-                                            {{ $barang->jenis_barang }} — {{ $barang->merek }} ({{ __('Taksiran: :amount', ['amount' => number_format((float) $barang->nilai_taksiran, 2, ',', '.')]) }})
+                                            {{ $barang->jenis_barang }} — {{ $barang->merek }} ({{ __('Taksiran: :amount', ['amount' => number_format((float) $barang->nilai_taksiran, 0, ',', '.')]) }})
                                         </option>
                                     @endforeach
                                 </select>
@@ -256,7 +256,7 @@
                                 <input
                                     type="text"
                                     id="total_potongan_display"
-                                    value="Rp 0,00"
+                                    value="Rp 0"
                                     readonly
                                     class="block w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-neutral-300 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
                                 />
@@ -267,7 +267,7 @@
                                 <input
                                     type="text"
                                     id="uang_cair_display"
-                                    value="Rp 0,00"
+                                    value="Rp 0"
                                     readonly
                                     class="block w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-neutral-300 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
                                 />
@@ -279,7 +279,7 @@
                                 <input
                                     type="text"
                                     id="estimasi_bunga_display"
-                                    value="Rp 0,00"
+                                    value="Rp 0"
                                     readonly
                                     class="block w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-neutral-300 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
                                 />
@@ -362,7 +362,8 @@
                         return new Intl.NumberFormat('id-ID', {
                             style: 'currency',
                             currency: 'IDR',
-                            minimumFractionDigits: 2,
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 0,
                         }).format(number);
                     };
 
