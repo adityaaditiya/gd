@@ -22,6 +22,7 @@ class LaporanCicilEmasController extends Controller
         $query = CicilEmasTransaction::with([
             'nasabah',
             'installments' => fn ($builder) => $builder->orderBy('sequence'),
+            'items',
         ])->orderByDesc('created_at');
 
         if (! empty($validated['start_date'])) {
@@ -35,7 +36,7 @@ class LaporanCicilEmasController extends Controller
         $transactions = $query->get();
 
         $barangIds = $transactions
-            ->map(fn (CicilEmasTransaction $transaction) => TransactionInsight::extractBarangId($transaction->package_id))
+            ->flatMap(fn (CicilEmasTransaction $transaction) => $transaction->items->pluck('barang_id'))
             ->filter()
             ->unique();
 
@@ -44,10 +45,7 @@ class LaporanCicilEmasController extends Controller
             ->keyBy('id');
 
         $insights = $transactions->map(function (CicilEmasTransaction $transaction) use ($barangMap) {
-            $barangId = TransactionInsight::extractBarangId($transaction->package_id);
-            $barang = $barangId ? $barangMap->get($barangId) : null;
-
-            return TransactionInsight::summarize($transaction, $barang);
+            return TransactionInsight::summarize($transaction, $barangMap);
         });
 
         if (! empty($validated['status'])) {
@@ -72,6 +70,7 @@ class LaporanCicilEmasController extends Controller
         $totalPrincipal = (float) $insights->sum('principal_without_margin');
         $totalFinanced = (float) $insights->sum('total_financed');
         $totalMargin = (float) $insights->sum('margin_amount');
+        $totalAdministration = (float) $insights->sum('administrasi');
         $totalOutstanding = (float) $insights->sum(function ($insight) {
             return (float) ($insight['outstanding_balance'] ?? $insight['outstanding_principal'] ?? 0);
         });
@@ -107,6 +106,7 @@ class LaporanCicilEmasController extends Controller
             'total_principal' => $totalPrincipal,
             'total_financed' => $totalFinanced,
             'total_margin' => $totalMargin,
+            'total_administration' => $totalAdministration,
             'total_outstanding' => $totalOutstanding,
             'total_penalty' => $totalPenalty,
             'total_paid' => $totalPaid,

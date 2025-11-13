@@ -1,8 +1,57 @@
 <x-layouts.app :title="__('Transaksi Emas')">
     @php
         $packagesCollection = collect($packages ?? []);
-        $selectedPackageId = old('package_id');
-        $selectedPackage = $packagesCollection->firstWhere('id', $selectedPackageId);
+        $selectedPackageIds = collect(old('package_ids', []))
+            ->map(function ($value) {
+                if (is_int($value)) {
+                    return $value;
+                }
+
+                if (is_string($value)) {
+                    $trimmed = trim($value);
+
+                    if ($trimmed !== '' && ctype_digit($trimmed)) {
+                        return (int) $trimmed;
+                    }
+                }
+
+                if (is_numeric($value) && ctype_digit((string) $value)) {
+                    return (int) $value;
+                }
+
+                return null;
+            })
+            ->filter(fn ($value) => $value !== null)
+            ->unique()
+            ->values();
+        $selectedPackageKeys = $selectedPackageIds->map(fn ($id) => (string) $id);
+        $selectedPackages = $packagesCollection
+            ->filter(fn ($package) => $selectedPackageKeys->contains((string) ($package['id'] ?? '')))
+            ->values();
+        $selectedSummaryLines = $selectedPackages->map(function ($package) {
+            $group = $package['kode_group'] ?? $package['kode_intern'] ?? '—';
+            $weight = number_format((float) ($package['berat'] ?? 0), 3, ',', '.');
+            $price = number_format((float) ($package['harga'] ?? 0), 0, ',', '.');
+
+            return ($package['nama_barang'] ?? __('Barang')).' • '.$weight.' gr • '.$group.' • Rp '.$price;
+        });
+        $selectedTotalWeight = (float) $selectedPackages->sum(fn ($pkg) => (float) ($pkg['berat'] ?? 0));
+        $selectedTotalPrice = (float) $selectedPackages->sum(fn ($pkg) => (float) ($pkg['harga'] ?? 0));
+        $selectedSummaryCount = $selectedPackages->count();
+        $selectedSummaryWeightText = $selectedSummaryCount > 0
+            ? number_format($selectedTotalWeight, 3, ',', '.').' gr'
+            : '—';
+        $selectedSummaryPriceText = $selectedSummaryCount > 0
+            ? 'Rp '.number_format($selectedTotalPrice, 0, ',', '.')
+            : '—';
+        $selectedSummaryCountText = $selectedSummaryCount > 0
+            ? number_format($selectedSummaryCount, 0, ',', '.')
+            : '0';
+        $selectedMetaText = match (true) {
+            $selectedSummaryCount === 0 => __('Belum ada barang dipilih. Gunakan kolom pencarian untuk menemukan barang.'),
+            $selectedSummaryCount === 1 => $selectedSummaryLines->first(),
+            default => $selectedSummaryCountText.' '.__('barang dipilih').' • '.number_format($selectedTotalWeight, 3, ',', '.').' gr • Rp '.number_format($selectedTotalPrice, 0, ',', '.'),
+        };
         $tenorCollection = collect($tenorOptions ?? [])
             ->filter(fn ($value) => is_numeric($value) && $value > 0)
             ->map(fn ($value) => (int) $value)
@@ -58,7 +107,22 @@
                         </div>
                         <div class="space-y-1">
                             <dt class="font-semibold text-neutral-900 dark:text-white">{{ __('Paket Emas') }}</dt>
-                            <dd>{{ $summary['paket'] ?? '—' }}</dd>
+                            @if (!empty($summary['packages']) && is_array($summary['packages']))
+                                <dd class="space-y-1">
+                                    <ul class="list-disc space-y-1 ps-4 text-xs text-neutral-600 dark:text-neutral-300">
+                                        @foreach ($summary['packages'] as $package)
+                                            <li>
+                                                {{ $package['nama_barang'] ?? __('Barang') }} •
+                                                {{ number_format((float) ($package['berat'] ?? 0), 3, ',', '.') }} gr •
+                                                {{ $package['kode'] ?? '—' }} •
+                                                Rp {{ number_format((float) ($package['harga'] ?? 0), 0, ',', '.') }}
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </dd>
+                            @else
+                                <dd>{{ $summary['paket'] ?? '—' }}</dd>
+                            @endif
                         </div>
                         <div class="space-y-1">
                             <dt class="font-semibold text-neutral-900 dark:text-white">{{ __('Jangka Waktu') }}</dt>
@@ -88,6 +152,14 @@
                                         {{ __('Tarif margin :persen%', ['persen' => number_format($summary['margin_percentage'] ?? 0, 2, ',', '.')]) }}
                                     </span>
                                 </dd>
+                            @else
+                                <dd>—</dd>
+                            @endif
+                        </div>
+                        <div class="space-y-1">
+                            <dt class="font-semibold text-neutral-900 dark:text-white">{{ __('Biaya Administrasi') }}</dt>
+                            @if (isset($summary['administrasi']))
+                                <dd>{{ number_format($summary['administrasi'], 0, ',', '.') }}</dd>
                             @else
                                 <dd>—</dd>
                             @endif
@@ -183,33 +255,99 @@
                             </div>
 
                             <div>
-                                <label for="package_id" class="mb-2 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
+                                <label class="mb-2 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
                                     {{ __('Data Barang') }}
                                 </label>
-                                <select
-                                    id="package_id"
-                                    name="package_id"
-                                    data-package-select
-                                    class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white"
-                                    required
-                                    @disabled($packagesCollection->isEmpty())
-                                >
-                                    <option value="">{{ $packagesCollection->isEmpty() ? __('Belum ada data barang tersedia') : __('Pilih barang emas') }}</option>
-                                    @foreach ($packagesCollection as $package)
-                                        <option value="{{ $package['id'] }}" @selected($selectedPackageId === $package['id'])>
-                                            {{ $package['nama_barang'] }} — {{ $package['kode_group'] ?? $package['kode_intern'] }} • {{ number_format((float) $package['berat'], 3, ',', '.') }} gr
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('package_id')
+                                <div class="space-y-4" data-package-selector>
+                                    <div class="grid gap-4 lg:grid-cols-2">
+                                        <div class="flex flex-col gap-2">
+                                            <div class="flex items-center justify-between gap-2">
+                                                <label for="package_ids" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Daftar Barang') }}</label>
+                                                <label for="package_search" class="sr-only">{{ __('Cari Barang Emas') }}</label>
+                                                <input
+                                                    type="search"
+                                                    id="package_search"
+                                                    data-package-search
+                                                    placeholder="{{ __('Cari barang…') }}"
+                                                    class="block w-48 rounded-lg border border-neutral-300 bg-white px-2 py-1 text-xs text-neutral-700 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-200 dark:focus:border-indigo-400 dark:focus:ring-indigo-900/40"
+                                                />
+                                            </div>
+                                            <select
+                                                id="package_ids"
+                                                name="package_ids[]"
+                                                multiple
+                                                size="8"
+                                                data-package-select
+                                                class="block w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
+                                            >
+                                                @foreach ($packagesCollection as $package)
+                                                    @php
+                                                        $searchTokens = strtolower(
+                                                            trim(
+                                                                ($package['nama_barang'] ?? '').' '.
+                                                                ($package['kode_intern'] ?? '').' '.
+                                                                ($package['kode_group'] ?? '').' '.
+                                                                ($package['kode_barcode'] ?? '')
+                                                            ),
+                                                        );
+                                                    @endphp
+                                                    <option
+                                                        value="{{ $package['id'] }}"
+                                                        data-name="{{ $package['nama_barang'] ?? __('Barang') }}"
+                                                        data-group="{{ $package['kode_group'] ?? '' }}"
+                                                        data-intern="{{ $package['kode_intern'] ?? '' }}"
+                                                        data-barcode="{{ $package['kode_barcode'] ?? '' }}"
+                                                        data-weight="{{ (float) ($package['berat'] ?? 0) }}"
+                                                        data-price="{{ (float) ($package['harga'] ?? 0) }}"
+                                                        data-search="{{ $searchTokens }}"
+                                                        {{ $selectedPackageKeys->contains((string) ($package['id'] ?? '')) ? 'selected' : '' }}
+                                                    >
+                                                        {{ $package['nama_barang'] ?? __('Barang') }} — {{ $package['kode_group'] ?? $package['kode_intern'] ?? '—' }} ({{ number_format((float) ($package['berat'] ?? 0), 3, ',', '.') }} gr • Rp {{ number_format((float) ($package['harga'] ?? 0), 0, ',', '.') }})
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Gunakan Ctrl/Cmd + klik untuk memilih lebih dari satu barang.') }}</p>
+                                        </div>
+                                        <div class="rounded-lg border border-dashed border-indigo-300 bg-indigo-50/70 p-4 text-sm text-indigo-900 dark:border-indigo-500 dark:bg-indigo-500/10 dark:text-indigo-200">
+                                            <p class="font-semibold">{{ __('Ringkasan Barang Terpilih') }}</p>
+                                            <dl class="mt-2 space-y-2 text-xs">
+                                                <div class="flex justify-between gap-2">
+                                                    <dt class="text-neutral-600 dark:text-neutral-300">{{ __('Jumlah Barang') }}</dt>
+                                                    <dd class="font-semibold text-neutral-900 dark:text-white" data-package-summary-count>{{ $selectedSummaryCountText }}</dd>
+                                                </div>
+                                                <div class="flex justify-between gap-2">
+                                                    <dt class="text-neutral-600 dark:text-neutral-300">{{ __('Total Berat') }}</dt>
+                                                    <dd class="font-semibold text-neutral-900 dark:text-white" data-package-summary-weight>{{ $selectedSummaryWeightText }}</dd>
+                                                </div>
+                                                <div class="flex justify-between gap-2">
+                                                    <dt class="text-neutral-600 dark:text-neutral-300">{{ __('Total Harga') }}</dt>
+                                                    <dd class="font-semibold text-neutral-900 dark:text-white" data-package-summary-price>{{ $selectedSummaryPriceText }}</dd>
+                                                </div>
+                                            </dl>
+                                            <div class="mt-3 rounded-lg bg-white/60 p-3 text-xs text-neutral-700 shadow-sm dark:bg-neutral-900/40 dark:text-neutral-200">
+                                                <p class="font-semibold">{{ __('Daftar Barang') }}</p>
+                                                <ul class="mt-2 space-y-1" data-package-summary-list>
+                                                    @forelse ($selectedSummaryLines as $line)
+                                                        <li>{{ $line }}</li>
+                                                    @empty
+                                                        <li class="italic text-neutral-500 dark:text-neutral-400" data-package-empty>{{ __('Belum ada barang dipilih.') }}</li>
+                                                    @endforelse
+                                                </ul>
+                                            </div>
+                                            <p class="mt-3 text-xs text-neutral-500 dark:text-neutral-400">{{ __('Total harga akan menjadi dasar perhitungan uang muka dan angsuran cicilan.') }}</p>
+                                        </div>
+                                    </div>
+                                    <p class="text-xs text-neutral-500 dark:text-neutral-400" data-package-meta>{{ $selectedMetaText }}</p>
+                                </div>
+                                @error('package_ids')
                                     <p class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
                                 @enderror
-                                <p class="mt-2 text-xs text-neutral-500 dark:text-neutral-400" data-package-meta>
-                                    {{ __('Silakan pilih barang emas untuk melihat detail harga.') }}
-                                </p>
+                                @error('package_ids.*')
+                                    <p class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
+                                @enderror
                                 @if ($packagesCollection->isEmpty())
-                                    <p class="mt-3 text-xs text-amber-600 dark:text-amber-400">
-                                        {{ __('Belum ada data barang. Tambahkan entri melalui halaman Data Barang terlebih dahulu.') }}
+                                    <p class="mt-3 text-xs text-neutral-500 dark:text-neutral-400">
+                                        {{ __('Belum ada data barang yang dapat dipilih?') }}
                                         <a href="{{ route('barang.data-barang') }}" class="font-semibold underline underline-offset-2">
                                             {{ __('Buka Data Barang') }}
                                         </a>
@@ -306,7 +444,35 @@
                                 </p>
                             </div>
 
-                            <div>
+                            <div class="md:col-span-1">
+                                <label for="administrasi" class="mb-2 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
+                                    {{ __('Biaya Administrasi') }}
+                                    <span class="font-normal text-xs text-neutral-500 dark:text-neutral-400">({{ __('opsional') }})</span>
+                                </label>
+                                <div class="flex overflow-hidden rounded-lg border border-neutral-300 bg-white shadow-sm dark:border-neutral-600 dark:bg-neutral-800">
+                                    <span class="flex items-center justify-center bg-neutral-100 px-3 text-xs font-semibold uppercase tracking-wide text-neutral-600 dark:bg-neutral-700 dark:text-neutral-200">
+                                        {{ __('Rp') }}
+                                    </span>
+                                    <input
+                                        id="administrasi"
+                                        name="administrasi"
+                                        type="number"
+                                        min="0"
+                                        step="1"
+                                        value="{{ old('administrasi', '0') }}"
+                                        class="w-full border-0 bg-transparent px-3 py-2 text-sm font-semibold text-neutral-900 focus:outline-none focus:ring-0 dark:text-white"
+                                        data-administration-input
+                                    >
+                                </div>
+                                @error('administrasi')
+                                    <p class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
+                                @enderror
+                                <p class="mt-2 text-xs text-neutral-500 dark:text-neutral-400" data-administration-display>
+                                    {{ __('Jika diisi, biaya administrasi akan ditambahkan ke total pembiayaan cicilan.') }}
+                                </p>
+                            </div>
+
+                            <div class="md:col-span-1">
                                 <label for="besaran_angsuran_display" class="mb-2 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
                                     {{ __('Estimasi Angsuran Bulanan') }}
                                 </label>
@@ -336,14 +502,16 @@
 
                         <div class="rounded-lg bg-neutral-100 px-4 py-3 text-sm text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200" data-summary-panel hidden>
                             <p class="font-semibold text-neutral-900 dark:text-white">{{ __('Ringkasan Barang') }}</p>
-                            <ul class="mt-2 space-y-1">
-                                <li data-summary-package>{{ __('Barang belum dipilih.') }}</li>
-                                <li data-summary-price></li>
-                                <li data-summary-option></li>
-                                <li data-summary-principal></li>
-                                <li data-summary-margin></li>
-                                <li data-summary-financing></li>
-                            </ul>
+                            <div class="mt-2 space-y-2">
+                                <p data-summary-package>{{ __('Barang belum dipilih.') }}</p>
+                                <ul class="space-y-1 text-xs text-neutral-600 dark:text-neutral-400" data-summary-items></ul>
+                                <p data-summary-price></p>
+                                <p data-summary-option></p>
+                                <p data-summary-principal></p>
+                                <p data-summary-margin></p>
+                                <p data-summary-administration></p>
+                                <p data-summary-financing></p>
+                            </div>
                         </div>
 
                         <div class="flex items-center justify-end gap-3">
@@ -365,8 +533,14 @@
             function initCicilEmas() {
                 const packages = @json($packagesCollection);
                 const marginConfig = @json($resolvedMarginConfig);
-                const packageSelect = document.querySelector('[data-package-select]');
-                const packageMeta = document.querySelector('[data-package-meta]');
+                const packageSelector = document.querySelector('[data-package-selector]');
+                const packageSelect = packageSelector?.querySelector('[data-package-select]') ?? null;
+                const packageSearch = packageSelector?.querySelector('[data-package-search]') ?? null;
+                const packageMeta = packageSelector?.querySelector('[data-package-meta]') ?? null;
+                const packageSummaryCount = packageSelector?.querySelector('[data-package-summary-count]') ?? null;
+                const packageSummaryWeight = packageSelector?.querySelector('[data-package-summary-weight]') ?? null;
+                const packageSummaryPrice = packageSelector?.querySelector('[data-package-summary-price]') ?? null;
+                const packageSummaryList = packageSelector?.querySelector('[data-package-summary-list]') ?? null;
                 const downPaymentInput = document.querySelector('[data-down-payment-input]');
                 const downPaymentHidden = document.querySelector('[data-down-payment-hidden]');
                 const downPaymentDisplay = document.querySelector('[data-down-payment-display]');
@@ -385,18 +559,31 @@
                 const financingDisplay = document.querySelector('[data-financing-display]');
                 const summaryPanel = document.querySelector('[data-summary-panel]');
                 const summaryPackage = document.querySelector('[data-summary-package]');
+                const summaryItemsList = document.querySelector('[data-summary-items]');
                 const summaryPrice = document.querySelector('[data-summary-price]');
                 const summaryOption = document.querySelector('[data-summary-option]');
                 const summaryPrincipal = document.querySelector('[data-summary-principal]');
                 const summaryMargin = document.querySelector('[data-summary-margin]');
+                const summaryAdministration = document.querySelector('[data-summary-administration]');
                 const summaryFinancing = document.querySelector('[data-summary-financing]');
+                const administrationInput = document.querySelector('[data-administration-input]');
+                const administrationDisplay = document.querySelector('[data-administration-display]');
 
-                if (!packageSelect) {
-                    // DOM belum siap atau kita bukan di halaman ini
+                if (!packageSelector || !packageSelect) {
                     return;
                 }
 
-                const findPackage = (id) => packages.find((pkg) => String(pkg.id) === String(id));
+                if (packageSelector.dataset.initialized === 'true') {
+                    return;
+                }
+
+                packageSelector.dataset.initialized = 'true';
+
+                const packageMap = new Map(
+                    Array.isArray(packages)
+                        ? packages.map((pkg) => [String(pkg.id), pkg])
+                        : [],
+                );
 
                 const formatCurrency = (value) =>
                     new Intl.NumberFormat('id-ID', {
@@ -412,40 +599,27 @@
 
                 const formatPercentage = (value) =>
                     new Intl.NumberFormat('id-ID', {
+                        minimumFractionDigits: 0,
                         maximumFractionDigits: 2,
                     }).format(Number.isFinite(value) ? value : 0);
 
+                const formatWeight = (value) =>
+                    Number(value ?? 0).toLocaleString('id-ID', {
+                        minimumFractionDigits: 3,
+                        maximumFractionDigits: 3,
+                    });
+
                 const parseCurrencyInput = (value) => {
                     const sanitized = String(value ?? '').replace(/[^0-9]/g, '');
-                    return sanitized ? parseInt(sanitized, 10) : 0;
+                    return sanitized ? Number.parseInt(sanitized, 10) : 0;
                 };
 
                 const parsePercentageInput = (value) => {
                     const sanitized = String(value ?? '')
                         .replace(/[^0-9.,-]/g, '')
                         .replace(',', '.');
-                    const parsed = parseFloat(sanitized);
+                    const parsed = Number.parseFloat(sanitized);
                     return Number.isFinite(parsed) ? parsed : 0;
-                };
-
-                const getDownPaymentMode = () =>
-                    downPaymentModeHidden?.value === 'percentage' ? 'percentage' : 'nominal';
-
-                const resolveMarginPercentage = (tenor) => {
-                    if (!Number.isFinite(Number(tenor))) {
-                        return Number(marginConfig?.default_percentage ?? 0);
-                    }
-
-                    const overrides = marginConfig?.tenor_overrides ?? {};
-                    const tenorKey = String(tenor);
-                    if (Object.prototype.hasOwnProperty.call(overrides, tenorKey)) {
-                        const overrideValue = Number(overrides[tenorKey]);
-                        return Number.isFinite(overrideValue)
-                            ? overrideValue
-                            : Number(marginConfig?.default_percentage ?? 0);
-                    }
-
-                    return Number(marginConfig?.default_percentage ?? 0);
                 };
 
                 const refreshModeButtons = (mode) => {
@@ -461,12 +635,18 @@
                 };
 
                 const refreshModeLabel = (mode) => {
-                    if (!downPaymentLabel) return;
+                    if (!downPaymentLabel) {
+                        return;
+                    }
+
                     downPaymentLabel.textContent =
                         mode === 'percentage'
                             ? '{{ __('Persen') }}'
                             : '{{ __('Rupiah') }}';
                 };
+
+                const getDownPaymentMode = () =>
+                    downPaymentModeHidden?.value === 'percentage' ? 'percentage' : 'nominal';
 
                 const getNominalValue = () => {
                     const value = Number.parseFloat(downPaymentHidden?.value ?? '0');
@@ -489,8 +669,7 @@
                 };
 
                 const setPercentageValue = (value) => {
-                    let sanitized = Number.isFinite(value) ? value : 0;
-                    sanitized = Math.min(Math.max(sanitized, 0), 100);
+                    const sanitized = Number.isFinite(value) ? Math.min(Math.max(value, 0), 100) : 0;
                     if (downPaymentPercentageHidden) {
                         downPaymentPercentageHidden.value = (Math.round(sanitized * 100) / 100).toFixed(2);
                     }
@@ -500,34 +679,134 @@
                 };
 
                 const refreshDownPaymentInput = () => {
-                    const mode = getDownPaymentMode();
-                    if (mode === 'percentage') {
-                        if (downPaymentInput) {
-                            downPaymentInput.value = formatPercentage(getPercentageValue());
-                        }
-                    } else if (downPaymentInput) {
+                    if (!downPaymentInput) {
+                        return;
+                    }
+
+                    if (getDownPaymentMode() === 'percentage') {
+                        downPaymentInput.value = formatPercentage(getPercentageValue());
+                    } else {
                         downPaymentInput.value = formatNumber(getNominalValue());
                     }
+                };
+
+                const resolveMarginPercentage = (tenor) => {
+                    const overrides = marginConfig?.tenor_overrides ?? {};
+                    const tenorKey = String(tenor);
+                    if (Object.prototype.hasOwnProperty.call(overrides, tenorKey)) {
+                        const overrideValue = Number(overrides[tenorKey]);
+                        if (Number.isFinite(overrideValue)) {
+                            return overrideValue;
+                        }
+                    }
+                    const defaultValue = Number(marginConfig?.default_percentage ?? 0);
+                    return Number.isFinite(defaultValue) ? defaultValue : 0;
+                };
+
+                const getAdministrationValue = () => {
+                    if (!administrationInput) {
+                        return 0;
+                    }
+
+                    return parseCurrencyInput(administrationInput.value);
+                };
+
+                const getSelectedPackageOptions = () =>
+                    Array.from(packageSelect?.selectedOptions ?? []);
+
+                const ensurePackageFromOption = (option) => {
+                    const id = String(option?.value ?? '');
+                    if (!id) {
+                        return null;
+                    }
+
+                    if (packageMap.has(id)) {
+                        return packageMap.get(id);
+                    }
+
+                    const pkg = {
+                        id,
+                        barang_id: Number.parseInt(option.value, 10) || null,
+                        nama_barang: option.dataset.name ?? option.textContent?.trim() ?? '{{ __('Barang') }}',
+                        kode_group: option.dataset.group ?? null,
+                        kode_intern: option.dataset.intern ?? null,
+                        kode_barcode: option.dataset.barcode ?? null,
+                        berat: Number.parseFloat(option.dataset.weight ?? '0') || 0,
+                        harga: Number.parseFloat(option.dataset.price ?? '0') || 0,
+                    };
+
+                    packageMap.set(id, pkg);
+                    return pkg;
+                };
+
+                const getSelectedPackages = () =>
+                    getSelectedPackageOptions()
+                        .map((option) => ensurePackageFromOption(option))
+                        .filter((pkg) => Boolean(pkg));
+
+                const buildSummaryLines = (selectedPackages) =>
+                    selectedPackages.map((pkg) => {
+                        const group = pkg?.kode_group ?? pkg?.kode_intern ?? pkg?.kode_barcode ?? '—';
+                        return `${pkg?.nama_barang ?? '{{ __('Barang') }}'} • ${formatWeight(pkg?.berat ?? 0)} gr • ${group} • ${formatCurrency(Number(pkg?.harga ?? 0))}`;
+                    });
+
+                const updatePackageSummaryList = (summaryLines) => {
+                    if (!packageSummaryList) {
+                        return;
+                    }
+
+                    packageSummaryList.innerHTML = '';
+
+                    if (!summaryLines.length) {
+                        const li = document.createElement('li');
+                        li.textContent = '{{ __('Belum ada barang dipilih.') }}';
+                        li.className = 'italic text-neutral-500 dark:text-neutral-400';
+                        li.setAttribute('data-package-empty', '');
+                        packageSummaryList.appendChild(li);
+                        return;
+                    }
+
+                    summaryLines.forEach((line) => {
+                        const li = document.createElement('li');
+                        li.textContent = line;
+                        packageSummaryList.appendChild(li);
+                    });
+                };
+
+                const updateSummaryItemsList = (summaryLines) => {
+                    if (!summaryItemsList) {
+                        return;
+                    }
+
+                    summaryItemsList.innerHTML = '';
+
+                    summaryLines.forEach((line) => {
+                        const li = document.createElement('li');
+                        li.textContent = line;
+                        summaryItemsList.appendChild(li);
+                    });
                 };
 
                 const toggleTenorCardsDisabled = (disabled) => {
                     tenorCards.forEach((card) => {
                         const option = card.querySelector('[data-tenor-option]');
-                        if (option) {
-                            option.disabled = disabled;
+                        if (!option) {
+                            return;
                         }
-                        if (disabled) {
-                            card.classList.add('pointer-events-none', 'opacity-60');
-                        } else {
-                            card.classList.remove('pointer-events-none', 'opacity-60');
-                        }
+
+                        option.disabled = Boolean(disabled);
+                        card.classList.toggle('pointer-events-none', Boolean(disabled));
+                        card.classList.toggle('opacity-60', Boolean(disabled));
                     });
                 };
 
                 const updateTenorCardsState = (selectedValue) => {
                     tenorCards.forEach((card) => {
                         const option = card.querySelector('[data-tenor-option]');
-                        if (!option) return;
+                        if (!option) {
+                            return;
+                        }
+
                         const isSelected = String(option.value) === String(selectedValue ?? '');
                         card.classList.toggle('border-indigo-500', isSelected);
                         card.classList.toggle('ring-2', isSelected);
@@ -537,25 +816,33 @@
                     });
                 };
 
-                const updateTenorCaptions = (totalPrice, downPayment) => {
+                const updateTenorCaptions = (totalPrice, downPaymentAmount) => {
                     tenorOptions.forEach((option) => {
                         const card = option.closest('[data-tenor-card]');
                         const caption = card?.querySelector('[data-tenor-caption]');
-                        if (!caption) return;
+                        if (!caption) {
+                            return;
+                        }
 
-                        if (!totalPrice) {
+                        if (!Number.isFinite(Number(totalPrice)) || totalPrice <= 0) {
                             caption.textContent = '{{ __('Pilih barang terlebih dahulu.') }}';
                             return;
                         }
 
                         const tenorValue = Number(option.value);
-                        const principalBalance = Math.max(totalPrice - downPayment, 0);
+                        if (!Number.isFinite(tenorValue) || tenorValue <= 0) {
+                            caption.textContent = '{{ __('Tenor tidak tersedia.') }}';
+                            return;
+                        }
+
+                        const principalBalance = Math.max(totalPrice - downPaymentAmount, 0);
                         const marginPercentage = resolveMarginPercentage(tenorValue);
-                        const marginAmount =
-                            Math.round(principalBalance * (marginPercentage / 100) * 100) / 100;
+                        const marginAmount = Math.round(principalBalance * (marginPercentage / 100) * 100) / 100;
                         const totalFinanced = principalBalance + marginAmount;
-                        const installment =
-                            tenorValue > 0 ? Math.round((totalFinanced / tenorValue) * 100) / 100 : 0;
+                        const installment = tenorValue > 0
+                            ? Math.round((totalFinanced / tenorValue) * 100) / 100
+                            : 0;
+
                         caption.textContent = `${formatCurrency(installment)} {{ __('per bulan') }}`;
                     });
                 };
@@ -564,6 +851,7 @@
                     tenorOptions.forEach((option) => {
                         option.checked = String(option.value) === String(value ?? '');
                     });
+                    updateTenorCardsState(value);
                 };
 
                 const ensureTenorSelection = () => {
@@ -574,12 +862,10 @@
                         return '';
                     }
 
-                    const currentValue = tenorHidden?.value;
+                    const currentValue = tenorHidden?.value ?? '';
                     if (
                         currentValue &&
-                        tenorOptions.some(
-                            (option) => String(option.value) === String(currentValue),
-                        )
+                        tenorOptions.some((option) => String(option.value) === String(currentValue))
                     ) {
                         setCheckedTenor(currentValue);
                         return currentValue;
@@ -590,18 +876,74 @@
                     if (tenorHidden) {
                         tenorHidden.value = firstValue;
                     }
-
                     return firstValue;
                 };
 
-                const updateOutputs = () => {
-                    const selectedPackage = findPackage(packageSelect?.value);
-                    const totalPrice = Number(selectedPackage?.harga ?? 0);
-                    const hasPackage = Boolean(selectedPackage);
+                const filterOptions = () => {
+                    if (!packageSelect) {
+                        return;
+                    }
+
+                    const term = (packageSearch?.value ?? '').trim().toLowerCase();
+
+                    Array.from(packageSelect.options).forEach((option) => {
+                        if (!option) {
+                            return;
+                        }
+
+                        if (!term) {
+                            option.hidden = false;
+                            return;
+                        }
+
+                        const datasetValue = (option.dataset.search ?? '').toLowerCase();
+                        const match = datasetValue.includes(term);
+                        option.hidden = !match && !option.selected;
+                    });
+                };
+
+                const applyDownPaymentMode = (mode) => {
+                    const sanitizedMode = mode === 'percentage' ? 'percentage' : 'nominal';
+                    if (downPaymentModeHidden) {
+                        downPaymentModeHidden.value = sanitizedMode;
+                    }
+
+                    const totalPrice = getSelectedPackages().reduce(
+                        (total, pkg) => total + Number(pkg?.harga ?? 0),
+                        0,
+                    );
+
+                    if (sanitizedMode === 'percentage') {
+                        const nominal = getNominalValue();
+                        const percent = totalPrice > 0 ? (nominal / totalPrice) * 100 : 0;
+                        setPercentageValue(percent);
+                    } else {
+                        const percent = getPercentageValue();
+                        const nominalFromPercent = totalPrice > 0 ? (totalPrice * percent) / 100 : 0;
+                        setNominalValue(nominalFromPercent);
+                    }
+
+                    refreshModeButtons(sanitizedMode);
+                    refreshModeLabel(sanitizedMode);
+                    refreshDownPaymentInput();
+                    updateSummary();
+                };
+
+                const updateSummary = () => {
+                    const selectedPackages = getSelectedPackages();
+                    const totalPrice = selectedPackages.reduce(
+                        (total, pkg) => total + Number(pkg?.harga ?? 0),
+                        0,
+                    );
+                    const totalWeight = selectedPackages.reduce(
+                        (total, pkg) => total + Number(pkg?.berat ?? 0),
+                        0,
+                    );
+                    const hasPackages = selectedPackages.length > 0;
+
+                    toggleTenorCardsDisabled(!hasPackages);
+
                     const mode = getDownPaymentMode();
-
-                    toggleTenorCardsDisabled(!hasPackage);
-
                     let downPaymentAmount = 0;
                     let percentValue = 0;
 
@@ -613,10 +955,9 @@
                         percent = Math.min(Math.max(percent, 0), 100);
                         setPercentageValue(percent);
                         percentValue = percent;
-                        const computed =
-                            hasPackage && totalPrice > 0
-                                ? (totalPrice * percent) / 100
-                                : 0;
+                        const computed = hasPackages && totalPrice > 0
+                            ? (totalPrice * percent) / 100
+                            : 0;
                         downPaymentAmount = Math.round(computed * 100) / 100;
                         setNominalValue(downPaymentAmount);
                     } else {
@@ -624,214 +965,189 @@
                         if (!Number.isFinite(nominal) || nominal < 0) {
                             nominal = 0;
                         }
-                        if (hasPackage && totalPrice > 0 && nominal > totalPrice) {
+                        if (hasPackages && totalPrice > 0 && nominal > totalPrice) {
                             nominal = totalPrice;
                         }
                         setNominalValue(nominal);
-                        percentValue =
-                            totalPrice > 0
-                                ? Math.round((nominal / totalPrice) * 100 * 100) / 100
-                                : 0;
+                        percentValue = totalPrice > 0
+                            ? Math.round((nominal / totalPrice) * 100 * 100) / 100
+                            : 0;
                         setPercentageValue(percentValue);
                         downPaymentAmount = nominal;
                     }
 
                     refreshDownPaymentInput();
-                    updateTenorCardsState(tenorHidden?.value);
-                    updateTenorCaptions(totalPrice, downPaymentAmount);
 
-                    if (!hasPackage) {
-                        if (packageMeta) {
-                            packageMeta.textContent =
-                                '{{ __('Silakan pilih barang emas untuk melihat detail harga.') }}';
-                        }
-                        if (downPaymentDisplay) {
-                            downPaymentDisplay.textContent =
-                                mode === 'percentage'
-                                    ? '{{ __('Masukkan persentase uang muka (0-100%) untuk melihat estimasi cicilan.') }}'
-                                    : '{{ __('Masukkan uang muka untuk menghitung besaran cicilan.') }}';
-                        }
-                        if (tenorMeta) {
-                            tenorMeta.textContent =
-                                '{{ __('Pilih barang emas terlebih dahulu sebelum menentukan jangka waktu.') }}';
-                        }
-                        if (installmentHidden) installmentHidden.value = '';
-                        if (installmentOutput) installmentOutput.value = '';
-                        if (installmentDisplay) {
-                            installmentDisplay.textContent =
-                                '{{ __('Besaran angsuran dihitung dari sisa harga emas dibagi tenor yang dipilih.') }}';
-                        }
-                        if (marginDisplay) {
-                            marginDisplay.textContent =
-                                '{{ __('Margin akan dihitung setelah paket dan tenor dipilih.') }}';
-                        }
-                        if (financingDisplay) {
-                            financingDisplay.textContent =
-                                '{{ __('Total pembiayaan akan tampil setelah simulasi lengkap.') }}';
-                        }
-                        if (summaryPanel) summaryPanel.hidden = true;
-                        if (summaryPackage) {
-                            summaryPackage.textContent =
-                                '{{ __('Barang belum dipilih.') }}';
-                        }
-                        if (summaryPrice) summaryPrice.textContent = '';
-                        if (summaryOption) summaryOption.textContent = '';
-                        if (summaryPrincipal) summaryPrincipal.textContent = '';
-                        if (summaryMargin) summaryMargin.textContent = '';
-                        if (summaryFinancing) summaryFinancing.textContent = '';
-                        return;
-                    }
+                    const tenorValue = Number(ensureTenorSelection());
+                    updateTenorCardsState(tenorValue);
 
-                    const beratDisplay = Number(selectedPackage.berat ?? 0).toLocaleString('id-ID', {
-                        minimumFractionDigits: 3,
-                        maximumFractionDigits: 3,
-                    });
-                    const groupLabel =
-                        selectedPackage.kode_group ||
-                        selectedPackage.kode_intern ||
-                        '—';
-
-                    if (packageMeta) {
-                        packageMeta.textContent = `${selectedPackage.nama_barang} • ${beratDisplay} gr • ${groupLabel}`;
-                    }
-                    if (summaryPanel) summaryPanel.hidden = false;
-                    if (summaryPackage) {
-                        summaryPackage.textContent = `${selectedPackage.nama_barang} • ${beratDisplay} gr • ${groupLabel}`;
-                    }
-                    if (summaryPrice) {
-                        summaryPrice.textContent =
-                            `{{ __('Harga Barang') }}: ${formatCurrency(totalPrice)}`;
-                    }
-
-                    const tenorValue = Number(tenorHidden?.value ?? 0);
                     const principalBalance = Math.max(totalPrice - downPaymentAmount, 0);
                     const marginPercentage = resolveMarginPercentage(tenorValue);
-                    const marginAmount =
-                        Math.round(principalBalance * (marginPercentage / 100) * 100) / 100;
-                    const totalFinanced = principalBalance + marginAmount;
-                    const installment =
-                        tenorValue > 0
-                            ? Math.round((totalFinanced / tenorValue) * 100) / 100
-                            : 0;
+                    const marginAmount = Math.round(principalBalance * (marginPercentage / 100) * 100) / 100;
+                    const administrationAmount = getAdministrationValue();
+                    const totalFinanced = principalBalance + marginAmount + administrationAmount;
+                    const installment = tenorValue > 0
+                        ? Math.round((totalFinanced / tenorValue) * 100) / 100
+                        : 0;
+
+                    const weightDisplay = formatWeight(totalWeight);
+                    const summaryLines = buildSummaryLines(selectedPackages);
+
+                    const summaryMetaText = (() => {
+                        if (!hasPackages) {
+                            return '{{ __('Belum ada barang dipilih. Gunakan kolom pencarian untuk menemukan barang.') }}';
+                        }
+                        if (summaryLines.length === 1) {
+                            return summaryLines[0];
+                        }
+                        return `${formatNumber(summaryLines.length)} {{ __('barang dipilih') }} • ${weightDisplay} gr • ${formatCurrency(totalPrice)}`;
+                    })();
+
+                    if (packageMeta) {
+                        packageMeta.textContent = summaryMetaText;
+                    }
+
+                    if (packageSummaryCount) {
+                        packageSummaryCount.textContent = hasPackages ? formatNumber(summaryLines.length) : '0';
+                    }
+
+                    if (packageSummaryWeight) {
+                        packageSummaryWeight.textContent = hasPackages ? `${weightDisplay} gr` : '—';
+                    }
+
+                    if (packageSummaryPrice) {
+                        packageSummaryPrice.textContent = hasPackages ? formatCurrency(totalPrice) : '—';
+                    }
+
+                    updatePackageSummaryList(summaryLines);
+                    updateSummaryItemsList(summaryLines);
+
+                    if (summaryPanel) {
+                        summaryPanel.hidden = !hasPackages;
+                    }
+
+                    if (summaryPackage) {
+                        summaryPackage.textContent = hasPackages
+                            ? (summaryLines.length === 1
+                                ? summaryLines[0]
+                                : `${formatNumber(summaryLines.length)} {{ __('barang dipilih') }} • ${weightDisplay} gr`)
+                            : '{{ __('Barang belum dipilih.') }}';
+                    }
+
+                    if (summaryPrice) {
+                        summaryPrice.textContent = hasPackages
+                            ? `{{ __('Total Harga Barang') }}: ${formatCurrency(totalPrice)}`
+                            : '';
+                    }
+
+                    if (summaryOption) {
+                        summaryOption.textContent = hasPackages && tenorValue
+                            ? `{{ __('Tenor') }}: ${formatNumber(tenorValue)} {{ __('bulan') }} • {{ __('Angsuran') }} ${formatCurrency(installment)}`
+                            : '';
+                    }
+
+                    if (summaryPrincipal) {
+                        summaryPrincipal.textContent = hasPackages
+                            ? `{{ __('Pokok Pembiayaan') }}: ${formatCurrency(principalBalance)}`
+                            : '';
+                    }
+
+                    if (summaryMargin) {
+                        summaryMargin.textContent = hasPackages
+                            ? `{{ __('Margin Pembiayaan') }}: ${formatCurrency(marginAmount)} (${formatPercentage(marginPercentage)}%)`
+                            : '';
+                    }
+
+                    if (summaryAdministration) {
+                        summaryAdministration.textContent = administrationAmount > 0
+                            ? `{{ __('Biaya Administrasi') }}: ${formatCurrency(administrationAmount)}`
+                            : '';
+                    }
+
+                    if (summaryFinancing) {
+                        summaryFinancing.textContent = hasPackages && tenorValue
+                            ? `{{ __('Total Pembiayaan') }}: ${formatCurrency(totalFinanced)}`
+                            : '';
+                    }
 
                     if (installmentHidden) {
                         installmentHidden.value = installment.toFixed(2);
                     }
+
                     if (installmentOutput) {
-                        installmentOutput.value = installment
-                            ? formatNumber(installment)
-                            : '';
+                        installmentOutput.value = installment ? formatNumber(installment) : '';
                     }
 
                     if (downPaymentDisplay) {
-                        const percentText = percentValue.toLocaleString('id-ID', {
-                            minimumFractionDigits: 0,
-                            maximumFractionDigits: 2,
-                        });
-                        downPaymentDisplay.textContent =
-                            `${formatCurrency(downPaymentAmount)} • ${percentText}% {{ __('dari harga barang') }}`;
+                        downPaymentDisplay.textContent = hasPackages
+                            ? `${formatCurrency(downPaymentAmount)} • ${formatPercentage(percentValue)}% {{ __('dari total harga barang') }}`
+                            : '{{ __('Masukkan uang muka untuk menghitung besaran cicilan.') }}';
                     }
+
                     if (tenorMeta) {
-                        tenorMeta.textContent = tenorValue
-                            ? `{{ __('Cicilan selama :bulan bulan.', ['bulan' => ':bulan']) }}`.replace(
-                                  ':bulan',
-                                  tenorValue,
-                              )
-                            : '{{ __('Pilih jangka waktu cicilan untuk melihat estimasi angsuran per bulan.') }}';
+                        tenorMeta.textContent = hasPackages
+                            ? (tenorValue
+                                ? `{{ __('Cicilan selama :bulan bulan.', ['bulan' => ':bulan']) }}`.replace(':bulan', formatNumber(tenorValue))
+                                : '{{ __('Pilih tenor cicilan untuk melihat estimasi angsuran.') }}')
+                            : '{{ __('Pilih barang terlebih dahulu.') }}';
                     }
+
                     if (installmentDisplay) {
-                        installmentDisplay.textContent = tenorValue
-                            ? `${formatCurrency(installment)} • {{ __('dibayar setiap bulan selama :bulan bulan', ['bulan' => ':bulan']) }}`.replace(
-                                  ':bulan',
-                                  tenorValue,
-                              )
+                        installmentDisplay.textContent = hasPackages && tenorValue
+                            ? `{{ __('Estimasi angsuran: :amount per bulan', ['amount' => ':amount']) }}`.replace(':amount', formatCurrency(installment))
                             : '{{ __('Besaran angsuran dihitung dari sisa harga emas dibagi tenor yang dipilih.') }}';
                     }
+
                     if (marginDisplay) {
-                        marginDisplay.textContent = tenorValue
-                            ? `${formatCurrency(marginAmount)} • ${formatPercentage(marginPercentage)}% {{ __('tarif margin') }}`
+                        marginDisplay.textContent = hasPackages
+                            ? `${formatCurrency(marginAmount)} ({{ __('Margin') }} ${formatPercentage(marginPercentage)}%)`
                             : '{{ __('Margin akan dihitung setelah paket dan tenor dipilih.') }}';
                     }
+
                     if (financingDisplay) {
-                        financingDisplay.textContent = tenorValue
-                            ? `{{ __('Total Pembiayaan') }}: ${formatCurrency(totalFinanced)} • {{ __('Pokok Pembiayaan') }} ${formatCurrency(principalBalance)}`
+                        financingDisplay.textContent = hasPackages && tenorValue
+                            ? `{{ __('Total pembiayaan: :amount', ['amount' => ':amount']) }}`.replace(':amount', formatCurrency(totalFinanced))
                             : '{{ __('Total pembiayaan akan tampil setelah simulasi lengkap.') }}';
                     }
-                    if (summaryOption) {
-                        summaryOption.textContent = tenorValue
-                            ? `{{ __('Jangka waktu: :bulan bulan', ['bulan' => ':bulan']) }}`.replace(
-                                  ':bulan',
-                                  tenorValue,
-                              ) +
-                              ` • {{ __('Angsuran') }} ${formatCurrency(installment)}`
-                            : '';
+
+                    if (administrationDisplay) {
+                        administrationDisplay.textContent = administrationAmount > 0
+                            ? `{{ __('Biaya Administrasi') }}: ${formatCurrency(administrationAmount)}`
+                            : '{{ __('Jika diisi, biaya administrasi akan ditambahkan ke total pembiayaan cicilan.') }}';
                     }
-                    if (summaryPrincipal) {
-                        summaryPrincipal.textContent = `{{ __('Pokok Pembiayaan') }}: ${formatCurrency(principalBalance)}`;
-                    }
-                    if (summaryMargin) {
-                        summaryMargin.textContent = `{{ __('Margin') }}: ${formatCurrency(marginAmount)} • ${formatPercentage(marginPercentage)}%`;
-                    }
-                    if (summaryFinancing) {
-                        summaryFinancing.textContent = `{{ __('Total Pembiayaan') }}: ${formatCurrency(totalFinanced)}`;
-                    }
+
+                    updateTenorCaptions(totalPrice, downPaymentAmount);
                 };
 
-                const applyDownPaymentMode = (mode) => {
-                    const sanitizedMode = mode === 'percentage' ? 'percentage' : 'nominal';
-                    if (downPaymentModeHidden) {
-                        downPaymentModeHidden.value = sanitizedMode;
-                    }
+                packageSelect.addEventListener('change', () => {
+                    updateSummary();
+                    filterOptions();
+                });
 
-                    const selectedPackage = findPackage(packageSelect?.value);
-                    const totalPrice = Number(selectedPackage?.harga ?? 0);
+                packageSelect.addEventListener('input', () => {
+                    updateSummary();
+                });
 
-                    if (sanitizedMode === 'percentage') {
-                        const nominal = getNominalValue();
-                        if (totalPrice > 0) {
-                            const percentFromNominal = (nominal / totalPrice) * 100;
-                            setPercentageValue(percentFromNominal);
-                        }
-                        setPercentageValue(getPercentageValue());
-                    } else {
-                        const percent = getPercentageValue();
-                        if (totalPrice > 0) {
-                            const nominalFromPercent = (totalPrice * percent) / 100;
-                            setNominalValue(nominalFromPercent);
-                        }
-                        setNominalValue(getNominalValue());
-                    }
+                if (packageSearch) {
+                    packageSearch.addEventListener('input', () => {
+                        filterOptions();
+                    });
+                }
 
-                    refreshModeButtons(sanitizedMode);
-                    refreshModeLabel(sanitizedMode);
-                    refreshDownPaymentInput();
-                    updateOutputs();
-                };
-
-                const initialTenor = ensureTenorSelection();
-                updateTenorCardsState(initialTenor);
-                setNominalValue(getNominalValue());
-                setPercentageValue(getPercentageValue());
-                refreshModeButtons(getDownPaymentMode());
-                refreshModeLabel(getDownPaymentMode());
-                refreshDownPaymentInput();
-                updateOutputs();
-
-                packageSelect?.addEventListener('change', () => {
-                    updateOutputs();
+                downPaymentModeButtons.forEach((button) => {
+                    button.addEventListener('click', () => {
+                        applyDownPaymentMode(button.getAttribute('data-down-payment-mode-button'));
+                    });
                 });
 
                 if (downPaymentInput) {
                     downPaymentInput.addEventListener('input', () => {
-                        const mode = getDownPaymentMode();
-                        if (mode === 'percentage') {
-                            const rawPercent = parsePercentageInput(downPaymentInput.value);
-                            setPercentageValue(rawPercent);
+                        if (getDownPaymentMode() === 'percentage') {
+                            setPercentageValue(parsePercentageInput(downPaymentInput.value));
                         } else {
-                            const rawNominal = parseCurrencyInput(downPaymentInput.value);
-                            setNominalValue(rawNominal);
+                            setNominalValue(parseCurrencyInput(downPaymentInput.value));
                         }
-                        updateOutputs();
+                        updateSummary();
                     });
 
                     downPaymentInput.addEventListener('blur', () => {
@@ -839,35 +1155,46 @@
                     });
                 }
 
-                downPaymentModeButtons.forEach((button) => {
-                    button.addEventListener('click', () => {
-                        const mode = button.getAttribute('data-down-payment-mode-button');
-                        applyDownPaymentMode(mode);
-                    });
-                });
-
                 tenorOptions.forEach((option) => {
                     option.addEventListener('change', () => {
-                        if (!option.checked) return;
+                        if (!option.checked) {
+                            return;
+                        }
+
                         if (tenorHidden) {
                             tenorHidden.value = option.value;
                         }
-                        setCheckedTenor(option.value);
+
                         updateTenorCardsState(option.value);
-                        updateOutputs();
+                        updateSummary();
                     });
                 });
+
+                if (administrationInput) {
+                    administrationInput.addEventListener('input', () => {
+                        updateSummary();
+                    });
+
+                    administrationInput.addEventListener('blur', () => {
+                        updateSummary();
+                    });
+                }
+
+                ensureTenorSelection();
+                refreshModeButtons(getDownPaymentMode());
+                refreshModeLabel(getDownPaymentMode());
+                refreshDownPaymentInput();
+                filterOptions();
+                updateSummary();
             }
 
             if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initCicilEmas, { once: true });
+                document.addEventListener('DOMContentLoaded', initCicilEmas);
             } else {
                 initCicilEmas();
             }
 
-            document.addEventListener('livewire:navigated', () => {
-                initCicilEmas();
-            });
+            document.addEventListener('livewire:navigated', initCicilEmas);
         })();
     </script>
 </x-layouts.app>
