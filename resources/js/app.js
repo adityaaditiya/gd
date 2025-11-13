@@ -119,12 +119,43 @@ const initCurrencyInputs = () => {
         return value.replace(/\D/g, '');
     };
 
+    const allowedNavigationKeys = new Set([
+        'Backspace',
+        'Delete',
+        'ArrowLeft',
+        'ArrowRight',
+        'ArrowUp',
+        'ArrowDown',
+        'Home',
+        'End',
+        'Tab',
+        'Enter',
+    ]);
+
     inputs.forEach((input) => {
         const initial = input.value;
 
         if (initial) {
             input.value = formatCurrency(initial);
         }
+
+        input.addEventListener('keydown', (event) => {
+            const isControlCombo = event.ctrlKey || event.metaKey || event.altKey;
+
+            if (isControlCombo) {
+                return;
+            }
+
+            if (allowedNavigationKeys.has(event.key)) {
+                return;
+            }
+
+            if (/^\d$/.test(event.key)) {
+                return;
+            }
+
+            event.preventDefault();
+        });
 
         input.addEventListener('input', (event) => {
             const target = event.target;
