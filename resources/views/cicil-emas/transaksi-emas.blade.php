@@ -364,6 +364,7 @@
         (() => {
             function initCicilEmas() {
                 const packages = @json($packagesCollection);
+                const marginConfig = @json($resolvedMarginConfig);
                 const packageSelect = document.querySelector('[data-package-select]');
                 const packageMeta = document.querySelector('[data-package-meta]');
                 const downPaymentInput = document.querySelector('[data-down-payment-input]');
@@ -380,10 +381,15 @@
                 const installmentHidden = document.querySelector('[data-installment]');
                 const installmentOutput = document.querySelector('[data-installment-output]');
                 const installmentDisplay = document.querySelector('[data-installment-display]');
+                const marginDisplay = document.querySelector('[data-margin-display]');
+                const financingDisplay = document.querySelector('[data-financing-display]');
                 const summaryPanel = document.querySelector('[data-summary-panel]');
                 const summaryPackage = document.querySelector('[data-summary-package]');
                 const summaryPrice = document.querySelector('[data-summary-price]');
                 const summaryOption = document.querySelector('[data-summary-option]');
+                const summaryPrincipal = document.querySelector('[data-summary-principal]');
+                const summaryMargin = document.querySelector('[data-summary-margin]');
+                const summaryFinancing = document.querySelector('[data-summary-financing]');
 
                 if (!packageSelect) {
                     // DOM belum siap atau kita bukan di halaman ini
@@ -424,6 +430,23 @@
 
                 const getDownPaymentMode = () =>
                     downPaymentModeHidden?.value === 'percentage' ? 'percentage' : 'nominal';
+
+                const resolveMarginPercentage = (tenor) => {
+                    if (!Number.isFinite(Number(tenor))) {
+                        return Number(marginConfig?.default_percentage ?? 0);
+                    }
+
+                    const overrides = marginConfig?.tenor_overrides ?? {};
+                    const tenorKey = String(tenor);
+                    if (Object.prototype.hasOwnProperty.call(overrides, tenorKey)) {
+                        const overrideValue = Number(overrides[tenorKey]);
+                        return Number.isFinite(overrideValue)
+                            ? overrideValue
+                            : Number(marginConfig?.default_percentage ?? 0);
+                    }
+
+                    return Number(marginConfig?.default_percentage ?? 0);
+                };
 
                 const refreshModeButtons = (mode) => {
                     downPaymentModeButtons.forEach((button) => {
@@ -526,9 +549,13 @@
                         }
 
                         const tenorValue = Number(option.value);
-                        const remaining = Math.max(totalPrice - downPayment, 0);
+                        const principalBalance = Math.max(totalPrice - downPayment, 0);
+                        const marginPercentage = resolveMarginPercentage(tenorValue);
+                        const marginAmount =
+                            Math.round(principalBalance * (marginPercentage / 100) * 100) / 100;
+                        const totalFinanced = principalBalance + marginAmount;
                         const installment =
-                            tenorValue > 0 ? Math.round((remaining / tenorValue) * 100) / 100 : 0;
+                            tenorValue > 0 ? Math.round((totalFinanced / tenorValue) * 100) / 100 : 0;
                         caption.textContent = `${formatCurrency(installment)} {{ __('per bulan') }}`;
                     });
                 };
@@ -634,6 +661,14 @@
                             installmentDisplay.textContent =
                                 '{{ __('Besaran angsuran dihitung dari sisa harga emas dibagi tenor yang dipilih.') }}';
                         }
+                        if (marginDisplay) {
+                            marginDisplay.textContent =
+                                '{{ __('Margin akan dihitung setelah paket dan tenor dipilih.') }}';
+                        }
+                        if (financingDisplay) {
+                            financingDisplay.textContent =
+                                '{{ __('Total pembiayaan akan tampil setelah simulasi lengkap.') }}';
+                        }
                         if (summaryPanel) summaryPanel.hidden = true;
                         if (summaryPackage) {
                             summaryPackage.textContent =
@@ -641,6 +676,9 @@
                         }
                         if (summaryPrice) summaryPrice.textContent = '';
                         if (summaryOption) summaryOption.textContent = '';
+                        if (summaryPrincipal) summaryPrincipal.textContent = '';
+                        if (summaryMargin) summaryMargin.textContent = '';
+                        if (summaryFinancing) summaryFinancing.textContent = '';
                         return;
                     }
 
@@ -666,10 +704,14 @@
                     }
 
                     const tenorValue = Number(tenorHidden?.value ?? 0);
-                    const remaining = Math.max(totalPrice - downPaymentAmount, 0);
+                    const principalBalance = Math.max(totalPrice - downPaymentAmount, 0);
+                    const marginPercentage = resolveMarginPercentage(tenorValue);
+                    const marginAmount =
+                        Math.round(principalBalance * (marginPercentage / 100) * 100) / 100;
+                    const totalFinanced = principalBalance + marginAmount;
                     const installment =
                         tenorValue > 0
-                            ? Math.round((remaining / tenorValue) * 100) / 100
+                            ? Math.round((totalFinanced / tenorValue) * 100) / 100
                             : 0;
 
                     if (installmentHidden) {
@@ -705,6 +747,16 @@
                               )
                             : '{{ __('Besaran angsuran dihitung dari sisa harga emas dibagi tenor yang dipilih.') }}';
                     }
+                    if (marginDisplay) {
+                        marginDisplay.textContent = tenorValue
+                            ? `${formatCurrency(marginAmount)} • ${formatPercentage(marginPercentage)}% {{ __('tarif margin') }}`
+                            : '{{ __('Margin akan dihitung setelah paket dan tenor dipilih.') }}';
+                    }
+                    if (financingDisplay) {
+                        financingDisplay.textContent = tenorValue
+                            ? `{{ __('Total Pembiayaan') }}: ${formatCurrency(totalFinanced)} • {{ __('Pokok Pembiayaan') }} ${formatCurrency(principalBalance)}`
+                            : '{{ __('Total pembiayaan akan tampil setelah simulasi lengkap.') }}';
+                    }
                     if (summaryOption) {
                         summaryOption.textContent = tenorValue
                             ? `{{ __('Jangka waktu: :bulan bulan', ['bulan' => ':bulan']) }}`.replace(
@@ -713,6 +765,15 @@
                               ) +
                               ` • {{ __('Angsuran') }} ${formatCurrency(installment)}`
                             : '';
+                    }
+                    if (summaryPrincipal) {
+                        summaryPrincipal.textContent = `{{ __('Pokok Pembiayaan') }}: ${formatCurrency(principalBalance)}`;
+                    }
+                    if (summaryMargin) {
+                        summaryMargin.textContent = `{{ __('Margin') }}: ${formatCurrency(marginAmount)} • ${formatPercentage(marginPercentage)}%`;
+                    }
+                    if (summaryFinancing) {
+                        summaryFinancing.textContent = `{{ __('Total Pembiayaan') }}: ${formatCurrency(totalFinanced)}`;
                     }
                 };
 
