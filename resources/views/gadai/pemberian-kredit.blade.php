@@ -297,7 +297,7 @@
                             </div>
                         </div> -->
 
-                        <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-700 dark:border-neutral-700 dark:bg-neutral-900/50 dark:text-neutral-200">
+                        <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-700 dark:border-neutral-700 dark:bg-neutral-900/50 dark:black">
                             <ul class="list-disc space-y-1 pl-5">
                                 <li>{{ __('Nominal pinjaman otomatis divalidasi agar tidak melampaui plafon 94% dari nilai taksiran.') }}</li>
                                 <li>{{ __('Barang jaminan yang dipilih tidak lagi tampil pada daftar siap gadai setelah SBG terbit.') }}</li>
