@@ -104,6 +104,7 @@ Route::middleware(['auth'])->group(function () {
         ->group(function () {
             Route::get('transaksi-emas', [CicilEmasTransaksiController::class, 'create'])->name('transaksi-emas');
             Route::post('transaksi-emas', [CicilEmasTransaksiController::class, 'store'])->name('transaksi-emas.store');
+            Route::get('transaksi-emas/barang', [CicilEmasTransaksiController::class, 'searchPackages'])->name('transaksi-emas.packages');
             Route::get('daftar-cicilan', [CicilEmasTransaksiController::class, 'index'])->name('daftar-cicilan');
             Route::get('angsuran-rutin', [CicilEmasInstallmentController::class, 'index'])->name('angsuran-rutin');
             Route::post('angsuran-rutin/{installment}/bayar', [CicilEmasInstallmentController::class, 'pay'])

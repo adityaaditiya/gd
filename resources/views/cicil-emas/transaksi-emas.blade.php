@@ -1,8 +1,22 @@
 <x-layouts.app :title="__('Transaksi Emas')">
     @php
         $packagesCollection = collect($packages ?? []);
-        $selectedPackageId = old('package_id');
-        $selectedPackage = $packagesCollection->firstWhere('id', $selectedPackageId);
+        $selectedPackageIds = collect(old('package_ids', []))
+            ->map(fn ($value) => (string) $value)
+            ->filter()
+            ->values();
+        $selectedPackages = $packagesCollection
+            ->filter(fn ($package) => $selectedPackageIds->contains($package['id'] ?? null))
+            ->values();
+        $selectedSummaryLines = $selectedPackages->map(function ($package) {
+            $group = $package['kode_group'] ?? $package['kode_intern'] ?? '—';
+            $weight = number_format((float) ($package['berat'] ?? 0), 3, ',', '.');
+            $price = number_format((float) ($package['harga'] ?? 0), 0, ',', '.');
+
+            return ($package['nama_barang'] ?? __('Barang')).' • '.$weight.' gr • '.$group.' • Rp '.$price;
+        });
+        $selectedTotalWeight = (float) $selectedPackages->sum(fn ($pkg) => (float) ($pkg['berat'] ?? 0));
+        $selectedTotalPrice = (float) $selectedPackages->sum(fn ($pkg) => (float) ($pkg['harga'] ?? 0));
         $tenorCollection = collect($tenorOptions ?? [])
             ->filter(fn ($value) => is_numeric($value) && $value > 0)
             ->map(fn ($value) => (int) $value)
@@ -58,7 +72,22 @@
                         </div>
                         <div class="space-y-1">
                             <dt class="font-semibold text-neutral-900 dark:text-white">{{ __('Paket Emas') }}</dt>
-                            <dd>{{ $summary['paket'] ?? '—' }}</dd>
+                            @if (!empty($summary['packages']) && is_array($summary['packages']))
+                                <dd class="space-y-1">
+                                    <ul class="list-disc space-y-1 ps-4 text-xs text-neutral-600 dark:text-neutral-300">
+                                        @foreach ($summary['packages'] as $package)
+                                            <li>
+                                                {{ $package['nama_barang'] ?? __('Barang') }} •
+                                                {{ number_format((float) ($package['berat'] ?? 0), 3, ',', '.') }} gr •
+                                                {{ $package['kode'] ?? '—' }} •
+                                                Rp {{ number_format((float) ($package['harga'] ?? 0), 0, ',', '.') }}
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </dd>
+                            @else
+                                <dd>{{ $summary['paket'] ?? '—' }}</dd>
+                            @endif
                         </div>
                         <div class="space-y-1">
                             <dt class="font-semibold text-neutral-900 dark:text-white">{{ __('Jangka Waktu') }}</dt>
@@ -88,6 +117,14 @@
                                         {{ __('Tarif margin :persen%', ['persen' => number_format($summary['margin_percentage'] ?? 0, 2, ',', '.')]) }}
                                     </span>
                                 </dd>
+                            @else
+                                <dd>—</dd>
+                            @endif
+                        </div>
+                        <div class="space-y-1">
+                            <dt class="font-semibold text-neutral-900 dark:text-white">{{ __('Biaya Administrasi') }}</dt>
+                            @if (isset($summary['administrasi']))
+                                <dd>{{ number_format($summary['administrasi'], 0, ',', '.') }}</dd>
                             @else
                                 <dd>—</dd>
                             @endif
@@ -183,33 +220,90 @@
                             </div>
 
                             <div>
-                                <label for="package_id" class="mb-2 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
+                                <label class="mb-2 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
                                     {{ __('Data Barang') }}
                                 </label>
-                                <select
-                                    id="package_id"
-                                    name="package_id"
-                                    data-package-select
-                                    class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white"
-                                    required
-                                    @disabled($packagesCollection->isEmpty())
+                                <div
+                                    class="space-y-3"
+                                    data-package-selector
+                                    data-package-endpoint="{{ route('cicil-emas.transaksi-emas.packages') }}"
                                 >
-                                    <option value="">{{ $packagesCollection->isEmpty() ? __('Belum ada data barang tersedia') : __('Pilih barang emas') }}</option>
-                                    @foreach ($packagesCollection as $package)
-                                        <option value="{{ $package['id'] }}" @selected($selectedPackageId === $package['id'])>
-                                            {{ $package['nama_barang'] }} — {{ $package['kode_group'] ?? $package['kode_intern'] }} • {{ number_format((float) $package['berat'], 3, ',', '.') }} gr
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('package_id')
+                                    <div class="space-y-2" data-package-selected-list>
+                                        <p
+                                            class="rounded-lg border border-dashed border-neutral-300 px-3 py-4 text-sm text-neutral-500 dark:border-neutral-600 dark:text-neutral-300"
+                                            data-package-empty
+                                            @class(['hidden' => $selectedPackages->isNotEmpty()])
+                                        >
+                                            {{ __('Belum ada barang dipilih. Gunakan tombol “Tambah Barang” untuk memulai.') }}
+                                        </p>
+                                        @foreach ($selectedPackages as $package)
+                                            <div
+                                                class="flex items-start gap-3 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm shadow-sm dark:border-neutral-600 dark:bg-neutral-800"
+                                                data-package-item="{{ $package['id'] }}"
+                                            >
+                                                <div class="min-w-0 flex-1">
+                                                    <p class="truncate font-semibold text-neutral-900 dark:text-white" data-package-name>
+                                                        {{ $package['nama_barang'] ?? __('Barang') }}
+                                                    </p>
+                                                    <p class="text-xs text-neutral-500 dark:text-neutral-400" data-package-detail>
+                                                        {{ ($package['kode_group'] ?? $package['kode_intern'] ?? '—') }} • {{ number_format((float) ($package['berat'] ?? 0), 3, ',', '.') }} gr • Rp {{ number_format((float) ($package['harga'] ?? 0), 0, ',', '.') }}
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    class="text-xs font-semibold text-rose-600 transition hover:text-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500/20 dark:text-rose-400 dark:hover:text-rose-300"
+                                                    data-package-remove="{{ $package['id'] }}"
+                                                >
+                                                    {{ __('Hapus') }}
+                                                </button>
+                                                <input type="hidden" name="package_ids[]" value="{{ $package['id'] }}" data-package-input="{{ $package['id'] }}">
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                    <div class="flex flex-wrap items-center gap-3">
+                                        <button
+                                            type="button"
+                                            class="inline-flex items-center justify-center gap-2 rounded-lg border border-indigo-600 bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:ring-offset-1 dark:focus:ring-offset-neutral-900"
+                                            data-package-open
+                                        >
+                                            <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                <path d="M10 3a1 1 0 0 1 1 1v5h5a1 1 0 1 1 0 2h-5v5a1 1 0 1 1-2 0v-5H4a1 1 0 0 1 0-2h5V4a1 1 0 0 1 1-1Z" />
+                                            </svg>
+                                            <span>{{ __('Tambah Barang') }}</span>
+                                        </button>
+                                        <p class="text-xs text-neutral-500 dark:text-neutral-400">
+                                            {{ __('Klik “Tambah Barang” untuk mencari dan menambahkan barang emas.') }}
+                                        </p>
+                                    </div>
+                                    <p class="text-xs text-neutral-500 dark:text-neutral-400" data-package-meta>
+                                        {{ $selectedPackages->isNotEmpty() ? ($selectedPackages->count() === 1 ? $selectedSummaryLines->first() : $selectedPackages->count() . ' ' . __('barang dipilih') . ' • ' . number_format($selectedTotalWeight, 3, ',', '.') . ' gr • Rp ' . number_format($selectedTotalPrice, 0, ',', '.')) : __('Belum ada barang dipilih. Gunakan tombol “Tambah Barang” untuk memulai.') }}
+                                    </p>
+                                    <template data-package-item-template>
+                                        <div class="flex items-start gap-3 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm shadow-sm dark:border-neutral-600 dark:bg-neutral-800" data-package-item>
+                                            <div class="min-w-0 flex-1">
+                                                <p class="truncate font-semibold text-neutral-900 dark:text-white" data-package-name></p>
+                                                <p class="text-xs text-neutral-500 dark:text-neutral-400" data-package-detail></p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                class="text-xs font-semibold text-rose-600 transition hover:text-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500/20 dark:text-rose-400 dark:hover:text-rose-300"
+                                                data-package-remove
+                                            >
+                                                {{ __('Hapus') }}
+                                            </button>
+                                            <input type="hidden" name="package_ids[]" data-package-input>
+                                        </div>
+                                    </template>
+                                </div>
+                                @error('package_ids')
                                     <p class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
                                 @enderror
-                                <p class="mt-2 text-xs text-neutral-500 dark:text-neutral-400" data-package-meta>
-                                    {{ __('Silakan pilih barang emas untuk melihat detail harga.') }}
-                                </p>
-                                @if ($packagesCollection->isEmpty())
-                                    <p class="mt-3 text-xs text-amber-600 dark:text-amber-400">
-                                        {{ __('Belum ada data barang. Tambahkan entri melalui halaman Data Barang terlebih dahulu.') }}
+                                @error('package_ids.*')
+                                    <p class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
+                                @enderror
+                                @if ($selectedPackages->isEmpty())
+                                    <p class="mt-3 text-xs text-neutral-500 dark:text-neutral-400">
+                                        {{ __('Belum ada data barang yang dapat dipilih?') }}
                                         <a href="{{ route('barang.data-barang') }}" class="font-semibold underline underline-offset-2">
                                             {{ __('Buka Data Barang') }}
                                         </a>
@@ -306,7 +400,35 @@
                                 </p>
                             </div>
 
-                            <div>
+                            <div class="md:col-span-1">
+                                <label for="administrasi" class="mb-2 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
+                                    {{ __('Biaya Administrasi') }}
+                                    <span class="font-normal text-xs text-neutral-500 dark:text-neutral-400">({{ __('opsional') }})</span>
+                                </label>
+                                <div class="flex overflow-hidden rounded-lg border border-neutral-300 bg-white shadow-sm dark:border-neutral-600 dark:bg-neutral-800">
+                                    <span class="flex items-center justify-center bg-neutral-100 px-3 text-xs font-semibold uppercase tracking-wide text-neutral-600 dark:bg-neutral-700 dark:text-neutral-200">
+                                        {{ __('Rp') }}
+                                    </span>
+                                    <input
+                                        id="administrasi"
+                                        name="administrasi"
+                                        type="number"
+                                        min="0"
+                                        step="1"
+                                        value="{{ old('administrasi', '0') }}"
+                                        class="w-full border-0 bg-transparent px-3 py-2 text-sm font-semibold text-neutral-900 focus:outline-none focus:ring-0 dark:text-white"
+                                        data-administration-input
+                                    >
+                                </div>
+                                @error('administrasi')
+                                    <p class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
+                                @enderror
+                                <p class="mt-2 text-xs text-neutral-500 dark:text-neutral-400" data-administration-display>
+                                    {{ __('Jika diisi, biaya administrasi akan ditambahkan ke total pembiayaan cicilan.') }}
+                                </p>
+                            </div>
+
+                            <div class="md:col-span-1">
                                 <label for="besaran_angsuran_display" class="mb-2 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
                                     {{ __('Estimasi Angsuran Bulanan') }}
                                 </label>
@@ -336,14 +458,16 @@
 
                         <div class="rounded-lg bg-neutral-100 px-4 py-3 text-sm text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200" data-summary-panel hidden>
                             <p class="font-semibold text-neutral-900 dark:text-white">{{ __('Ringkasan Barang') }}</p>
-                            <ul class="mt-2 space-y-1">
-                                <li data-summary-package>{{ __('Barang belum dipilih.') }}</li>
-                                <li data-summary-price></li>
-                                <li data-summary-option></li>
-                                <li data-summary-principal></li>
-                                <li data-summary-margin></li>
-                                <li data-summary-financing></li>
-                            </ul>
+                            <div class="mt-2 space-y-2">
+                                <p data-summary-package>{{ __('Barang belum dipilih.') }}</p>
+                                <ul class="space-y-1 text-xs text-neutral-600 dark:text-neutral-400" data-summary-items></ul>
+                                <p data-summary-price></p>
+                                <p data-summary-option></p>
+                                <p data-summary-principal></p>
+                                <p data-summary-margin></p>
+                                <p data-summary-administration></p>
+                                <p data-summary-financing></p>
+                            </div>
                         </div>
 
                         <div class="flex items-center justify-end gap-3">
@@ -360,13 +484,95 @@
         </div>
     </div>
 
+    <template data-package-result-template>
+        <li class="flex items-start justify-between gap-3 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm dark:border-neutral-700 dark:bg-neutral-800" data-package-result>
+            <div class="min-w-0 flex-1">
+                <p class="truncate font-semibold text-neutral-900 dark:text-white" data-result-name></p>
+                <p class="text-xs text-neutral-500 dark:text-neutral-400" data-result-meta></p>
+            </div>
+            <button
+                type="button"
+                class="inline-flex items-center gap-2 rounded-md border border-indigo-600 bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:focus:ring-offset-neutral-900"
+                data-result-add
+            >
+                {{ __('Tambah') }}
+            </button>
+        </li>
+    </template>
+
+    <div class="fixed inset-0 z-40 hidden" data-package-modal aria-hidden="true">
+        <div class="absolute inset-0 bg-neutral-900/50 backdrop-blur-sm" data-package-modal-backdrop></div>
+        <div class="relative mx-auto flex h-full w-full max-w-3xl flex-col px-4 py-8 sm:justify-center">
+            <div class="relative z-10 flex max-h-full flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-700 dark:bg-neutral-900">
+                <div class="flex items-center justify-between border-b border-neutral-200 px-6 py-4 dark:border-neutral-700">
+                    <h2 class="text-base font-semibold text-neutral-900 dark:text-white">{{ __('Cari Barang Emas') }}</h2>
+                    <button
+                        type="button"
+                        class="rounded-md p-2 text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
+                        data-package-modal-close
+                    >
+                        <span class="sr-only">{{ __('Tutup') }}</span>
+                        <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 0 1 1.414 0L10 8.586l4.293-4.293a1 1 0 1 1 1.414 1.414L11.414 10l4.293 4.293a1 1 0 0 1-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 0 1-1.414-1.414L8.586 10 4.293 5.707a1 1 0 0 1 0-1.414Z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="flex flex-1 flex-col gap-4 px-6 py-4">
+                    <div class="relative">
+                        <label class="sr-only" for="package-modal-search">{{ __('Cari barang emas') }}</label>
+                        <input
+                            id="package-modal-search"
+                            type="search"
+                            data-package-modal-search
+                            class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white"
+                            placeholder="{{ __('Ketik minimal 2 huruf untuk mencari barang emas') }}"
+                            autocomplete="off"
+                        >
+                    </div>
+                    <div class="flex-1 overflow-y-auto">
+                        <ul class="space-y-2" data-package-modal-results></ul>
+                        <p class="rounded-lg border border-dashed border-neutral-300 px-3 py-4 text-sm text-neutral-500 dark:border-neutral-600 dark:text-neutral-300" data-package-modal-empty>
+                            {{ __('Ketik minimal 2 huruf untuk mencari barang emas.') }}
+                        </p>
+                    </div>
+                    <div class="flex flex-col gap-2 border-t border-neutral-200 pt-4 text-xs text-neutral-500 dark:border-neutral-700 dark:text-neutral-400 sm:flex-row sm:items-center sm:justify-between">
+                        <p>{{ __('Hasil pencarian tidak menampilkan barang yang sudah dipilih.') }}</p>
+                        <div class="flex justify-end">
+                            <button
+                                type="button"
+                                class="inline-flex items-center gap-2 rounded-md border border-neutral-300 px-3 py-2 text-xs font-semibold text-neutral-700 transition hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                                data-package-modal-more
+                                hidden
+                            >
+                                {{ __('Muat lebih banyak') }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
         <script>
         (() => {
             function initCicilEmas() {
                 const packages = @json($packagesCollection);
                 const marginConfig = @json($resolvedMarginConfig);
-                const packageSelect = document.querySelector('[data-package-select]');
-                const packageMeta = document.querySelector('[data-package-meta]');
+                const packageSelector = document.querySelector('[data-package-selector]');
+                const packageMeta = packageSelector?.querySelector('[data-package-meta]') ?? null;
+                const packageList = packageSelector?.querySelector('[data-package-selected-list]') ?? null;
+                const packageEmpty = packageSelector?.querySelector('[data-package-empty]') ?? null;
+                const packageTemplate = packageSelector?.querySelector('template[data-package-item-template]') ?? null;
+                const packageEndpoint = packageSelector?.getAttribute('data-package-endpoint') ?? '';
+                const packageOpenButton = packageSelector?.querySelector('[data-package-open]') ?? null;
+                const resultTemplate = document.querySelector('template[data-package-result-template]') ?? null;
+                const modal = document.querySelector('[data-package-modal]') ?? null;
+                const modalBackdrop = modal?.querySelector('[data-package-modal-backdrop]') ?? null;
+                const modalCloseButtons = Array.from(modal?.querySelectorAll('[data-package-modal-close]') ?? []);
+                const modalSearch = modal?.querySelector('[data-package-modal-search]') ?? null;
+                const modalResults = modal?.querySelector('[data-package-modal-results]') ?? null;
+                const modalEmpty = modal?.querySelector('[data-package-modal-empty]') ?? null;
+                const modalMoreButton = modal?.querySelector('[data-package-modal-more]') ?? null;
                 const downPaymentInput = document.querySelector('[data-down-payment-input]');
                 const downPaymentHidden = document.querySelector('[data-down-payment-hidden]');
                 const downPaymentDisplay = document.querySelector('[data-down-payment-display]');
@@ -385,18 +591,393 @@
                 const financingDisplay = document.querySelector('[data-financing-display]');
                 const summaryPanel = document.querySelector('[data-summary-panel]');
                 const summaryPackage = document.querySelector('[data-summary-package]');
+                const summaryItemsList = document.querySelector('[data-summary-items]');
                 const summaryPrice = document.querySelector('[data-summary-price]');
                 const summaryOption = document.querySelector('[data-summary-option]');
                 const summaryPrincipal = document.querySelector('[data-summary-principal]');
                 const summaryMargin = document.querySelector('[data-summary-margin]');
                 const summaryFinancing = document.querySelector('[data-summary-financing]');
+                const administrationInput = document.querySelector('[data-administration-input]');
+                const administrationDisplay = document.querySelector('[data-administration-display]');
+                const summaryAdministration = document.querySelector('[data-summary-administration]');
 
-                if (!packageSelect) {
+                if (!packageSelector) {
                     // DOM belum siap atau kita bukan di halaman ini
                     return;
                 }
 
-                const findPackage = (id) => packages.find((pkg) => String(pkg.id) === String(id));
+                if (!packageEndpoint && packageOpenButton) {
+                    packageOpenButton.disabled = true;
+                    packageOpenButton.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+
+                const packageMap = new Map(
+                    Array.isArray(packages)
+                        ? packages.map((pkg) => [String(pkg.id), pkg])
+                        : [],
+                );
+
+                const decodePackageKeyValue = (value) => {
+                    if (value === null || value === undefined) {
+                        return null;
+                    }
+
+                    let normalized = String(value);
+
+                    if (normalized.startsWith('barang-')) {
+                        normalized = normalized.slice(7);
+                    }
+
+                    return /^[0-9]+$/.test(normalized) ? Number.parseInt(normalized, 10) : null;
+                }
+
+                const ensurePackageMapEntry = (pkg) => {
+                    if (pkg && pkg.id) {
+                        packageMap.set(String(pkg.id), pkg);
+                    }
+                };
+
+                const getSelectedInputs = () =>
+                    Array.from(packageList?.querySelectorAll('[data-package-input]') ?? []);
+
+                const getSelectedPackageIds = () =>
+                    getSelectedInputs()
+                        .map((input) => String(input.value ?? ''))
+                        .filter((value) => value !== '');
+
+                const getSelectedPackages = () =>
+                    getSelectedPackageIds()
+                        .map((id) => packageMap.get(String(id)))
+                        .filter((pkg) => Boolean(pkg));
+
+                const updateEmptyState = () => {
+                    if (!packageEmpty) {
+                        return;
+                    }
+
+                    packageEmpty.hidden = getSelectedPackageIds().length > 0;
+                };
+
+                const buildPackageMeta = (pkg) => {
+                    const code = pkg?.kode_group ?? pkg?.kode_intern ?? pkg?.kode_barcode ?? '—';
+                    const weight = Number(pkg?.berat ?? 0).toLocaleString('id-ID', {
+                        minimumFractionDigits: 3,
+                        maximumFractionDigits: 3,
+                    });
+
+                    return `${code} • ${weight} gr • ${formatCurrency(Number(pkg?.harga ?? 0))}`;
+                };
+
+                const createPackageElement = (pkg) => {
+                    if (!packageTemplate) {
+                        return null;
+                    }
+
+                    const fragment = packageTemplate.content.cloneNode(true);
+                    const element = fragment.querySelector('[data-package-item]');
+
+                    if (!element) {
+                        return null;
+                    }
+
+                    element.setAttribute('data-package-item', String(pkg.id));
+
+                    const nameEl = element.querySelector('[data-package-name]');
+                    if (nameEl) {
+                        nameEl.textContent = pkg?.nama_barang ?? '{{ __('Barang') }}';
+                    }
+
+                    const detailEl = element.querySelector('[data-package-detail]');
+                    if (detailEl) {
+                        detailEl.textContent = buildPackageMeta(pkg);
+                    }
+
+                    const inputEl = element.querySelector('[data-package-input]');
+                    if (inputEl) {
+                        inputEl.value = String(pkg.id);
+                        inputEl.setAttribute('data-package-input', String(pkg.id));
+                    }
+
+                    const removeButton = element.querySelector('[data-package-remove]');
+                    if (removeButton) {
+                        removeButton.setAttribute('data-package-remove', String(pkg.id));
+                        removeButton.addEventListener('click', (event) => {
+                            event.preventDefault();
+                            removePackage(String(pkg.id));
+                        });
+                    }
+
+                    return element;
+                };
+
+                const removePackage = (id) => {
+                    const normalizedId = String(id ?? '');
+
+                    if (!packageList || !normalizedId) {
+                        return;
+                    }
+
+                    const item = packageList.querySelector(`[data-package-item='${CSS.escape(normalizedId)}']`);
+
+                    if (item) {
+                        item.remove();
+                        updateEmptyState();
+                        updateOutputs();
+                    }
+                };
+
+                const addPackage = (pkg) => {
+                    if (!pkg || !pkg.id || !packageList) {
+                        return;
+                    }
+
+                    const id = String(pkg.id);
+
+                    if (getSelectedPackageIds().includes(id)) {
+                        return;
+                    }
+
+                    ensurePackageMapEntry(pkg);
+                    const element = createPackageElement(pkg);
+
+                    if (!element) {
+                        return;
+                    }
+
+                    packageList.appendChild(element);
+                    updateEmptyState();
+                    updateOutputs();
+                };
+
+                let lastFocusedTrigger = null;
+                const minimumSearchLength = 2;
+                let searchDebounce;
+                let currentRequestId = 0;
+                const searchState = {
+                    query: '',
+                    page: 1,
+                    loading: false,
+                    hasMore: false,
+                };
+
+                const setModalEmptyMessage = (message, hidden = false) => {
+                    if (!modalEmpty) {
+                        return;
+                    }
+
+                    modalEmpty.textContent = message;
+                    modalEmpty.hidden = hidden;
+                };
+
+                const clearModalResults = () => {
+                    if (modalResults) {
+                        modalResults.innerHTML = '';
+                    }
+                };
+
+                const renderResultItem = (pkg) => {
+                    if (!resultTemplate) {
+                        return null;
+                    }
+
+                    const fragment = resultTemplate.content.cloneNode(true);
+                    const element = fragment.querySelector('[data-package-result]');
+
+                    if (!element) {
+                        return null;
+                    }
+
+                    element.setAttribute('data-package-result', String(pkg.id));
+
+                    const nameEl = element.querySelector('[data-result-name]');
+                    if (nameEl) {
+                        nameEl.textContent = pkg?.nama_barang ?? '{{ __('Barang') }}';
+                    }
+
+                    const detailEl = element.querySelector('[data-result-meta]');
+                    if (detailEl) {
+                        const barcode = pkg?.kode_barcode ? ` • ${pkg.kode_barcode}` : '';
+                        detailEl.textContent = `${buildPackageMeta(pkg)}${barcode}`;
+                    }
+
+                    const addButton = element.querySelector('[data-result-add]');
+                    if (addButton) {
+                        addButton.addEventListener('click', (event) => {
+                            event.preventDefault();
+                            addPackage(pkg);
+                            element.remove();
+
+                            if (modalResults && !modalResults.children.length) {
+                                setModalEmptyMessage('{{ __('Semua barang hasil pencarian sudah dipilih.') }}', false);
+                            }
+                        });
+                    }
+
+                    return element;
+                };
+
+                const toggleModalLoading = (isLoading) => {
+                    if (modalSearch) {
+                        modalSearch.classList.toggle('cursor-wait', isLoading);
+                    }
+                };
+
+                const loadPackages = async ({ reset = false } = {}) => {
+                    if (!modal || !modalResults || !resultTemplate || !packageEndpoint) {
+                        return;
+                    }
+
+                    if (reset) {
+                        searchState.page = 1;
+                        clearModalResults();
+                    } else if (searchState.loading) {
+                        return;
+                    }
+
+                    const requestId = ++currentRequestId;
+                    const requestedQuery = searchState.query;
+                    const requestedPage = searchState.page;
+
+                    searchState.loading = true;
+
+                    setModalEmptyMessage('{{ __('Memuat data barang...') }}', false);
+                    toggleModalLoading(true);
+
+                    const params = new URLSearchParams();
+
+                    if (requestedQuery) {
+                        params.set('q', requestedQuery);
+                    }
+
+                    params.set('page', String(searchState.page));
+                    params.set('per_page', '20');
+
+                    getSelectedPackageIds()
+                        .map((id) => decodePackageKeyValue(id))
+                        .filter((value) => value !== null)
+                        .forEach((value) => params.append('exclude[]', String(value)));
+
+                    try {
+                        const response = await fetch(`${packageEndpoint}?${params.toString()}`, {
+                            headers: { Accept: 'application/json' },
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Request failed');
+                        }
+
+                        const payload = await response.json();
+
+                        if (requestedQuery !== searchState.query) {
+                            return;
+                        }
+                        const items = Array.isArray(payload?.data) ? payload.data : [];
+
+                        if (reset) {
+                            clearModalResults();
+                        }
+
+                        if (items.length === 0) {
+                            const emptyMessage = searchState.query
+                                ? '{{ __('Tidak ada barang yang cocok dengan pencarian.') }}'
+                                : '{{ __('Belum ada data untuk ditampilkan.') }}';
+                            setModalEmptyMessage(emptyMessage, false);
+                        } else {
+                            setModalEmptyMessage('', true);
+
+                            items.forEach((pkg) => {
+                                ensurePackageMapEntry(pkg);
+                                const element = renderResultItem(pkg);
+                                if (element) {
+                                    modalResults.appendChild(element);
+                                }
+                            });
+                        }
+
+                        searchState.hasMore = Boolean(payload?.meta?.has_more);
+
+                        if (modalMoreButton) {
+                            modalMoreButton.hidden = !searchState.hasMore;
+                        }
+                    } catch (error) {
+                        setModalEmptyMessage('{{ __('Terjadi kesalahan saat memuat data barang.') }}', false);
+                        searchState.hasMore = false;
+
+                        if (!reset && requestedPage > 1) {
+                            searchState.page = requestedPage - 1;
+                        }
+
+                        if (modalMoreButton) {
+                            modalMoreButton.hidden = true;
+                        }
+                    } finally {
+                        if (requestId === currentRequestId) {
+                            searchState.loading = false;
+                            toggleModalLoading(false);
+                        }
+                    }
+                };
+
+                const closeModal = () => {
+                    if (!modal) {
+                        return;
+                    }
+
+                    modal.classList.add('hidden');
+                    modal.setAttribute('aria-hidden', 'true');
+                    document.body.classList.remove('overflow-hidden');
+
+                    if (searchDebounce) {
+                        clearTimeout(searchDebounce);
+                        searchDebounce = null;
+                    }
+
+                    currentRequestId += 1;
+                    searchState.loading = false;
+                    searchState.hasMore = false;
+                    toggleModalLoading(false);
+
+                    if (modalMoreButton) {
+                        modalMoreButton.hidden = true;
+                    }
+
+                    if (lastFocusedTrigger instanceof HTMLElement) {
+                        lastFocusedTrigger.focus();
+                    }
+                };
+
+                const openModal = () => {
+                    if (!modal || !packageEndpoint) {
+                        return;
+                    }
+
+                    lastFocusedTrigger = document.activeElement;
+                    modal.classList.remove('hidden');
+                    modal.setAttribute('aria-hidden', 'false');
+                    document.body.classList.add('overflow-hidden');
+
+                    searchState.query = '';
+                    searchState.page = 1;
+                    searchState.hasMore = false;
+                    searchState.loading = false;
+                    clearModalResults();
+                    setModalEmptyMessage('{{ __('Ketik minimal 2 huruf untuk mencari barang emas.') }}', false);
+
+                    if (modalMoreButton) {
+                        modalMoreButton.hidden = true;
+                    }
+
+                    if (modalSearch) {
+                        modalSearch.value = '';
+                        modalSearch.focus();
+                    }
+                };
+
+                const handleModalKeydown = (event) => {
+                    if (event.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+                        closeModal();
+                    }
+                };
 
                 const formatCurrency = (value) =>
                     new Intl.NumberFormat('id-ID', {
@@ -430,6 +1011,26 @@
 
                 const getDownPaymentMode = () =>
                     downPaymentModeHidden?.value === 'percentage' ? 'percentage' : 'nominal';
+
+                const getAdministrationValue = () => {
+                    if (!administrationInput) {
+                        return 0;
+                    }
+
+                    const raw = administrationInput.value;
+
+                    if (raw === '' || raw === null || raw === undefined) {
+                        return 0;
+                    }
+
+                    const parsed = Number.parseFloat(raw);
+
+                    if (!Number.isFinite(parsed) || parsed < 0) {
+                        return 0;
+                    }
+
+                    return Math.round(parsed);
+                };
 
                 const resolveMarginPercentage = (tenor) => {
                     if (!Number.isFinite(Number(tenor))) {
@@ -537,7 +1138,7 @@
                     });
                 };
 
-                const updateTenorCaptions = (totalPrice, downPayment) => {
+                const updateTenorCaptions = (totalPrice, downPayment, administration) => {
                     tenorOptions.forEach((option) => {
                         const card = option.closest('[data-tenor-card]');
                         const caption = card?.querySelector('[data-tenor-caption]');
@@ -550,10 +1151,11 @@
 
                         const tenorValue = Number(option.value);
                         const principalBalance = Math.max(totalPrice - downPayment, 0);
+                        const administrationAmount = Math.max(Number(administration) || 0, 0);
                         const marginPercentage = resolveMarginPercentage(tenorValue);
                         const marginAmount =
                             Math.round(principalBalance * (marginPercentage / 100) * 100) / 100;
-                        const totalFinanced = principalBalance + marginAmount;
+                        const totalFinanced = principalBalance + marginAmount + administrationAmount;
                         const installment =
                             tenorValue > 0 ? Math.round((totalFinanced / tenorValue) * 100) / 100 : 0;
                         caption.textContent = `${formatCurrency(installment)} {{ __('per bulan') }}`;
@@ -594,13 +1196,21 @@
                     return firstValue;
                 };
 
-                const updateOutputs = () => {
-                    const selectedPackage = findPackage(packageSelect?.value);
-                    const totalPrice = Number(selectedPackage?.harga ?? 0);
-                    const hasPackage = Boolean(selectedPackage);
+                function updateOutputs() {
+                    const selectedPackages = getSelectedPackages();
+                    const totalPrice = selectedPackages.reduce(
+                        (total, pkg) => total + Number(pkg?.harga ?? 0),
+                        0,
+                    );
+                    const totalWeight = selectedPackages.reduce(
+                        (total, pkg) => total + Number(pkg?.berat ?? 0),
+                        0,
+                    );
+                    const hasSelection = selectedPackages.length > 0;
                     const mode = getDownPaymentMode();
 
-                    toggleTenorCardsDisabled(!hasPackage);
+                    updateEmptyState();
+                    toggleTenorCardsDisabled(!hasSelection);
 
                     let downPaymentAmount = 0;
                     let percentValue = 0;
@@ -614,7 +1224,7 @@
                         setPercentageValue(percent);
                         percentValue = percent;
                         const computed =
-                            hasPackage && totalPrice > 0
+                            hasSelection && totalPrice > 0
                                 ? (totalPrice * percent) / 100
                                 : 0;
                         downPaymentAmount = Math.round(computed * 100) / 100;
@@ -624,7 +1234,7 @@
                         if (!Number.isFinite(nominal) || nominal < 0) {
                             nominal = 0;
                         }
-                        if (hasPackage && totalPrice > 0 && nominal > totalPrice) {
+                        if (hasSelection && totalPrice > 0 && nominal > totalPrice) {
                             nominal = totalPrice;
                         }
                         setNominalValue(nominal);
@@ -638,12 +1248,13 @@
 
                     refreshDownPaymentInput();
                     updateTenorCardsState(tenorHidden?.value);
-                    updateTenorCaptions(totalPrice, downPaymentAmount);
+                    const administrationAmount = Math.max(getAdministrationValue(), 0);
+                    updateTenorCaptions(totalPrice, downPaymentAmount, administrationAmount);
 
-                    if (!hasPackage) {
+                    if (!hasSelection) {
                         if (packageMeta) {
                             packageMeta.textContent =
-                                '{{ __('Silakan pilih barang emas untuk melihat detail harga.') }}';
+                                '{{ __('Belum ada barang dipilih. Gunakan tombol “Tambah Barang” untuk memulai.') }}';
                         }
                         if (downPaymentDisplay) {
                             downPaymentDisplay.textContent =
@@ -674,33 +1285,18 @@
                             summaryPackage.textContent =
                                 '{{ __('Barang belum dipilih.') }}';
                         }
+                        if (summaryItemsList) summaryItemsList.innerHTML = '';
                         if (summaryPrice) summaryPrice.textContent = '';
                         if (summaryOption) summaryOption.textContent = '';
                         if (summaryPrincipal) summaryPrincipal.textContent = '';
                         if (summaryMargin) summaryMargin.textContent = '';
+                        if (summaryAdministration) summaryAdministration.textContent = '';
                         if (summaryFinancing) summaryFinancing.textContent = '';
+                        if (administrationDisplay) {
+                            administrationDisplay.textContent =
+                                '{{ __('Jika diisi, biaya administrasi akan ditambahkan ke total pembiayaan cicilan.') }}';
+                        }
                         return;
-                    }
-
-                    const beratDisplay = Number(selectedPackage.berat ?? 0).toLocaleString('id-ID', {
-                        minimumFractionDigits: 3,
-                        maximumFractionDigits: 3,
-                    });
-                    const groupLabel =
-                        selectedPackage.kode_group ||
-                        selectedPackage.kode_intern ||
-                        '—';
-
-                    if (packageMeta) {
-                        packageMeta.textContent = `${selectedPackage.nama_barang} • ${beratDisplay} gr • ${groupLabel}`;
-                    }
-                    if (summaryPanel) summaryPanel.hidden = false;
-                    if (summaryPackage) {
-                        summaryPackage.textContent = `${selectedPackage.nama_barang} • ${beratDisplay} gr • ${groupLabel}`;
-                    }
-                    if (summaryPrice) {
-                        summaryPrice.textContent =
-                            `{{ __('Harga Barang') }}: ${formatCurrency(totalPrice)}`;
                     }
 
                     const tenorValue = Number(tenorHidden?.value ?? 0);
@@ -708,11 +1304,67 @@
                     const marginPercentage = resolveMarginPercentage(tenorValue);
                     const marginAmount =
                         Math.round(principalBalance * (marginPercentage / 100) * 100) / 100;
-                    const totalFinanced = principalBalance + marginAmount;
+                    const totalFinanced = principalBalance + marginAmount + administrationAmount;
                     const installment =
                         tenorValue > 0
                             ? Math.round((totalFinanced / tenorValue) * 100) / 100
                             : 0;
+
+                    const weightDisplay = totalWeight.toLocaleString('id-ID', {
+                        minimumFractionDigits: 3,
+                        maximumFractionDigits: 3,
+                    });
+
+                    const summaryLines = selectedPackages.map((pkg) => {
+                        const group = pkg?.kode_group || pkg?.kode_intern || '—';
+                        const weight = Number(pkg?.berat ?? 0).toLocaleString('id-ID', {
+                            minimumFractionDigits: 3,
+                            maximumFractionDigits: 3,
+                        });
+                        return `${pkg?.nama_barang ?? '{{ __('Barang') }}'} • ${weight} gr • ${group} • ${formatCurrency(Number(pkg?.harga ?? 0))}`;
+                    });
+
+                    if (packageMeta) {
+                        const metaLabel = selectedPackages.length === 1
+                            ? summaryLines[0]
+                            : `${selectedPackages.length} {{ __('barang dipilih') }} • ${weightDisplay} gr • ${formatCurrency(totalPrice)}`;
+                        packageMeta.textContent = metaLabel;
+                    }
+
+                    if (summaryPanel) summaryPanel.hidden = false;
+                    if (summaryPackage) {
+                        summaryPackage.textContent = selectedPackages.length === 1
+                            ? summaryLines[0]
+                            : `${selectedPackages.length} {{ __('barang dipilih') }} • ${weightDisplay} gr`;
+                    }
+                    if (summaryItemsList) {
+                        summaryItemsList.innerHTML = '';
+                        summaryLines.forEach((line) => {
+                            const li = document.createElement('li');
+                            li.textContent = line;
+                            summaryItemsList.appendChild(li);
+                        });
+                    }
+                    if (summaryPrice) {
+                        summaryPrice.textContent =
+                            `{{ __('Total Harga Barang') }}: ${formatCurrency(totalPrice)}`;
+                    }
+                    if (summaryOption) {
+                        summaryOption.textContent =
+                            `{{ __('Total Berat') }}: ${weightDisplay} gr • {{ __('Tenor') }}: ${tenorValue} {{ __('bulan') }}`;
+                    }
+                    if (summaryPrincipal) {
+                        summaryPrincipal.textContent = `{{ __('Pokok Pembiayaan') }}: ${formatCurrency(principalBalance)}`;
+                    }
+                    if (summaryMargin) {
+                        summaryMargin.textContent = `{{ __('Margin Pembiayaan') }}: ${formatCurrency(marginAmount)} (${formatPercentage(marginPercentage)}%)`;
+                    }
+                    if (summaryAdministration) {
+                        summaryAdministration.textContent = `{{ __('Biaya Administrasi') }}: ${formatCurrency(administrationAmount)}`;
+                    }
+                    if (summaryFinancing) {
+                        summaryFinancing.textContent = `{{ __('Total Pembiayaan') }}: ${formatCurrency(totalFinanced)}`;
+                    }
 
                     if (installmentHidden) {
                         installmentHidden.value = installment.toFixed(2);
@@ -729,7 +1381,7 @@
                             maximumFractionDigits: 2,
                         });
                         downPaymentDisplay.textContent =
-                            `${formatCurrency(downPaymentAmount)} • ${percentText}% {{ __('dari harga barang') }}`;
+                            `${formatCurrency(downPaymentAmount)} • ${percentText}% {{ __('dari total harga barang') }}`;
                     }
                     if (tenorMeta) {
                         tenorMeta.textContent = tenorValue
@@ -737,54 +1389,42 @@
                                   ':bulan',
                                   tenorValue,
                               )
-                            : '{{ __('Pilih jangka waktu cicilan untuk melihat estimasi angsuran per bulan.') }}';
+                            : '{{ __('Pilih tenor cicilan untuk melihat estimasi angsuran.') }}';
                     }
                     if (installmentDisplay) {
-                        installmentDisplay.textContent = tenorValue
-                            ? `${formatCurrency(installment)} • {{ __('dibayar setiap bulan selama :bulan bulan', ['bulan' => ':bulan']) }}`.replace(
-                                  ':bulan',
-                                  tenorValue,
-                              )
-                            : '{{ __('Besaran angsuran dihitung dari sisa harga emas dibagi tenor yang dipilih.') }}';
+                        installmentDisplay.textContent =
+                            installment
+                                ? `{{ __('Estimasi angsuran: :amount per bulan', ['amount' => ':amount']) }}`.replace(
+                                      ':amount',
+                                      formatCurrency(installment),
+                                  )
+                                : '{{ __('Besaran angsuran dihitung dari sisa harga emas dibagi tenor yang dipilih.') }}';
                     }
                     if (marginDisplay) {
-                        marginDisplay.textContent = tenorValue
-                            ? `${formatCurrency(marginAmount)} • ${formatPercentage(marginPercentage)}% {{ __('tarif margin') }}`
-                            : '{{ __('Margin akan dihitung setelah paket dan tenor dipilih.') }}';
+                        marginDisplay.textContent = `${formatCurrency(marginAmount)} ({{ __('Margin') }} ${formatPercentage(marginPercentage)}%)`;
                     }
                     if (financingDisplay) {
-                        financingDisplay.textContent = tenorValue
-                            ? `{{ __('Total Pembiayaan') }}: ${formatCurrency(totalFinanced)} • {{ __('Pokok Pembiayaan') }} ${formatCurrency(principalBalance)}`
-                            : '{{ __('Total pembiayaan akan tampil setelah simulasi lengkap.') }}';
+                        financingDisplay.textContent = `{{ __('Total pembiayaan: :amount', ['amount' => ':amount']) }}`.replace(
+                            ':amount',
+                            formatCurrency(totalFinanced),
+                        );
                     }
-                    if (summaryOption) {
-                        summaryOption.textContent = tenorValue
-                            ? `{{ __('Jangka waktu: :bulan bulan', ['bulan' => ':bulan']) }}`.replace(
-                                  ':bulan',
-                                  tenorValue,
-                              ) +
-                              ` • {{ __('Angsuran') }} ${formatCurrency(installment)}`
-                            : '';
-                    }
-                    if (summaryPrincipal) {
-                        summaryPrincipal.textContent = `{{ __('Pokok Pembiayaan') }}: ${formatCurrency(principalBalance)}`;
-                    }
-                    if (summaryMargin) {
-                        summaryMargin.textContent = `{{ __('Margin') }}: ${formatCurrency(marginAmount)} • ${formatPercentage(marginPercentage)}%`;
-                    }
-                    if (summaryFinancing) {
-                        summaryFinancing.textContent = `{{ __('Total Pembiayaan') }}: ${formatCurrency(totalFinanced)}`;
+                    if (administrationDisplay) {
+                        administrationDisplay.textContent = administrationAmount > 0
+                            ? `{{ __('Biaya Administrasi') }}: ${formatCurrency(administrationAmount)}`
+                            : '{{ __('Jika diisi, biaya administrasi akan ditambahkan ke total pembiayaan cicilan.') }}';
                     }
                 };
-
                 const applyDownPaymentMode = (mode) => {
                     const sanitizedMode = mode === 'percentage' ? 'percentage' : 'nominal';
                     if (downPaymentModeHidden) {
                         downPaymentModeHidden.value = sanitizedMode;
                     }
 
-                    const selectedPackage = findPackage(packageSelect?.value);
-                    const totalPrice = Number(selectedPackage?.harga ?? 0);
+                    const totalPrice = getSelectedPackages().reduce(
+                        (total, pkg) => total + Number(pkg?.harga ?? 0),
+                        0,
+                    );
 
                     if (sanitizedMode === 'percentage') {
                         const nominal = getNominalValue();
@@ -807,7 +1447,6 @@
                     refreshDownPaymentInput();
                     updateOutputs();
                 };
-
                 const initialTenor = ensureTenorSelection();
                 updateTenorCardsState(initialTenor);
                 setNominalValue(getNominalValue());
@@ -817,9 +1456,69 @@
                 refreshDownPaymentInput();
                 updateOutputs();
 
-                packageSelect?.addEventListener('change', () => {
-                    updateOutputs();
+                if (packageList) {
+                    Array.from(packageList.querySelectorAll('[data-package-remove]')).forEach((button) => {
+                        button.addEventListener('click', (event) => {
+                            event.preventDefault();
+                            const id = button.getAttribute('data-package-remove');
+                            if (id) {
+                                removePackage(id);
+                            }
+                        });
+                    });
+                }
+
+                packageOpenButton?.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    openModal();
                 });
+
+                modalBackdrop?.addEventListener('click', () => {
+                    closeModal();
+                });
+
+                modalCloseButtons.forEach((button) => {
+                    button.addEventListener('click', () => {
+                        closeModal();
+                    });
+                });
+
+                modalSearch?.addEventListener('input', () => {
+                    const term = (modalSearch.value ?? '').toString().trim();
+                    searchState.query = term;
+
+                    if (searchDebounce) {
+                        clearTimeout(searchDebounce);
+                    }
+
+                    if (!term || term.length < minimumSearchLength) {
+                        clearModalResults();
+                        setModalEmptyMessage('{{ __('Ketik minimal 2 huruf untuk mencari barang emas.') }}', false);
+                        searchState.hasMore = false;
+                        if (modalMoreButton) {
+                            modalMoreButton.hidden = true;
+                        }
+                        return;
+                    }
+
+                    searchDebounce = setTimeout(() => {
+                        loadPackages({ reset: true });
+                    }, 250);
+                });
+
+                modalMoreButton?.addEventListener('click', () => {
+                    if (searchState.loading || !searchState.hasMore) {
+                        return;
+                    }
+
+                    searchState.page += 1;
+                    loadPackages();
+                });
+
+                if (modal && !modal.dataset.keydownBound) {
+                    document.addEventListener('keydown', handleModalKeydown);
+                    modal.dataset.keydownBound = 'true';
+                }
 
                 if (downPaymentInput) {
                     downPaymentInput.addEventListener('input', () => {
@@ -856,6 +1555,25 @@
                         updateTenorCardsState(option.value);
                         updateOutputs();
                     });
+                });
+
+                administrationInput?.addEventListener('input', () => {
+                    if (administrationInput.value !== '' && Number.parseFloat(administrationInput.value ?? '0') < 0) {
+                        administrationInput.value = '0';
+                    }
+
+                    updateOutputs();
+                });
+
+                administrationInput?.addEventListener('blur', () => {
+                    let value = getAdministrationValue();
+
+                    if (!Number.isFinite(value) || value < 0) {
+                        value = 0;
+                    }
+
+                    administrationInput.value = value ? String(Math.round(value)) : '0';
+                    updateOutputs();
                 });
             }
 
