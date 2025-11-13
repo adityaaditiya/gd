@@ -123,6 +123,9 @@
                                     {{ __('Margin') }} {{ number_format($insight['margin_percentage'] ?? 0, 2, ',', '.') }}% • Rp {{ number_format($insight['margin_amount'] ?? 0, 0, ',', '.') }}
                                 </div>
                                 <div class="text-xs text-neutral-500 dark:text-neutral-400">
+                                    {{ __('Biaya administrasi: Rp :amount', ['amount' => number_format($insight['administrasi'] ?? 0, 0, ',', '.')]) }}
+                                </div>
+                                <div class="text-xs text-neutral-500 dark:text-neutral-400">
                                     {{ __('Pokok pembiayaan: Rp :amount', ['amount' => number_format($insight['principal_without_margin'] ?? 0, 0, ',', '.')]) }}
                                 </div>
                             </div>
@@ -154,6 +157,9 @@
                                 </p>
                                 <p class="text-xs text-neutral-500 dark:text-neutral-400">
                                     {{ __('Total pembiayaan: Rp :amount', ['amount' => number_format($insight['total_financed'] ?? 0, 0, ',', '.')]) }}
+                                </p>
+                                <p class="text-xs text-neutral-500 dark:text-neutral-400">
+                                    {{ __('Administrasi: Rp :amount', ['amount' => number_format($insight['administrasi'] ?? 0, 0, ',', '.')]) }}
                                 </p>
                             </div>
                             <div class="rounded-lg border border-neutral-200 p-4 dark:border-neutral-700">
@@ -277,6 +283,10 @@
                 <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
                     <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Pembayaran Tercatat') }}</dt>
                     <dd class="text-xl font-semibold text-emerald-600 dark:text-emerald-300">Rp {{ number_format($portfolio['total_paid'] ?? 0, 0, ',', '.') }}</dd>
+                </div>
+                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
+                    <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Administrasi Tercatat') }}</dt>
+                    <dd class="text-xl font-semibold text-neutral-900 dark:text-black">Rp {{ number_format($portfolio['total_administration'] ?? 0, 0, ',', '.') }}</dd>
                 </div>
                 <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
                     <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Rata-rata Penyelesaian') }}</dt>

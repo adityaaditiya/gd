@@ -45,6 +45,7 @@
                                 <th scope="col" class="px-4 py-3 text-right">{{ __('Harga') }}</th>
                                 <th scope="col" class="px-4 py-3 text-right">{{ __('Uang Muka') }}</th>
                                 <th scope="col" class="px-4 py-3 text-right">{{ __('Margin') }}</th>
+                                <th scope="col" class="px-4 py-3 text-right">{{ __('Administrasi') }}</th>
                                 <th scope="col" class="px-4 py-3 text-right">{{ __('Angsuran / Bln') }}</th>
                                 <th scope="col" class="px-4 py-3 text-center">{{ __('Tenor') }}</th>
                             </tr>
@@ -91,6 +92,9 @@
                                             <span class="font-semibold text-neutral-900 dark:text-white">{{ number_format((float) $transaction->margin_amount, 2, ',', '.') }}</span>
                                             <span class="text-xs text-neutral-500 dark:text-neutral-400">{{ number_format((float) $transaction->margin_percentage, 2, ',', '.') }}%</span>
                                         </div>
+                                    </td>
+                                    <td class="px-4 py-3 align-top text-right text-neutral-700 dark:text-neutral-200">
+                                        {{ number_format((float) $transaction->administrasi, 2, ',', '.') }}
                                     </td>
                                     <td class="px-4 py-3 align-top text-right text-neutral-700 dark:text-neutral-200">
                                         {{ number_format((float) $transaction->besaran_angsuran, 2, ',', '.') }}

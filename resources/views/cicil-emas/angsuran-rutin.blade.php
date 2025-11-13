@@ -201,6 +201,9 @@
                                             <span class="text-xs text-neutral-500 dark:text-neutral-400">
                                                 {{ $transaction?->pabrikan }} • {{ number_format((float) ($transaction?->berat_gram ?? 0), 3, ',', '.') }} gr
                                             </span>
+                                            <span class="text-xs text-neutral-500 dark:text-neutral-400">
+                                                {{ __('Administrasi: Rp :amount', ['amount' => number_format((float) ($transaction?->administrasi ?? 0), 0, ',', '.')]) }}
+                                            </span>
                                         </div>
                                     </td>
                                     <td class="px-4 py-3 align-top text-right text-neutral-700 dark:text-neutral-200">
