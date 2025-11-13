@@ -8,7 +8,7 @@ use App\Models\Nasabah;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -29,7 +29,11 @@ class CicilEmasTransaksiController extends Controller
 
     public function create(): View
     {
-        $packages = $this->availablePackages()->values()->all();
+        $packages = Barang::query()
+            ->orderBy('nama_barang')
+            ->get(['id', 'kode_barcode', 'nama_barang', 'kode_intern', 'kode_group', 'berat', 'harga'])
+            ->map(fn (Barang $barang) => $this->transformBarang($barang))
+            ->values();
         $nasabahs = Nasabah::orderBy('nama')
             ->get(['id', 'nama', 'kode_member']);
 
@@ -53,17 +57,24 @@ class CicilEmasTransaksiController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $packages = $this->availablePackages();
+        $rawPackageIds = collect($request->input('package_ids', []));
+        $normalizedPackageIds = $rawPackageIds
+            ->map(fn ($value) => $this->normalizePackageId($value))
+            ->filter(fn ($value) => $value !== null)
+            ->values();
+
+        $packages = $this->packageCollectionForIds($normalizedPackageIds);
+
         $tenorOptions = collect(config('cicil_emas.tenor_options', []))
             ->filter(fn ($value) => is_numeric($value) && $value > 0)
             ->map(fn ($value) => (int) $value)
             ->unique()
             ->values();
 
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'nasabah_id' => ['required', 'exists:nasabahs,id'],
             'package_ids' => ['required', 'array', 'min:1'],
-            'package_ids.*' => ['distinct', Rule::in($packages->keys()->all())],
+            'package_ids.*' => ['distinct', 'integer', 'exists:barangs,id'],
             'down_payment_mode' => ['required', Rule::in(['nominal', 'percentage'])],
             'estimasi_uang_muka' => [
                 'nullable',
@@ -83,9 +94,31 @@ class CicilEmasTransaksiController extends Controller
             'administrasi' => ['nullable', 'numeric', 'min:0'],
         ]);
 
+        $validator->after(function ($validator) use ($packages, $normalizedPackageIds, $rawPackageIds) {
+            if ($normalizedPackageIds->isEmpty()) {
+                $validator->errors()->add('package_ids', __('Silakan pilih minimal satu barang.'));
+                return;
+            }
+
+            if ($packages->isEmpty()) {
+                $validator->errors()->add('package_ids', __('Barang yang dipilih tidak ditemukan.'));
+                return;
+            }
+
+            if ($packages->count() !== $normalizedPackageIds->unique()->count()) {
+                $validator->errors()->add('package_ids', __('Beberapa barang yang dipilih tidak tersedia.'));
+            }
+
+            if ($normalizedPackageIds->count() !== $rawPackageIds->count()) {
+                $validator->errors()->add('package_ids', __('Format data barang tidak valid.'));
+            }
+        });
+
+        $validated = $validator->validate();
+
         $selectedPackageIds = collect($validated['package_ids'] ?? [])
-            ->map(fn ($id) => (string) $id)
-            ->filter(fn ($id) => $packages->has($id))
+            ->map(fn ($id) => $this->normalizePackageId($id))
+            ->filter(fn ($id) => $id !== null && $packages->has((string) $id))
             ->unique()
             ->values();
 
@@ -95,7 +128,7 @@ class CicilEmasTransaksiController extends Controller
             ]);
         }
 
-        $selectedPackages = $selectedPackageIds->map(fn ($id) => $packages->get($id));
+        $selectedPackages = $selectedPackageIds->map(fn ($id) => $packages->get((string) $id));
 
         $totalPrice = (float) $selectedPackages->sum(fn ($pkg) => (float) ($pkg['harga'] ?? 0));
         $totalWeight = (float) $selectedPackages->sum(fn ($pkg) => (float) ($pkg['berat'] ?? 0));
@@ -231,24 +264,78 @@ class CicilEmasTransaksiController extends Controller
             ]);
     }
 
-    private function availablePackages(): Collection
+    private function packageCollectionForIds($barangIds)
     {
-        return Barang::orderBy('nama_barang')
-            ->get(['id', 'kode_barcode', 'nama_barang', 'kode_intern', 'kode_group', 'berat', 'harga'])
-            ->mapWithKeys(function (Barang $barang) {
-                $packageId = 'barang-'.$barang->id;
+        $ids = collect($barangIds)
+            ->map(fn ($value) => $this->normalizePackageId($value))
+            ->filter(fn ($value) => $value !== null)
+            ->unique()
+            ->values();
 
-                return [$packageId => [
-                    'id' => $packageId,
-                    'barang_id' => $barang->id,
-                    'kode_barcode' => $barang->kode_barcode,
-                    'nama_barang' => $barang->nama_barang,
-                    'kode_intern' => $barang->kode_intern,
-                    'kode_group' => $barang->kode_group,
-                    'berat' => $barang->berat,
-                    'harga' => $barang->harga,
-                ]];
-            });
+        if ($ids->isEmpty()) {
+            return collect();
+        }
+
+        $packages = Barang::query()
+            ->whereIn('id', $ids->all())
+            ->get(['id', 'kode_barcode', 'nama_barang', 'kode_intern', 'kode_group', 'berat', 'harga'])
+            ->mapWithKeys(fn (Barang $barang) => [
+                (string) $barang->id => $this->transformBarang($barang),
+            ]);
+
+        $ordered = collect();
+
+        foreach ($ids as $id) {
+            $key = (string) $id;
+            if ($packages->has($key)) {
+                $ordered->put($key, $packages->get($key));
+            }
+        }
+
+        return $ordered;
+    }
+
+    private function transformBarang(Barang $barang): array
+    {
+        return [
+            'id' => (string) $barang->id,
+            'barang_id' => $barang->id,
+            'kode_barcode' => $barang->kode_barcode,
+            'nama_barang' => $barang->nama_barang,
+            'kode_intern' => $barang->kode_intern,
+            'kode_group' => $barang->kode_group,
+            'berat' => $barang->berat,
+            'harga' => $barang->harga,
+        ];
+    }
+
+    private function normalizePackageId($value): ?int
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_int($value)) {
+            return $value;
+        }
+
+        if (is_string($value)) {
+            $trimmed = trim($value);
+
+            if ($trimmed === '') {
+                return null;
+            }
+
+            if (ctype_digit($trimmed)) {
+                return (int) $trimmed;
+            }
+        }
+
+        if (is_numeric($value) && ctype_digit((string) $value)) {
+            return (int) $value;
+        }
+
+        return null;
     }
 
     private function generateInstallments(CicilEmasTransaction $transaction, int $tenor, float $amount): void
