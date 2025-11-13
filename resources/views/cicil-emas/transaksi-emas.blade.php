@@ -931,6 +931,11 @@
                     if (marginDisplay) {
                         marginDisplay.textContent = `${formatCurrency(marginAmount)} ({{ __('Margin') }} ${formatPercentage(marginPercentage)}%)`;
                     }
+                    if (administrationDisplay) {
+                        administrationDisplay.textContent = administrationAmount > 0
+                            ? `{{ __('Biaya Administrasi') }}: ${formatCurrency(administrationAmount)} {{ __('akan ditambahkan ke total pembiayaan.') }}`
+                            : '{{ __('Jika diisi, biaya administrasi akan ditambahkan ke total pembiayaan cicilan.') }}';
+                    }
                     if (financingDisplay) {
                         financingDisplay.textContent = `{{ __('Total pembiayaan: :amount', ['amount' => ':amount']) }}`.replace(
                             ':amount',
