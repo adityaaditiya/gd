@@ -7,17 +7,18 @@ use App\Models\CicilEmasTransaction;
 use App\Models\Nasabah;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
-use Illuminate\Support\Carbon;
 
 class CicilEmasTransaksiController extends Controller
 {
     public function index(): View
     {
-        $transactions = CicilEmasTransaction::with('nasabah')
+        $transactions = CicilEmasTransaction::with(['nasabah', 'items'])
             ->latest()
             ->get();
 
@@ -61,7 +62,8 @@ class CicilEmasTransaksiController extends Controller
 
         $validated = $request->validate([
             'nasabah_id' => ['required', 'exists:nasabahs,id'],
-            'package_id' => ['required', Rule::in($packages->keys()->all())],
+            'package_ids' => ['required', 'array', 'min:1'],
+            'package_ids.*' => ['distinct', Rule::in($packages->keys()->all())],
             'down_payment_mode' => ['required', Rule::in(['nominal', 'percentage'])],
             'estimasi_uang_muka' => [
                 'nullable',
@@ -78,10 +80,41 @@ class CicilEmasTransaksiController extends Controller
             ],
             'tenor_bulan' => ['required', 'integer', Rule::in($tenorOptions->all())],
             'besaran_angsuran' => ['required', 'numeric', 'min:0'],
+            'administrasi' => ['nullable', 'numeric', 'min:0'],
         ]);
 
-        $package = $packages->get($validated['package_id']);
-        $totalPrice = (float) ($package['harga'] ?? 0);
+        $selectedPackageIds = collect($validated['package_ids'] ?? [])
+            ->map(fn ($id) => (string) $id)
+            ->filter(fn ($id) => $packages->has($id))
+            ->unique()
+            ->values();
+
+        if ($selectedPackageIds->isEmpty()) {
+            throw ValidationException::withMessages([
+                'package_ids' => __('Silakan pilih minimal satu barang.'),
+            ]);
+        }
+
+        $selectedPackages = $selectedPackageIds->map(fn ($id) => $packages->get($id));
+
+        $totalPrice = (float) $selectedPackages->sum(fn ($pkg) => (float) ($pkg['harga'] ?? 0));
+        $totalWeight = (float) $selectedPackages->sum(fn ($pkg) => (float) ($pkg['berat'] ?? 0));
+        $kadarValues = $selectedPackages
+            ->map(fn ($pkg) => $pkg['kode_group'] ?? $pkg['kode_intern'])
+            ->filter()
+            ->unique()
+            ->values();
+
+        $primaryPackage = $selectedPackages->first();
+        $packageId = $selectedPackages->count() === 1
+            ? $primaryPackage['id']
+            : 'bundle-'.Str::uuid()->toString();
+        $pabrikanLabel = $selectedPackages->count() === 1
+            ? ($primaryPackage['nama_barang'] ?? 'Barang')
+            : __('Gabungan :jumlah barang', ['jumlah' => $selectedPackages->count()]);
+        $kadarLabel = $selectedPackages->count() === 1
+            ? ($primaryPackage['kode_group'] ?? $primaryPackage['kode_intern'] ?? '—')
+            : ($kadarValues->isEmpty() ? __('Campuran') : $kadarValues->implode(', '));
         $mode = $validated['down_payment_mode'];
         $downPaymentPercentageInput = (float) ($validated['down_payment_percentage'] ?? 0);
         $downPaymentValueInput = (float) ($validated['estimasi_uang_muka'] ?? 0);
@@ -101,6 +134,7 @@ class CicilEmasTransaksiController extends Controller
             $downPayment = max($downPayment, 0);
         }
         $tenor = (int) $validated['tenor_bulan'];
+        $administrationFee = round((float) ($validated['administrasi'] ?? 0), 2);
 
         if ($downPayment < 0) {
             throw ValidationException::withMessages([
@@ -111,7 +145,7 @@ class CicilEmasTransaksiController extends Controller
         $principalBalance = max($totalPrice - $downPayment, 0);
         $marginPercentage = $this->resolveMarginPercentage($tenor);
         $marginAmount = round($principalBalance * ($marginPercentage / 100), 2);
-        $totalFinanced = $principalBalance + $marginAmount;
+        $totalFinanced = $principalBalance + $marginAmount + $administrationFee;
         $installment = $tenor > 0
             ? round($totalFinanced / $tenor, 2)
             : 0.0;
@@ -126,16 +160,17 @@ class CicilEmasTransaksiController extends Controller
 
         $transaction = CicilEmasTransaction::create([
             'nasabah_id' => $nasabah?->id,
-            'package_id' => $package['id'],
-            'pabrikan' => $package['nama_barang'],
-            'berat_gram' => $package['berat'],
-            'kadar' => $package['kode_group'] ?? $package['kode_intern'],
+            'package_id' => $packageId,
+            'pabrikan' => $pabrikanLabel,
+            'berat_gram' => $totalWeight,
+            'kadar' => $kadarLabel,
             'harga_emas' => $totalPrice,
             'dp_percentage' => $dpPercentage,
             'estimasi_uang_muka' => $downPayment,
             'pokok_pembiayaan' => $principalBalance,
             'margin_percentage' => $marginPercentage,
             'margin_amount' => $marginAmount,
+            'administrasi' => $administrationFee,
             'total_pembiayaan' => $totalFinanced,
             'tenor_bulan' => $tenor,
             'besaran_angsuran' => $installment,
@@ -147,6 +182,19 @@ class CicilEmasTransaksiController extends Controller
             ]),
         ]);
 
+        $transaction->items()->createMany($selectedPackages->map(function ($pkg) use ($transaction) {
+            return [
+                'transaction_id' => $transaction->getKey(),
+                'barang_id' => $pkg['barang_id'] ?? null,
+                'kode_barcode' => $pkg['kode_barcode'] ?? null,
+                'nama_barang' => $pkg['nama_barang'] ?? __('Barang'),
+                'kode_intern' => $pkg['kode_intern'] ?? null,
+                'kode_group' => $pkg['kode_group'] ?? null,
+                'berat' => (float) ($pkg['berat'] ?? 0),
+                'harga' => (float) ($pkg['harga'] ?? 0),
+            ];
+        })->all());
+
         $this->generateInstallments($transaction, $tenor, $installment);
 
         return redirect()
@@ -155,7 +203,19 @@ class CicilEmasTransaksiController extends Controller
             ->with('transaction_summary', [
                 'nasabah' => $nasabah?->nama,
                 'kode_member' => $nasabah?->kode_member,
-                'paket' => $package['nama_barang'].' • '.number_format((float) $package['berat'], 3, ',', '.').' gr • '.($package['kode_group'] ?? $package['kode_intern']),
+                'paket' => $selectedPackages->map(function ($pkg) {
+                    $label = $pkg['nama_barang'] ?? __('Barang');
+                    $group = $pkg['kode_group'] ?? $pkg['kode_intern'] ?? '—';
+                    return $label.' • '.number_format((float) ($pkg['berat'] ?? 0), 3, ',', '.').' gr • '.$group;
+                })->implode(PHP_EOL),
+                'packages' => $selectedPackages->map(function ($pkg) {
+                    return [
+                        'nama_barang' => $pkg['nama_barang'] ?? __('Barang'),
+                        'kode' => $pkg['kode_group'] ?? $pkg['kode_intern'],
+                        'berat' => (float) ($pkg['berat'] ?? 0),
+                        'harga' => (float) ($pkg['harga'] ?? 0),
+                    ];
+                })->all(),
                 'jangka_waktu' => __('Jangka waktu :bulan bulan', ['bulan' => $tenor]),
                 'dp' => $downPayment,
                 'dp_percentage' => $dpPercentage,
@@ -165,6 +225,7 @@ class CicilEmasTransaksiController extends Controller
                 'margin_amount' => $marginAmount,
                 'total_pembiayaan' => $totalFinanced,
                 'pokok_pembiayaan' => $principalBalance,
+                'administrasi' => $administrationFee,
                 'total' => $totalPrice,
                 'transaksi_id' => $transaction->id,
             ]);

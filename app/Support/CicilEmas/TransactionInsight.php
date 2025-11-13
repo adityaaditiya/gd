@@ -2,34 +2,36 @@
 
 namespace App\Support\CicilEmas;
 
-use App\Models\Barang;
 use App\Models\CicilEmasInstallment;
 use App\Models\CicilEmasTransaction;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
 
 class TransactionInsight
 {
-    public static function extractBarangId(?string $packageId): ?int
-    {
-        if (! $packageId) {
-            return null;
-        }
-
-        if (! Str::startsWith($packageId, 'barang-')) {
-            return null;
-        }
-
-        $id = (int) Str::after($packageId, 'barang-');
-
-        return $id > 0 ? $id : null;
-    }
-
-    public static function summarize(CicilEmasTransaction $transaction, ?Barang $barang = null): array
+    public static function summarize(CicilEmasTransaction $transaction, ?Collection $barangMap = null): array
     {
         $installments = $transaction->relationLoaded('installments')
             ? $transaction->installments->sortBy('sequence')->values()
             : collect();
+
+        $items = $transaction->relationLoaded('items')
+            ? $transaction->items->sortBy('id')->values()
+            : collect();
+
+        $itemsSummary = $items->map(function ($item) use ($barangMap) {
+            $barang = $item->barang_id ? $barangMap?->get($item->barang_id) : null;
+
+            return [
+                'model' => $item,
+                'nama_barang' => $item->nama_barang,
+                'kode' => $item->kode_group ?? $item->kode_intern,
+                'berat' => (float) ($item->berat ?? 0),
+                'harga' => (float) ($item->harga ?? 0),
+                'current_barang' => $barang,
+                'current_harga' => (float) ($barang?->harga ?? $item->harga ?? 0),
+            ];
+        });
 
         $now = Carbon::now();
         $today = $now->copy()->startOfDay();
@@ -42,11 +44,13 @@ class TransactionInsight
             return $installment->paid_amount ?? 0.0;
         });
 
+        $administrationFee = (float) ($transaction->administrasi ?? 0.0);
+
         $principalWithoutMargin = (float) ($transaction->pokok_pembiayaan
             ?? max($transaction->harga_emas - $transaction->estimasi_uang_muka, 0));
 
         if ($principalWithoutMargin <= 0 && $transaction->harga_emas > 0) {
-            $principalWithoutMargin = max($totalFinanced - ($transaction->margin_amount ?? 0), 0);
+            $principalWithoutMargin = max($totalFinanced - $administrationFee - ($transaction->margin_amount ?? 0), 0);
         }
 
         $outstandingPrincipal = (float) $installments->sum(function (CicilEmasInstallment $installment) {
@@ -55,7 +59,7 @@ class TransactionInsight
             return max($installment->amount - $paid, 0.0);
         });
 
-        $marginAmount = (float) ($transaction->margin_amount ?? ($totalFinanced - $principalWithoutMargin));
+        $marginAmount = (float) ($transaction->margin_amount ?? ($totalFinanced - $administrationFee - $principalWithoutMargin));
         if ($marginAmount < 0) {
             $marginAmount = 0.0;
         }
@@ -108,12 +112,19 @@ class TransactionInsight
             ->sortByDesc('paid_at')
             ->first();
 
-        $currentGoldValue = $barang?->harga ?? $transaction->harga_emas;
-        $goldDelta = $currentGoldValue - $transaction->harga_emas;
+        $currentGoldValue = $itemsSummary->isNotEmpty()
+            ? (float) $itemsSummary->sum('current_harga')
+            : (float) ($transaction->harga_emas ?? 0);
+        $goldDelta = $currentGoldValue - (float) ($transaction->harga_emas ?? 0);
+
+        $representativeBarang = $itemsSummary->count() === 1
+            ? $itemsSummary->first()['current_barang']
+            : null;
 
         return [
             'model' => $transaction,
-            'barang' => $barang,
+            'barang' => $representativeBarang,
+            'items' => $itemsSummary,
             'status' => $status,
             'status_style' => $statusStyle,
             'completion_ratio' => $completionRatio,
@@ -126,6 +137,7 @@ class TransactionInsight
             'outstanding_balance' => max($outstandingPrincipal, 0.0),
             'margin_amount' => $marginAmount,
             'margin_percentage' => $marginPercentage,
+            'administrasi' => $administrationFee,
             'overdue_installments' => $overdueInstallments,
             'next_installment' => $nextInstallment,
             'last_payment' => $lastPayment,
