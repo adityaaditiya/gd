@@ -157,25 +157,6 @@ const initCurrencyInputs = () => {
             event.preventDefault();
         });
 
-        input.addEventListener('beforeinput', (event) => {
-            const { data } = event;
-            const inputType = event.inputType || '';
-
-            if (inputType.startsWith('delete')) {
-                return;
-            }
-
-            if (!data) {
-                return;
-            }
-
-            if (/^\d+$/.test(data)) {
-                return;
-            }
-
-            event.preventDefault();
-        });
-
         input.addEventListener('input', (event) => {
             const target = event.target;
             const selectionStart = target.selectionStart ?? target.value.length;
@@ -203,13 +184,7 @@ const initCurrencyInputs = () => {
     });
 };
 
-const bootstrap = () => {
+document.addEventListener('DOMContentLoaded', () => {
     initTransaksiGadaiTableDropdown();
     initCurrencyInputs();
-};
-
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bootstrap, { once: true });
-} else {
-    bootstrap();
-}
+});
