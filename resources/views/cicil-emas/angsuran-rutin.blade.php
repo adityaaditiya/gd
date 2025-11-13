@@ -1,7 +1,14 @@
 <x-layouts.app :title="__('Angsuran Rutin')">
     @php
-        /** @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\CicilEmasInstallment> $installments */
-        $today = \Illuminate\Support\Carbon::now();
+        /** @var \Illuminate\Pagination\LengthAwarePaginator<\App\Models\CicilEmasInstallment> $installments */
+        $today = $today ?? \Illuminate\Support\Carbon::now();
+        $filters = $filters ?? [];
+        $hasFilters = $hasFilters ?? false;
+        $statusOptions = [
+            'paid' => __('Lunas'),
+            'overdue' => __('Terlambat'),
+            'upcoming' => __('Menunggu'),
+        ];
     @endphp
 
     <div class="flex flex-col gap-6">
@@ -18,7 +25,7 @@
             </div>
         @endif
 
-        <section class="flex flex-col gap-3 rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+        <section class="flex flex-col gap-4 rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
             <header class="flex flex-col gap-1">
                 <span class="text-xs font-semibold uppercase tracking-wide text-sky-500">{{ __('Menu Angsuran Rutin') }}</span>
                 <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Proses Pembayaran Terjadwal') }}</h2>
@@ -30,20 +37,116 @@
                 </p>
             </header>
 
+            <form method="GET" class="grid gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-4 text-sm dark:border-neutral-700 dark:bg-neutral-800/60 md:grid-cols-5">
+                <div class="md:col-span-2">
+                    <label class="flex flex-col gap-1">
+                        <span class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Cari Nasabah / Paket') }}</span>
+                        <input
+                            type="search"
+                            name="search"
+                            value="{{ $filters['search'] ?? '' }}"
+                            placeholder="{{ __('Nama, kode member, NIK, atau paket cicilan') }}"
+                            class="rounded-md border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/30 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100"
+                        >
+                    </label>
+                </div>
+                <div>
+                    <label class="flex flex-col gap-1">
+                        <span class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Status Pembayaran') }}</span>
+                        <select
+                            name="status"
+                            class="rounded-md border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/30 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100"
+                        >
+                            <option value="">{{ __('Semua status') }}</option>
+                            @foreach ($statusOptions as $value => $label)
+                                <option value="{{ $value }}" @selected(($filters['status'] ?? '') === $value)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </label>
+                </div>
+                <div>
+                    <label class="flex flex-col gap-1">
+                        <span class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Jatuh Tempo Dari') }}</span>
+                        <input
+                            type="date"
+                            name="due_from"
+                            value="{{ $filters['due_from'] ?? '' }}"
+                            class="rounded-md border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/30 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100"
+                        >
+                    </label>
+                </div>
+                <div>
+                    <label class="flex flex-col gap-1">
+                        <span class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Jatuh Tempo Hingga') }}</span>
+                        <input
+                            type="date"
+                            name="due_until"
+                            value="{{ $filters['due_until'] ?? '' }}"
+                            class="rounded-md border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/30 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100"
+                        >
+                    </label>
+                </div>
+                <div class="flex items-end gap-2 md:justify-end">
+                    <button
+                        type="submit"
+                        class="inline-flex items-center justify-center rounded-md bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+                    >
+                        {{ __('Terapkan Filter') }}
+                    </button>
+                    @if ($hasFilters)
+                        <a
+                            href="{{ route('cicil-emas.angsuran-rutin') }}"
+                            class="inline-flex items-center justify-center rounded-md border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-600 hover:text-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-300/60 dark:border-neutral-600 dark:text-neutral-300 dark:hover:text-white"
+                        >
+                            {{ __('Atur Ulang') }}
+                        </a>
+                    @endif
+                </div>
+            </form>
+
             @if ($installments->isEmpty())
                 <div class="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-neutral-300 p-6 text-center text-neutral-600 dark:border-neutral-600 dark:text-neutral-300">
-                    <div class="space-y-1">
-                        <p class="text-base font-semibold text-neutral-800 dark:text-neutral-100">{{ __('Belum ada jadwal angsuran') }}</p>
-                        <p class="text-sm">{{ __('Simpan simulasi cicilan melalui menu Transaksi Cicil Emas untuk menghasilkan jadwal angsuran otomatis.') }}</p>
-                    </div>
-                    <a
-                        href="{{ route('cicil-emas.transaksi-emas') }}"
-                        class="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
-                    >
-                        {{ __('Buat Simulasi Cicilan') }}
-                    </a>
+                    @if ($hasFilters)
+                        <div class="space-y-1">
+                            <p class="text-base font-semibold text-neutral-800 dark:text-neutral-100">{{ __('Tidak ada angsuran yang cocok') }}</p>
+                            <p class="text-sm">{{ __('Coba ubah kata kunci pencarian, rentang jatuh tempo, atau pilih status lain untuk melihat jadwal angsuran yang tersedia.') }}</p>
+                        </div>
+                        <a
+                            href="{{ route('cicil-emas.angsuran-rutin') }}"
+                            class="inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-600 hover:text-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-300/60 dark:border-neutral-600 dark:text-neutral-300 dark:hover:text-white"
+                        >
+                            {{ __('Bersihkan Filter') }}
+                        </a>
+                    @else
+                        <div class="space-y-1">
+                            <p class="text-base font-semibold text-neutral-800 dark:text-neutral-100">{{ __('Belum ada jadwal angsuran') }}</p>
+                            <p class="text-sm">{{ __('Simpan simulasi cicilan melalui menu Transaksi Cicil Emas untuk menghasilkan jadwal angsuran otomatis.') }}</p>
+                        </div>
+                        <a
+                            href="{{ route('cicil-emas.transaksi-emas') }}"
+                            class="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                        >
+                            {{ __('Buat Simulasi Cicilan') }}
+                        </a>
+                    @endif
                 </div>
             @else
+                <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-2 text-xs font-medium text-neutral-600 dark:border-neutral-700 dark:bg-neutral-800/60 dark:text-neutral-300">
+                    <span>
+                        {{ __('Menampilkan :from-:to dari :total angsuran', [
+                            'from' => number_format($installments->firstItem(), 0, ',', '.'),
+                            'to' => number_format($installments->lastItem(), 0, ',', '.'),
+                            'total' => number_format($installments->total(), 0, ',', '.'),
+                        ]) }}
+                    </span>
+                    @if ($hasFilters)
+                        <span class="inline-flex items-center gap-2 rounded-full bg-sky-100 px-3 py-1 text-sky-700 dark:bg-sky-900/40 dark:text-sky-200">
+                            {{ __('Filter aktif') }}
+                            <a href="{{ route('cicil-emas.angsuran-rutin') }}" class="text-xs font-semibold underline hover:text-sky-500 dark:hover:text-sky-100">{{ __('Hapus') }}</a>
+                        </span>
+                    @endif
+                </div>
+
                 <div class="overflow-hidden rounded-lg border border-neutral-200 shadow-sm dark:border-neutral-700">
                     <table class="min-w-full divide-y divide-neutral-200 dark:divide-neutral-700">
                         <thead class="bg-neutral-50 text-xs uppercase tracking-wide text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
@@ -117,7 +220,7 @@
                                         @if ($isPaid)
                                             <span class="text-xs text-neutral-400 dark:text-neutral-500">{{ __('Tidak ada tindakan') }}</span>
                                         @else
-                                            <form method="POST" action="{{ route('cicil-emas.angsuran-rutin.pay', $installment) }}" class="flex flex-col items-end gap-2 text-xs">
+                                            <form method="POST" action="{{ route('cicil-emas.angsuran-rutin.pay', array_merge(['installment' => $installment], request()->query())) }}" class="flex flex-col items-end gap-2 text-xs">
                                                 @csrf
                                                 <label class="flex items-center gap-2">
                                                     <span class="text-neutral-500 dark:text-neutral-400">{{ __('Tanggal Bayar') }}</span>
@@ -154,6 +257,10 @@
                             @endforeach
                         </tbody>
                     </table>
+                </div>
+
+                <div class="flex items-center justify-end">
+                    {{ $installments->onEachSide(1)->links() }}
                 </div>
             @endif
         </section>
