@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\BarangController;
 use App\Http\Controllers\BarangJaminanController;
 use App\Http\Controllers\CicilEmasInstallmentController;
+use App\Http\Controllers\CicilEmasMonitoringController;
 use App\Http\Controllers\CicilEmasTransaksiController;
 use App\Http\Controllers\LaporanPelunasanGadaiController;
 use App\Http\Controllers\LaporanTransaksiGadaiController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\LaporanPembatalanGadaiController;
 use App\Http\Controllers\LaporanLelangController;
 use App\Http\Controllers\LaporanSaldoKasController;
 use App\Http\Controllers\LaporanPerpanjanganGadaiController;
+use App\Http\Controllers\LaporanCicilEmasController;
 use App\Http\Controllers\LelangController;
 use App\Http\Controllers\NasabahController;
 use App\Http\Controllers\TransaksiGadaiController;
@@ -84,7 +86,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('batal-gadai', [LaporanPembatalanGadaiController::class, 'index'])->name('batal-gadai');
             Route::get('perpanjangan-gadai', [LaporanPerpanjanganGadaiController::class, 'index'])->name('perpanjangan-gadai');
             Route::get('lelang', [LaporanLelangController::class, 'index'])->name('lelang');
-            Route::view('cicil-emas', 'laporan.cicil-emas')->name('cicil-emas');
+            Route::get('cicil-emas', [LaporanCicilEmasController::class, 'index'])->name('cicil-emas');
         });
 
     Route::prefix('akuntansi')
@@ -107,7 +109,7 @@ Route::middleware(['auth'])->group(function () {
             Route::post('angsuran-rutin/{installment}/bayar', [CicilEmasInstallmentController::class, 'pay'])
                 ->whereNumber('installment')
                 ->name('angsuran-rutin.pay');
-            Route::view('riwayat-cicilan', 'cicil-emas.riwayat-cicilan')->name('riwayat-cicilan');
+            Route::get('riwayat-cicilan', [CicilEmasMonitoringController::class, 'index'])->name('riwayat-cicilan');
             Route::view('pelunasan-cicilan', 'cicil-emas.pelunasan-cicilan')->name('pelunasan-cicilan');
         });
 
