@@ -20,7 +20,11 @@ class CicilEmasTransaksiController extends Controller
 {
     public function index(): View
     {
-        $transactions = CicilEmasTransaction::with(['nasabah', 'items'])
+        $transactions = CicilEmasTransaction::with([
+                'nasabah',
+                'items',
+                'installments' => fn ($query) => $query->orderBy('due_date'),
+            ])
             ->latest()
             ->get();
 
