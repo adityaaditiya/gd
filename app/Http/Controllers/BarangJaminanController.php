@@ -24,7 +24,6 @@ class BarangJaminanController extends Controller
         $perPageOptions = [10, 25, 50, 100];
 
         $statusFilter = $request->query('status');
-        $searchTerm = trim((string) $request->query('search', ''));
         $perPage = (int) $request->query('per_page', 10);
 
         if (!in_array($perPage, $perPageOptions, true)) {
@@ -52,24 +51,6 @@ class BarangJaminanController extends Controller
             }
         }
 
-        if ($searchTerm !== '') {
-            $barangJaminanQuery->where(function ($query) use ($searchTerm) {
-                $like = '%' . $searchTerm . '%';
-
-                $query->where('jenis_barang', 'like', $like)
-                    ->orWhere('merek', 'like', $like)
-                    ->orWhere('kondisi_fisik', 'like', $like)
-                    ->orWhere('kelengkapan', 'like', $like)
-                    ->orWhereHas('transaksi', function ($transaksiQuery) use ($like) {
-                        $transaksiQuery->where('no_sbg', 'like', $like)
-                            ->orWhereHas('nasabah', function ($nasabahQuery) use ($like) {
-                                $nasabahQuery->where('nama', 'like', $like)
-                                    ->orWhere('kode_member', 'like', $like);
-                            });
-                    });
-            });
-        }
-
         $barangJaminan = $barangJaminanQuery
             ->paginate($perPage > 0 ? $perPage : 10)
             ->withQueryString();
@@ -78,7 +59,6 @@ class BarangJaminanController extends Controller
             'barangJaminan' => $barangJaminan,
             'statusOptions' => $statusOptions,
             'statusFilter' => in_array($statusFilter, $statusOptions, true) ? $statusFilter : null,
-            'search' => $searchTerm,
             'perPage' => $perPage,
             'perPageOptions' => $perPageOptions,
         ]);

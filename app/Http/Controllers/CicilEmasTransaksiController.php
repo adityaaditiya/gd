@@ -20,37 +20,9 @@ class CicilEmasTransaksiController extends Controller
 {
     public function index(): View
     {
-        $transactions = CicilEmasTransaction::with([
-            'nasabah',
-            'items',
-            'installments' => fn ($query) => $query->orderBy('due_date'),
-        ])
-            ->whereNull('dibatalkan_pada')
+        $transactions = CicilEmasTransaction::with(['nasabah', 'items'])
             ->latest()
-            ->get()
-            ->map(function (CicilEmasTransaction $transaction) {
-                $today = Carbon::now()->startOfDay();
-                $installments = $transaction->installments->sortBy('due_date')->values();
-
-                $upcoming = $installments->first(function ($installment) use ($today) {
-                    $dueDate = $installment->due_date;
-
-                    return $dueDate instanceof Carbon
-                        ? $dueDate->greaterThanOrEqualTo($today)
-                        : ($dueDate ? Carbon::parse($dueDate)->greaterThanOrEqualTo($today) : false);
-                });
-
-                $nearest = $upcoming ?? $installments->last();
-
-                $transaction->setRelation('installments', $installments);
-                $transaction->setAttribute('nearest_due_date', $nearest
-                    ? ($nearest->due_date instanceof Carbon
-                        ? $nearest->due_date->copy()
-                        : Carbon::parse($nearest->due_date))
-                    : null);
-
-                return $transaction;
-            });
+            ->get();
 
         return view('cicil-emas.daftar-cicilan', [
             'transactions' => $transactions,

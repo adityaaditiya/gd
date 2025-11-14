@@ -205,7 +205,7 @@
                                                         <dl class="grid grid-cols-1 gap-3 text-sm text-neutral-700 dark:text-neutral-200">
                                                             <div class="space-y-1">
                                                                 <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Kondisi') }}</dt>
-                                                                <dd>{{ $barang->kondisi_fisik ?? '—' }}</dd>
+                                                                <dd>{{ $barang->kondisi ?? '—' }}</dd>
                                                             </div>
                                                             <div class="space-y-1">
                                                                 <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Kelengkapan') }}</dt>

@@ -528,7 +528,6 @@
                     updateBunga();
                     filterSelectOptions(barangSearchInput, select);
                     filterSelectOptions(nasabahSearchInput, nasabahSelect);
-                    window.KRESNO?.initCurrencyInputs?.();
                 }
             };
 
