@@ -26,6 +26,12 @@
             </div>
         @endif
 
+        @if (session('error'))
+            <div class="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-200">
+                {{ session('error') }}
+            </div>
+        @endif
+
         <section class="flex flex-col gap-4 rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
             <header class="flex flex-col gap-1">
                 <span class="text-xs font-semibold uppercase tracking-wide text-sky-500">{{ __('Menu Angsuran Rutin') }}</span>

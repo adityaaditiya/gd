@@ -71,6 +71,139 @@ const initTransaksiGadaiTableDropdown = () => {
     });
 };
 
+const initCicilanCancelModal = () => {
+    window.KRESNO = window.KRESNO || {};
+    const state = window.KRESNO.cicilanCancelModal || {
+        initialized: false,
+        isOpen: false,
+        open: null,
+        close: null,
+    };
+
+    const getModal = () => document.getElementById('cicilan-cancel-modal');
+
+    const closeModal = () => {
+        const modal = getModal();
+
+        if (!modal || !state.isOpen) {
+            return;
+        }
+
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+
+        const reasonField = modal.querySelector('[data-cancel-reason]');
+        reasonField?.blur();
+
+        state.isOpen = false;
+    };
+
+    const openModal = (detail = {}) => {
+        const modal = getModal();
+
+        if (!modal) {
+            return;
+        }
+
+        const form = modal.querySelector('[data-cancel-form]');
+        const summaryField = modal.querySelector('[data-cancel-summary]');
+        const reasonField = modal.querySelector('[data-cancel-reason]');
+        const transactionInput = modal.querySelector('[data-cancel-transaction]');
+        const actionTemplate = modal.dataset.actionTemplate || form?.getAttribute('action') || '';
+
+        const transactionId = detail.id ?? modal.dataset.initialTransaction ?? '';
+        const summary = typeof detail.summary === 'string' && detail.summary.length
+            ? detail.summary
+            : (modal.dataset.initialSummary || '');
+        const reason = typeof detail.reason === 'string'
+            ? detail.reason
+            : (modal.dataset.initialReason || '');
+
+        if (transactionInput) {
+            transactionInput.value = transactionId || '';
+        }
+
+        if (form) {
+            if (transactionId) {
+                form.setAttribute('action', actionTemplate.replace('__TRANSACTION__', transactionId));
+            } else {
+                form.setAttribute('action', actionTemplate);
+            }
+        }
+
+        if (summaryField) {
+            summaryField.textContent = summary;
+        }
+
+        if (reasonField) {
+            reasonField.value = reason;
+        }
+
+        modal.dataset.initialTransaction = '';
+        modal.dataset.initialSummary = '';
+        modal.dataset.initialReason = '';
+        modal.dataset.openOnLoad = 'false';
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        requestAnimationFrame(() => {
+            reasonField?.focus({ preventScroll: true });
+        });
+
+        state.isOpen = true;
+    };
+
+    state.open = openModal;
+    state.close = closeModal;
+
+    if (!state.initialized) {
+        window.addEventListener('cicilan:cancel', (event) => {
+            const payload = event?.detail || {};
+            state.open(payload);
+        });
+
+        document.addEventListener('click', (event) => {
+            if (event.target.closest('[data-cancel-close]')) {
+                event.preventDefault();
+                state.close();
+            }
+        });
+
+        document.addEventListener('click', (event) => {
+            const modal = getModal();
+
+            if (!modal || !state.isOpen) {
+                return;
+            }
+
+            if (event.target === modal) {
+                state.close();
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && state.isOpen) {
+                state.close();
+            }
+        });
+
+        state.initialized = true;
+    }
+
+    const modal = getModal();
+
+    if (modal && modal.dataset.openOnLoad === 'true') {
+        state.open({
+            id: modal.dataset.initialTransaction,
+            summary: modal.dataset.initialSummary,
+            reason: modal.dataset.initialReason,
+        });
+    }
+
+    window.KRESNO.cicilanCancelModal = state;
+};
+
 const initCurrencyInputs = () => {
     const inputs = document.querySelectorAll('[data-currency-input]');
 
@@ -178,6 +311,10 @@ const initCurrencyInputs = () => {
     ]);
 
     inputs.forEach((input) => {
+        if (input.dataset.currencyBound === 'true') {
+            return;
+        }
+
         const initial = input.value;
 
         if (initial) {
@@ -202,7 +339,7 @@ const initCurrencyInputs = () => {
             event.preventDefault();
         });
 
-        input.addEventListener('input', (event) => {
+        const handleTyping = (event) => {
             const target = event.target;
             const selectionStart = target.selectionStart ?? target.value.length;
             const digitIndex = countDigitsBefore(target.value, selectionStart);
@@ -211,11 +348,16 @@ const initCurrencyInputs = () => {
             requestAnimationFrame(() => {
                 restoreCursor(target, digitIndex);
             });
-        });
+        };
+
+        input.addEventListener('input', handleTyping);
+        input.addEventListener('keyup', handleTyping);
 
         input.addEventListener('blur', (event) => {
             event.target.value = formatCurrency(event.target.value);
         });
+
+        input.dataset.currencyBound = 'true';
     });
 
     const forms = new Set(Array.from(inputs).map((input) => input.form).filter(Boolean));
@@ -232,4 +374,14 @@ const initCurrencyInputs = () => {
 document.addEventListener('DOMContentLoaded', () => {
     initTransaksiGadaiTableDropdown();
     initCurrencyInputs();
+    initCicilanCancelModal();
 });
+
+document.addEventListener('livewire:navigated', () => {
+    initCurrencyInputs();
+    initCicilanCancelModal();
+});
+
+window.KRESNO = window.KRESNO || {};
+window.KRESNO.initCurrencyInputs = initCurrencyInputs;
+window.KRESNO.initCicilanCancelModal = initCicilanCancelModal;

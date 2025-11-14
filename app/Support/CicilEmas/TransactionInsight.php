@@ -19,6 +19,8 @@ class TransactionInsight
             ? $transaction->items->sortBy('id')->values()
             : collect();
 
+        $isCancelled = $transaction->dibatalkan_pada !== null;
+
         $itemsSummary = $items->map(function ($item) use ($barangMap) {
             $barang = $item->barang_id ? $barangMap?->get($item->barang_id) : null;
 
@@ -70,13 +72,17 @@ class TransactionInsight
                 : 0.0
         ));
 
-        $overdueInstallments = $installments->filter(function (CicilEmasInstallment $installment) use ($today) {
-            if ($installment->paid_at) {
+        $overdueInstallments = $installments->filter(function (CicilEmasInstallment $installment) use ($today, $isCancelled) {
+            if ($isCancelled || $installment->paid_at) {
                 return false;
             }
 
             return $installment->due_date->lt($today);
         });
+
+        if ($isCancelled) {
+            $outstandingPrincipal = 0.0;
+        }
 
         $isCompleted = $outstandingPrincipal <= 0.0 && $installments->count() > 0;
         $hasOverdue = $overdueInstallments->isNotEmpty();
@@ -84,7 +90,10 @@ class TransactionInsight
         $status = 'Aktif';
         $statusStyle = 'info';
 
-        if ($isCompleted) {
+        if ($isCancelled) {
+            $status = 'Batal';
+            $statusStyle = 'danger';
+        } elseif ($isCompleted) {
             $status = 'Lunas';
             $statusStyle = 'success';
         } elseif ($hasOverdue) {
@@ -92,13 +101,15 @@ class TransactionInsight
             $statusStyle = 'danger';
         }
 
-        $completionRatio = $totalFinanced > 0
-            ? round(min(($totalPaid / $totalFinanced) * 100, 100), 2)
-            : 0.0;
+        $completionRatio = $isCancelled
+            ? 0.0
+            : ($totalFinanced > 0
+                ? round(min(($totalPaid / $totalFinanced) * 100, 100), 2)
+                : 0.0);
 
         $nextInstallment = $installments
-            ->filter(function (CicilEmasInstallment $installment) use ($today) {
-                if ($installment->paid_at) {
+            ->filter(function (CicilEmasInstallment $installment) use ($today, $isCancelled) {
+                if ($isCancelled || $installment->paid_at) {
                     return false;
                 }
 
