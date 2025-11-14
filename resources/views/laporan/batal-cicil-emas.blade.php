@@ -154,39 +154,37 @@
                 <p class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Gunakan tabel berikut untuk audit dan analisis penyebab pembatalan cicilan.') }}</p>
             </header>
 
-            @if(($insights->count() ?? 0) === 0)
-                <div class="rounded-xl border border-dashed border-neutral-300 bg-white p-10 text-center shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
-                    <h3 class="text-lg font-semibold text-neutral-800 dark:text-white">{{ __('Tidak ada data pembatalan untuk filter yang dipilih.') }}</h3>
-                    <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-300">{{ __('Ubah periode, nasabah, atau petugas untuk melihat transaksi yang dibatalkan.') }}</p>
-                </div>
-            @else
-                <div class="overflow-hidden rounded-xl border border-neutral-200 shadow-sm dark:border-neutral-700">
-                    <table class="min-w-full divide-y divide-neutral-200 text-sm dark:divide-neutral-700">
-                        <thead class="bg-neutral-50 dark:bg-neutral-800/70">
-                            <tr>
-                                <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Tanggal Batal') }}</th>
-                                <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Nasabah') }}</th>
-                                <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Paket / Barang') }}</th>
-                                <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Tenor') }}</th>
-                                <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Nilai Emas Awal') }}</th>
-                                <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Total Pembiayaan') }}</th>
-                                <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Pokok Pembiayaan') }}</th>
-                                <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Margin') }}</th>
-                                <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Administrasi') }}</th>
-                                <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Progres Pembayaran') }}</th>
-                                <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Alasan Pembatalan') }}</th>
-                                <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Diproses Oleh') }}</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-neutral-200 bg-white dark:divide-neutral-700 dark:bg-neutral-900">
-                            @foreach($insights as $insight)
-                                @php
-                                    $transaction = $insight['model'];
-                                    $nasabah = $transaction->nasabah;
-                                    $items = collect($insight['items'] ?? []);
-                                    $primaryItem = $items->first();
-                                    $pembatal = $transaction->pembatal;
-                                @endphp
+            @forelse($insights as $insight)
+                @php
+                    $transaction = $insight['model'];
+                    $nasabah = $transaction->nasabah;
+                    $items = collect($insight['items'] ?? []);
+                    $primaryItem = $items->first();
+                    $pembatal = $transaction->pembatal;
+                @endphp
+
+                @if($loop->first)
+                    <div class="overflow-hidden rounded-xl border border-neutral-200 shadow-sm dark:border-neutral-700">
+                        <table class="min-w-full divide-y divide-neutral-200 text-sm dark:divide-neutral-700">
+                            <thead class="bg-neutral-50 dark:bg-neutral-800/70">
+                                <tr>
+                                    <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Tanggal Batal') }}</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Nasabah') }}</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Paket / Barang') }}</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Tenor') }}</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Nilai Emas Awal') }}</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Total Pembiayaan') }}</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Pokok Pembiayaan') }}</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Margin') }}</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Administrasi') }}</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Progres Pembayaran') }}</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Alasan Pembatalan') }}</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Diproses Oleh') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-neutral-200 bg-white dark:divide-neutral-700 dark:bg-neutral-900">
+                @endif
+
                                 <tr class="hover:bg-neutral-50 dark:hover:bg-neutral-800/60">
                                     <td class="px-4 py-3 text-neutral-600 dark:text-neutral-300">{{ $transaction->dibatalkan_pada?->translatedFormat('d M Y H:i') ?? '—' }}</td>
                                     <td class="px-4 py-3 text-neutral-600 dark:text-neutral-300">
@@ -221,11 +219,18 @@
                                     </td>
                                     <td class="px-4 py-3 text-neutral-600 dark:text-neutral-300">{{ $pembatal?->name ?? __('Tidak diketahui') }}</td>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+
+                @if($loop->last)
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            @empty
+                <div class="rounded-xl border border-dashed border-neutral-300 bg-white p-10 text-center shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+                    <h3 class="text-lg font-semibold text-neutral-800 dark:text-white">{{ __('Tidak ada data pembatalan untuk filter yang dipilih.') }}</h3>
+                    <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-300">{{ __('Ubah periode, nasabah, atau petugas untuk melihat transaksi yang dibatalkan.') }}</p>
                 </div>
-            @endif
+            @endforelse
         </section>
     </div>
 </x-layouts.app>
