@@ -66,6 +66,7 @@
                         <thead class="bg-neutral-50 text-xs uppercase tracking-wide text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
                             <tr>
                                 <th scope="col" class="px-4 py-3 text-left">{{ __('Tanggal') }}</th>
+                                <th scope="col" class="px-4 py-3 text-left">{{ __('Jatuh Tempo Terdekat') }}</th>
                                 <th scope="col" class="px-4 py-3 text-left">{{ __('Nasabah') }}</th>
                                 <th scope="col" class="px-4 py-3 text-left">{{ __('Paket Emas') }}</th>
                                 <th scope="col" class="px-4 py-3 text-right">{{ __('Harga') }}</th>
@@ -80,6 +81,24 @@
                             @foreach ($transactions as $transaction)
                                 @php
                                     $isHighlighted = (string) $highlightId === (string) $transaction->id;
+                                    $isCancelled = $transaction->dibatalkan_pada !== null;
+                                    $nearestInstallment = $transaction->relationLoaded('installments')
+                                        ? $transaction->installments
+                                            ->filter(fn ($installment) => $installment->paid_at === null)
+                                            ->sortBy('due_date')
+                                            ->first()
+                                        : null;
+
+                                    $hasPendingInstallment = $nearestInstallment !== null;
+                                    $nearestDueDate = $nearestInstallment?->due_date;
+                                    $isOverdue = $nearestDueDate ? $nearestDueDate->isPast() : false;
+
+                                    if (! $hasPendingInstallment && $transaction->relationLoaded('installments') && ! $isCancelled) {
+                                        $allInstallmentsPaid = $transaction->installments->isNotEmpty()
+                                            && $transaction->installments->every(fn ($installment) => $installment->paid_at !== null);
+                                    } else {
+                                        $allInstallmentsPaid = false;
+                                    }
                                 @endphp
                                 <tr @class([
                                     'bg-emerald-50/60 dark:bg-emerald-500/10' => $isHighlighted,
@@ -89,6 +108,27 @@
                                             <span class="font-semibold text-neutral-900 dark:text-white">{{ optional($transaction->created_at)->translatedFormat('d M Y') }}</span>
                                             <span class="text-xs text-neutral-500 dark:text-neutral-400">{{ optional($transaction->created_at)->format('H:i') }}</span>
                                         </div>
+                                    </td>
+                                    <td class="px-4 py-3 align-top">
+                                        @if ($isCancelled)
+                                            <span class="text-sm font-semibold text-neutral-500 dark:text-neutral-400">{{ __('Dibatalkan') }}</span>
+                                        @elseif ($hasPendingInstallment && $nearestDueDate)
+                                            <div class="flex flex-col">
+                                                <span @class([
+                                                    'font-semibold text-neutral-900 dark:text-white' => ! $isOverdue,
+                                                    'font-semibold text-red-600 dark:text-red-400' => $isOverdue,
+                                                ])>
+                                                    {{ $nearestDueDate->translatedFormat('d M Y') }}
+                                                </span>
+                                                <span class="text-xs text-neutral-500 dark:text-neutral-400">
+                                                    {{ __('Cicilan ke-:sequence', ['sequence' => $nearestInstallment->sequence]) }}
+                                                </span>
+                                            </div>
+                                        @elseif ($allInstallmentsPaid)
+                                            <span class="text-sm font-semibold text-emerald-600 dark:text-emerald-300">{{ __('Lunas') }}</span>
+                                        @else
+                                            <span class="text-sm font-semibold text-neutral-500 dark:text-neutral-400">—</span>
+                                        @endif
                                     </td>
                                     <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">
                                         <div class="flex flex-col">
