@@ -61,7 +61,7 @@
                     </a>
                 </div>
             @else
-                <div class="overflow-hidden rounded-lg border border-neutral-200 shadow-sm dark:border-neutral-700">
+                <div class="relative rounded-lg border border-neutral-200 shadow-sm dark:border-neutral-700">
                     <table
                         id="cicilan-transactions-table"
                         data-cicilan-table
