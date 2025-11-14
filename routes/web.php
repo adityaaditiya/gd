@@ -14,6 +14,7 @@ use App\Http\Controllers\LaporanLelangController;
 use App\Http\Controllers\LaporanSaldoKasController;
 use App\Http\Controllers\LaporanPerpanjanganGadaiController;
 use App\Http\Controllers\LaporanCicilEmasController;
+use App\Http\Controllers\LaporanPembatalanCicilEmasController;
 use App\Http\Controllers\LelangController;
 use App\Http\Controllers\NasabahController;
 use App\Http\Controllers\TransaksiGadaiController;
@@ -87,6 +88,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('perpanjangan-gadai', [LaporanPerpanjanganGadaiController::class, 'index'])->name('perpanjangan-gadai');
             Route::get('lelang', [LaporanLelangController::class, 'index'])->name('lelang');
             Route::get('cicil-emas', [LaporanCicilEmasController::class, 'index'])->name('cicil-emas');
+            Route::get('batal-cicil-emas', [LaporanPembatalanCicilEmasController::class, 'index'])->name('batal-cicil-emas');
         });
 
     Route::prefix('akuntansi')
@@ -105,6 +107,9 @@ Route::middleware(['auth'])->group(function () {
             Route::get('transaksi-emas', [CicilEmasTransaksiController::class, 'create'])->name('transaksi-emas');
             Route::post('transaksi-emas', [CicilEmasTransaksiController::class, 'store'])->name('transaksi-emas.store');
             Route::get('daftar-cicilan', [CicilEmasTransaksiController::class, 'index'])->name('daftar-cicilan');
+            Route::post('daftar-cicilan/{transaction}/batal', [CicilEmasTransaksiController::class, 'cancel'])
+                ->whereNumber('transaction')
+                ->name('daftar-cicilan.cancel');
             Route::get('angsuran-rutin', [CicilEmasInstallmentController::class, 'index'])->name('angsuran-rutin');
             Route::post('angsuran-rutin/{installment}/bayar', [CicilEmasInstallmentController::class, 'pay'])
                 ->whereNumber('installment')

@@ -51,7 +51,7 @@ class CicilEmasMonitoringController extends Controller
                             $installmentsQuery
                                 ->whereNull('paid_at')
                                 ->orWhereColumn('paid_amount', '<', 'amount');
-                        });
+                        })->whereNull('dibatalkan_pada');
                         break;
                     case 'menunggak':
                         $query->whereHas('installments', function ($installmentsQuery) use ($today) {
@@ -62,7 +62,7 @@ class CicilEmasMonitoringController extends Controller
                                         ->orWhereColumn('paid_amount', '<', 'amount');
                                 })
                                 ->whereDate('due_date', '<', $today);
-                        });
+                        })->whereNull('dibatalkan_pada');
                         break;
                     case 'aktif':
                         $query->whereHas('installments', function ($installmentsQuery) {
@@ -79,7 +79,10 @@ class CicilEmasMonitoringController extends Controller
                                         ->orWhereColumn('paid_amount', '<', 'amount');
                                 })
                                 ->whereDate('due_date', '<', $today);
-                        });
+                        })->whereNull('dibatalkan_pada');
+                        break;
+                    case 'batal':
+                        $query->whereNotNull('dibatalkan_pada');
                         break;
                 }
             });
