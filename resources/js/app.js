@@ -362,8 +362,174 @@ const initCurrencyInputs = () => {
     });
 };
 
+const initCicilanPagination = () => {
+    const components = document.querySelectorAll('[data-cicilan-pagination]');
+
+    if (!components.length) {
+        return;
+    }
+
+    components.forEach((component) => {
+        const tableId = component.getAttribute('data-table-id');
+        const table = tableId ? document.getElementById(tableId) : document.querySelector('[data-cicilan-table]');
+        const tbody = table?.querySelector('tbody');
+        const rows = tbody ? Array.from(tbody.querySelectorAll('tr')) : [];
+        const select = component.querySelector('[data-rows-per-page-select]');
+        const valueLabel = component.querySelector('[data-rows-per-page-value]');
+        const nav = component.querySelector('[data-pagination-nav]');
+
+        if (!table || !tbody || !rows.length || !select || !nav) {
+            component.classList.add('hidden');
+            return;
+        }
+
+        let rowsPerPage = Number.parseInt(select.value, 10);
+
+        if (!Number.isFinite(rowsPerPage) || rowsPerPage <= 0) {
+            rowsPerPage = 10;
+        }
+
+        let currentPage = 1;
+
+        const updateValueLabel = () => {
+            if (valueLabel) {
+                valueLabel.textContent = String(rowsPerPage);
+            }
+        };
+
+        const getTotalPages = () => Math.max(1, Math.ceil(rows.length / rowsPerPage));
+
+        const clampPage = () => {
+            const totalPages = getTotalPages();
+
+            if (currentPage > totalPages) {
+                currentPage = totalPages;
+            }
+
+            if (currentPage < 1) {
+                currentPage = 1;
+            }
+        };
+
+        const renderRows = () => {
+            const start = (currentPage - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+
+            rows.forEach((row, index) => {
+                if (index >= start && index < end) {
+                    row.classList.remove('hidden');
+                    row.removeAttribute('aria-hidden');
+                } else {
+                    row.classList.add('hidden');
+                    row.setAttribute('aria-hidden', 'true');
+                }
+            });
+        };
+
+        const createButton = (label, targetPage, options = {}) => {
+            const { disabled = false, active = false, ariaLabel } = options;
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.textContent = label;
+            button.disabled = disabled;
+
+            const baseClass = 'inline-flex items-center justify-center rounded-md border px-3 py-1.5 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-emerald-500/40';
+            const disabledClass = 'cursor-not-allowed border-neutral-200 bg-neutral-100 text-neutral-400 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-500';
+            const activeClass = 'border-neutral-900 bg-neutral-900 text-white dark:border-white dark:bg-white dark:text-neutral-900';
+            const defaultClass = 'border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100 focus:ring-offset-2 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800 dark:focus:ring-offset-neutral-900';
+
+            if (active) {
+                button.className = `${baseClass} ${activeClass}`;
+                button.setAttribute('aria-current', 'page');
+            } else if (disabled) {
+                button.className = `${baseClass} ${disabledClass}`;
+            } else {
+                button.className = `${baseClass} ${defaultClass}`;
+                button.addEventListener('click', () => {
+                    currentPage = targetPage;
+                    render();
+                });
+            }
+
+            if (ariaLabel) {
+                button.setAttribute('aria-label', ariaLabel);
+            }
+
+            return button;
+        };
+
+        const renderNav = () => {
+            const totalPages = getTotalPages();
+            const fragment = document.createDocumentFragment();
+            const isFirstPage = currentPage === 1;
+            const isLastPage = currentPage === totalPages;
+
+            fragment.append(
+                createButton('<< First', 1, {
+                    disabled: isFirstPage,
+                    ariaLabel: 'Go to first page',
+                }),
+            );
+            fragment.append(
+                createButton('< Back', Math.max(1, currentPage - 1), {
+                    disabled: isFirstPage,
+                    ariaLabel: 'Go to previous page',
+                }),
+            );
+
+            for (let page = 1; page <= totalPages; page += 1) {
+                fragment.append(
+                    createButton(String(page), page, {
+                        active: page === currentPage,
+                        ariaLabel: `Go to page ${page}`,
+                    }),
+                );
+            }
+
+            fragment.append(
+                createButton('Next >', Math.min(totalPages, currentPage + 1), {
+                    disabled: isLastPage,
+                    ariaLabel: 'Go to next page',
+                }),
+            );
+            fragment.append(
+                createButton('Last >>', totalPages, {
+                    disabled: isLastPage,
+                    ariaLabel: 'Go to last page',
+                }),
+            );
+
+            nav.innerHTML = '';
+            nav.append(fragment);
+        };
+
+        const render = () => {
+            clampPage();
+            updateValueLabel();
+            renderRows();
+            renderNav();
+        };
+
+        select.addEventListener('change', () => {
+            const value = Number.parseInt(select.value, 10);
+
+            if (Number.isFinite(value) && value > 0) {
+                rowsPerPage = value;
+                currentPage = 1;
+                render();
+            } else {
+                select.value = String(rowsPerPage);
+            }
+        });
+
+        component.classList.remove('hidden');
+        render();
+    });
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     initTransaksiGadaiTableDropdown();
     initCurrencyInputs();
     initCicilanCancelModal();
+    initCicilanPagination();
 });

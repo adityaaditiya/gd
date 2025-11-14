@@ -62,7 +62,11 @@
                 </div>
             @else
                 <div class="overflow-hidden rounded-lg border border-neutral-200 shadow-sm dark:border-neutral-700">
-                    <table class="min-w-full divide-y divide-neutral-200 dark:divide-neutral-700">
+                    <table
+                        id="cicilan-transactions-table"
+                        data-cicilan-table
+                        class="min-w-full divide-y divide-neutral-200 dark:divide-neutral-700"
+                    >
                         <thead class="bg-neutral-50 text-xs uppercase tracking-wide text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
                             <tr>
                                 <th scope="col" class="px-4 py-3 text-left">{{ __('Tanggal') }}</th>
@@ -194,6 +198,37 @@
                             @endforeach
                         </tbody>
                     </table>
+
+                    <div
+                        data-cicilan-pagination
+                        data-table-id="cicilan-transactions-table"
+                        class="flex flex-col gap-4 border-t border-neutral-200 bg-neutral-50 px-4 py-3 text-sm dark:border-neutral-700 dark:bg-neutral-900 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                        <div class="flex items-center gap-3">
+                            <div class="flex flex-col gap-1 text-neutral-600 dark:text-neutral-300">
+                                <label for="cicilan-rows-per-page" class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+                                    {{ __('Rows per page') }}
+                                    <span data-rows-per-page-value class="ms-1 rounded-md bg-neutral-200 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-neutral-700 dark:bg-neutral-800 dark:text-neutral-100">10</span>
+                                </label>
+                                <select
+                                    id="cicilan-rows-per-page"
+                                    data-rows-per-page-select
+                                    class="w-28 rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-700 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-200 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/30"
+                                >
+                                    <option value="10" selected>10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <nav
+                            aria-label="{{ __('Pagination') }}"
+                            class="flex flex-wrap items-center justify-end gap-2 text-sm"
+                            data-pagination-nav
+                        ></nav>
+                    </div>
                 </div>
             @endif
         </section>
