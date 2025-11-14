@@ -14,6 +14,7 @@ use App\Http\Controllers\LaporanLelangController;
 use App\Http\Controllers\LaporanSaldoKasController;
 use App\Http\Controllers\LaporanPerpanjanganGadaiController;
 use App\Http\Controllers\LaporanCicilEmasController;
+use App\Http\Controllers\LaporanPembatalanCicilEmasController;
 use App\Http\Controllers\LelangController;
 use App\Http\Controllers\NasabahController;
 use App\Http\Controllers\TransaksiGadaiController;
@@ -87,6 +88,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('perpanjangan-gadai', [LaporanPerpanjanganGadaiController::class, 'index'])->name('perpanjangan-gadai');
             Route::get('lelang', [LaporanLelangController::class, 'index'])->name('lelang');
             Route::get('cicil-emas', [LaporanCicilEmasController::class, 'index'])->name('cicil-emas');
+            Route::get('batal-cicil-emas', [LaporanPembatalanCicilEmasController::class, 'index'])->name('batal-cicil-emas');
         });
 
     Route::prefix('akuntansi')
