@@ -178,6 +178,10 @@ const initCurrencyInputs = () => {
     ]);
 
     inputs.forEach((input) => {
+        if (input.dataset.currencyBound === 'true') {
+            return;
+        }
+
         const initial = input.value;
 
         if (initial) {
@@ -202,7 +206,7 @@ const initCurrencyInputs = () => {
             event.preventDefault();
         });
 
-        input.addEventListener('input', (event) => {
+        const handleTyping = (event) => {
             const target = event.target;
             const selectionStart = target.selectionStart ?? target.value.length;
             const digitIndex = countDigitsBefore(target.value, selectionStart);
@@ -211,11 +215,16 @@ const initCurrencyInputs = () => {
             requestAnimationFrame(() => {
                 restoreCursor(target, digitIndex);
             });
-        });
+        };
+
+        input.addEventListener('input', handleTyping);
+        input.addEventListener('keyup', handleTyping);
 
         input.addEventListener('blur', (event) => {
             event.target.value = formatCurrency(event.target.value);
         });
+
+        input.dataset.currencyBound = 'true';
     });
 
     const forms = new Set(Array.from(inputs).map((input) => input.form).filter(Boolean));
@@ -233,3 +242,10 @@ document.addEventListener('DOMContentLoaded', () => {
     initTransaksiGadaiTableDropdown();
     initCurrencyInputs();
 });
+
+document.addEventListener('livewire:navigated', () => {
+    initCurrencyInputs();
+});
+
+window.KRESNO = window.KRESNO || {};
+window.KRESNO.initCurrencyInputs = initCurrencyInputs;
