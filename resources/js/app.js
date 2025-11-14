@@ -1,7 +1,7 @@
-const initTransaksiGadaiTableDropdown = () => {
-    const table = document.querySelector('[data-transaksi-gadai-table]');
+const initMoreActionDropdowns = () => {
+    const containers = document.querySelectorAll('[data-more-container]');
 
-    if (!table) {
+    if (!containers.length) {
         return;
     }
 
@@ -16,40 +16,42 @@ const initTransaksiGadaiTableDropdown = () => {
 
         menu.classList.add('hidden');
         toggle.setAttribute('aria-expanded', 'false');
+
         activeDropdown = null;
     };
 
-    table.addEventListener('click', (event) => {
-        const toggle = event.target.closest('[data-more-toggle]');
+    const openDropdown = (nextActive) => {
+        const { menu, toggle } = nextActive;
 
-        if (toggle) {
+        closeDropdown();
+
+        menu.classList.remove('hidden');
+        toggle.setAttribute('aria-expanded', 'true');
+        activeDropdown = nextActive;
+    };
+
+    containers.forEach((container) => {
+        const toggle = container.querySelector('[data-more-toggle]');
+        const menu = container.querySelector('[data-more-menu]');
+
+        if (!toggle || !menu) {
+            return;
+        }
+
+        toggle.addEventListener('click', (event) => {
             event.preventDefault();
-            const container = toggle.parentElement;
-            const menu = container.querySelector('[data-more-menu]');
-
-            if (!menu) {
-                return;
-            }
 
             if (activeDropdown && activeDropdown.menu === menu) {
                 closeDropdown();
                 return;
             }
 
+            openDropdown({ container, menu, toggle });
+        });
+
+        menu.addEventListener('click', () => {
             closeDropdown();
-
-            menu.classList.remove('hidden');
-            toggle.setAttribute('aria-expanded', 'true');
-            activeDropdown = { menu, toggle };
-
-            return;
-        }
-
-        if (event.target.closest('[data-more-menu]')) {
-            return;
-        }
-
-        closeDropdown();
+        });
     });
 
     document.addEventListener('click', (event) => {
@@ -57,7 +59,7 @@ const initTransaksiGadaiTableDropdown = () => {
             return;
         }
 
-        if (table.contains(event.target)) {
+        if (event.target.closest('[data-more-container]') === activeDropdown.container) {
             return;
         }
 
@@ -202,6 +204,34 @@ const initCicilanCancelModal = () => {
     }
 
     window.KRESNO.cicilanCancelModal = state;
+};
+
+const initCicilanCancelActions = () => {
+    if (!document.querySelector('[data-cicilan-cancel-trigger]')) {
+        return;
+    }
+
+    document.addEventListener('click', (event) => {
+        const trigger = event.target.closest('[data-cicilan-cancel-trigger]');
+
+        if (!trigger) {
+            return;
+        }
+
+        if (trigger.hasAttribute('disabled')) {
+            return;
+        }
+
+        event.preventDefault();
+
+        const detail = {
+            id: trigger.dataset.transactionId || '',
+            summary: trigger.dataset.summary || '',
+            reason: trigger.dataset.reason || '',
+        };
+
+        window.dispatchEvent(new CustomEvent('cicilan:cancel', { detail }));
+    });
 };
 
 const initCurrencyInputs = () => {
@@ -528,8 +558,9 @@ const initCicilanPagination = () => {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    initTransaksiGadaiTableDropdown();
+    initMoreActionDropdowns();
     initCurrencyInputs();
     initCicilanCancelModal();
+    initCicilanCancelActions();
     initCicilanPagination();
 });
