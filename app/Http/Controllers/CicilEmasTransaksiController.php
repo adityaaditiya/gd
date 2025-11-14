@@ -8,6 +8,8 @@ use App\Models\Nasabah;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -23,6 +25,7 @@ class CicilEmasTransaksiController extends Controller
             'items',
             'installments' => fn ($query) => $query->orderBy('due_date'),
         ])
+            ->whereNull('dibatalkan_pada')
             ->latest()
             ->get()
             ->map(function (CicilEmasTransaction $transaction) {
@@ -382,6 +385,63 @@ class CicilEmasTransaksiController extends Controller
                 'penalty_rate' => $penaltyRate,
             ]);
         }
+    }
+
+    public function cancel(Request $request, CicilEmasTransaction $transaction): RedirectResponse
+    {
+        $validated = $request->validate([
+            'transaction_id' => ['required', 'integer', Rule::in([$transaction->getKey()])],
+            'alasan_pembatalan' => ['required', 'string', 'max:1000'],
+        ], [
+            'transaction_id.in' => __('Transaksi cicilan tidak valid.'),
+        ], [
+            'alasan_pembatalan' => __('Alasan pembatalan'),
+        ]);
+
+        if ($transaction->dibatalkan_pada) {
+            return redirect()
+                ->route('cicil-emas.daftar-cicilan')
+                ->withInput($request->all())
+                ->withErrors([
+                    'alasan_pembatalan' => __('Transaksi cicilan ini sudah dibatalkan sebelumnya.'),
+                ]);
+        }
+
+        $transaction->loadMissing('installments');
+
+        $hasPayments = $transaction->installments->contains(function ($installment) {
+            return ($installment->paid_at !== null)
+                || (($installment->paid_amount ?? 0) > 0);
+        });
+
+        if ($hasPayments) {
+            return redirect()
+                ->route('cicil-emas.daftar-cicilan')
+                ->withInput($request->all())
+                ->withErrors([
+                    'alasan_pembatalan' => __('Cicilan tidak dapat dibatalkan karena sudah memiliki riwayat pembayaran.'),
+                ]);
+        }
+
+        $userId = Auth::id();
+
+        if (! $userId) {
+            abort(403, __('Pengguna tidak dikenali.'));
+        }
+
+        $reason = trim((string) $validated['alasan_pembatalan']);
+
+        DB::transaction(function () use ($transaction, $userId, $reason) {
+            $transaction->update([
+                'dibatalkan_pada' => Carbon::now(),
+                'dibatalkan_oleh' => $userId,
+                'alasan_pembatalan' => $reason,
+            ]);
+        });
+
+        return redirect()
+            ->route('cicil-emas.daftar-cicilan')
+            ->with('status', __('Transaksi cicilan berhasil dibatalkan.'));
     }
 
     private function marginConfiguration(): array
