@@ -48,6 +48,7 @@
                                 <th scope="col" class="px-4 py-3 text-right">{{ __('Administrasi') }}</th>
                                 <th scope="col" class="px-4 py-3 text-right">{{ __('Angsuran / Bln') }}</th>
                                 <th scope="col" class="px-4 py-3 text-center">{{ __('Tenor') }}</th>
+                                <th scope="col" class="px-4 py-3 text-left">{{ __('Jatuh Tempo') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-neutral-200 bg-white text-sm dark:divide-neutral-700 dark:bg-neutral-900">
@@ -123,6 +124,30 @@
                                     </td>
                                     <td class="px-4 py-3 align-top text-center text-neutral-700 dark:text-neutral-200">
                                         <span class="inline-flex rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200">{{ $transaction->tenor_bulan }} {{ __('Bulan') }}</span>
+                                    </td>
+                                    <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">
+                                        @php
+                                            $dueDate = $transaction->nearest_due_date instanceof \Illuminate\Support\Carbon
+                                                ? $transaction->nearest_due_date->copy()
+                                                : ($transaction->nearest_due_date ? \Illuminate\Support\Carbon::parse($transaction->nearest_due_date) : null);
+                                            $today = \Illuminate\Support\Carbon::now()->startOfDay();
+                                        @endphp
+                                        @if ($dueDate)
+                                            <div class="flex flex-col">
+                                                <span class="font-semibold text-neutral-900 dark:text-white">{{ $dueDate->translatedFormat('d M Y') }}</span>
+                                                <span class="text-xs text-neutral-500 dark:text-neutral-400">
+                                                    @if ($dueDate->lt($today))
+                                                        {{ __('Terlambat :days hari', ['days' => $dueDate->diffInDays($today)]) }}
+                                                    @elseif ($dueDate->isSameDay($today))
+                                                        {{ __('Jatuh tempo hari ini') }}
+                                                    @else
+                                                        {{ __(':days hari lagi', ['days' => $today->diffInDays($dueDate)]) }}
+                                                    @endif
+                                                </span>
+                                            </div>
+                                        @else
+                                            <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Belum tersedia') }}</span>
+                                        @endif
                                     </td>
                                 </tr>
                             @endforeach
