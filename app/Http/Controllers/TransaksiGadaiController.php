@@ -36,11 +36,19 @@ class TransaksiGadaiController extends Controller
         $filters = $filterValidator->safe()->only(['search', 'tanggal_dari', 'tanggal_sampai']);
 
         $search = trim((string) ($filters['search'] ?? ''));
-        $normalizedSearch = preg_replace('/[^0-9A-Za-z]/', '', $search);
         $tanggalDari = $filters['tanggal_dari'] ?? null;
         $tanggalSampai = $filters['tanggal_sampai'] ?? null;
 
-        $shouldAutoSubmit = false;
+        $today = Carbon::today()->toDateString();
+        $shouldAutoSubmit = !$request->has('tanggal_dari') && !$request->has('tanggal_sampai');
+
+        if (!$tanggalDari) {
+            $tanggalDari = $today;
+        }
+
+        if (!$tanggalSampai) {
+            $tanggalSampai = $today;
+        }
 
         $transaksiGadai = TransaksiGadai::with([
             'nasabah',
@@ -51,21 +59,14 @@ class TransaksiGadaiController extends Controller
                 $query->whereNull('status_transaksi')
                     ->orWhere('status_transaksi', '!=', 'Batal');
             })
-            ->when($search !== '', function ($query) use ($search, $normalizedSearch) {
-                $query->where(function ($query) use ($search, $normalizedSearch) {
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
                     $query->where('no_sbg', 'like', "%{$search}%")
                         ->orWhereHas('nasabah', function ($nasabahQuery) use ($search) {
                             $nasabahQuery->where('nama', 'like', "%{$search}%")
                                 ->orWhere('kode_member', 'like', "%{$search}%")
                                 ->orWhere('telepon', 'like', "%{$search}%");
                         });
-
-                    if ($normalizedSearch !== '' && $normalizedSearch !== $search) {
-                        $query->orWhereRaw(
-                            'REPLACE(REPLACE(REPLACE(REPLACE(no_sbg, "-", ""), "/", ""), " ", ""), ".", "") LIKE ?',
-                            ["%{$normalizedSearch}%"]
-                        );
-                    }
                 });
             })
             ->when($tanggalDari, function ($query) use ($tanggalDari) {
