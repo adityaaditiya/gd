@@ -34,8 +34,28 @@
                         </option>
                     @endforeach
                 </select>
-                
-                @if ($statusFilter)
+
+                <label for="search" class="text-neutral-600 dark:text-neutral-300">{{ __('Cari') }}</label>
+                <input
+                    type="search"
+                    id="search"
+                    name="search"
+                    value="{{ $search }}"
+                    placeholder="{{ __('Cari nasabah, nomor SBG, atau barang') }}"
+                    class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-700 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-200 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40 sm:w-60"
+                >
+
+                <button
+                    type="submit"
+                    class="inline-flex items-center justify-center rounded-lg border border-emerald-600 bg-emerald-600 px-3 py-2 font-semibold text-emerald-50 shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-500 dark:bg-emerald-500 dark:hover:border-emerald-400 dark:hover:bg-emerald-400"
+                >
+                    {{ __('Cari') }}
+                </button>
+
+                @php
+                    $hasFilters = $statusFilter || strlen($search) > 0;
+                @endphp
+                @if ($hasFilters)
                     <a
                         href="{{ route('gadai.lihat-barang-gadai', ['per_page' => $perPage]) }}"
                         class="inline-flex items-center justify-center rounded-lg border border-neutral-300 px-3 py-2 font-semibold text-neutral-600 transition hover:bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-400 dark:border-neutral-500 dark:text-neutral-300 dark:hover:bg-neutral-700/60"
@@ -87,6 +107,8 @@
                                 @endphp
                                 @if ($statusTransaksi === 'Aktif')
                                     <span class="text-xs font-medium text-neutral-400 dark:text-neutral-500">{{ __('Tidak tersedia') }}</span>
+                                @elseif ($statusTransaksi === 'Lunas')
+                                    <span class="text-xs font-medium text-neutral-400 dark:text-neutral-500">{{ __('Transaksi sudah lunas') }}</span>
                                 @else
                                     <div class="flex flex-wrap items-center gap-2">
                                         <a
