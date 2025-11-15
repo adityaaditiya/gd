@@ -29,7 +29,7 @@
             ->filter(fn ($package) => $selectedPackageKeys->contains((string) ($package['id'] ?? '')))
             ->values();
         $selectedSummaryLines = $selectedPackages->map(function ($package) {
-            $code = $package['kode_intern'] ?? $package['kode_group'] ?? '—';
+            $code = $package['kode_intern'] ?? $package['kode_baki'] ?? '—';
             $barcode = $package['kode_barcode'] ?? '—';
             $weight = number_format((float) ($package['berat'] ?? 0), 3, ',', '.');
             $price = number_format((float) ($package['harga'] ?? 0), 0, ',', '.');
@@ -305,7 +305,8 @@
                                                             trim(
                                                                 ($package['nama_barang'] ?? '').' '.
                                                                 ($package['kode_intern'] ?? '').' '.
-                                                                ($package['kode_group'] ?? '').' '.
+                                                                ($package['kode_baki'] ?? '').' '.
+                                                                ($package['kode_jenis'] ?? '').' '.
                                                                 ($package['kode_barcode'] ?? '')
                                                             ),
                                                         );
@@ -313,8 +314,9 @@
                                                     <option
                                                         value="{{ $package['id'] }}"
                                                         data-name="{{ $package['nama_barang'] ?? __('Barang') }}"
-                                                        data-group="{{ $package['kode_group'] ?? '' }}"
+                                                        data-baki="{{ $package['kode_baki'] ?? '' }}"
                                                         data-intern="{{ $package['kode_intern'] ?? '' }}"
+                                                        data-jenis="{{ $package['kode_jenis'] ?? '' }}"
                                                         data-barcode="{{ $package['kode_barcode'] ?? '' }}"
                                                         data-weight="{{ (float) ($package['berat'] ?? 0) }}"
                                                         data-price="{{ (float) ($package['harga'] ?? 0) }}"
@@ -825,7 +827,8 @@
                         id,
                         barang_id: Number.parseInt(option.value, 10) || null,
                         nama_barang: option.dataset.name ?? option.textContent?.trim() ?? '{{ __('Barang') }}',
-                        kode_group: option.dataset.group ?? null,
+                        kode_baki: option.dataset.baki ?? null,
+                        kode_jenis: option.dataset.jenis ?? null,
                         kode_intern: option.dataset.intern ?? null,
                         kode_barcode: option.dataset.barcode ?? null,
                         berat: Number.parseFloat(option.dataset.weight ?? '0') || 0,
@@ -843,7 +846,7 @@
 
                 const buildSummaryLines = (selectedPackages) =>
                     selectedPackages.map((pkg) => {
-                        const code = pkg?.kode_intern ?? pkg?.kode_group ?? '—';
+                        const code = pkg?.kode_intern ?? pkg?.kode_baki ?? '—';
                         const barcode = pkg?.kode_barcode ?? '—';
                         return `${pkg?.nama_barang ?? '{{ __('Barang') }}'} • ${formatWeight(pkg?.berat ?? 0)} gr • ${code} • ${barcode} • ${formatCurrency(Number(pkg?.harga ?? 0))}`;
                     });
