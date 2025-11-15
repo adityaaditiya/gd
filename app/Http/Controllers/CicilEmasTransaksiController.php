@@ -59,7 +59,7 @@ class CicilEmasTransaksiController extends Controller
         }
 
         $packages = $packagesQuery
-            ->get(['id', 'kode_barcode', 'nama_barang', 'kode_intern', 'kode_group', 'berat', 'harga'])
+            ->get(['id', 'kode_barcode', 'nama_barang', 'kode_intern', 'kode_baki', 'kode_jenis', 'berat', 'harga'])
             ->map(fn (Barang $barang) => $this->transformBarang($barang));
 
         $missingOldPackageIds = $oldPackageIds->reject(function ($id) use ($packages) {
@@ -69,7 +69,7 @@ class CicilEmasTransaksiController extends Controller
         if ($missingOldPackageIds->isNotEmpty()) {
             $additionalPackages = Barang::query()
                 ->whereIn('id', $missingOldPackageIds->all())
-                ->get(['id', 'kode_barcode', 'nama_barang', 'kode_intern', 'kode_group', 'berat', 'harga'])
+                ->get(['id', 'kode_barcode', 'nama_barang', 'kode_intern', 'kode_baki', 'kode_jenis', 'berat', 'harga'])
                 ->map(fn (Barang $barang) => $this->transformBarang($barang));
 
             $packages = $packages
@@ -194,7 +194,7 @@ class CicilEmasTransaksiController extends Controller
         $totalPrice = (float) $selectedPackages->sum(fn ($pkg) => (float) ($pkg['harga'] ?? 0));
         $totalWeight = (float) $selectedPackages->sum(fn ($pkg) => (float) ($pkg['berat'] ?? 0));
         $kadarValues = $selectedPackages
-            ->map(fn ($pkg) => $pkg['kode_group'] ?? $pkg['kode_intern'])
+            ->map(fn ($pkg) => $pkg['kode_baki'] ?? $pkg['kode_intern'])
             ->filter()
             ->unique()
             ->values();
@@ -207,7 +207,7 @@ class CicilEmasTransaksiController extends Controller
             ? ($primaryPackage['nama_barang'] ?? 'Barang')
             : __('Gabungan :jumlah barang', ['jumlah' => $selectedPackages->count()]);
         $kadarLabel = $selectedPackages->count() === 1
-            ? ($primaryPackage['kode_group'] ?? $primaryPackage['kode_intern'] ?? '—')
+            ? ($primaryPackage['kode_baki'] ?? $primaryPackage['kode_intern'] ?? '—')
             : ($kadarValues->isEmpty() ? __('Campuran') : $kadarValues->implode(', '));
         $mode = $validated['down_payment_mode'];
         $downPaymentPercentageInput = (float) ($validated['down_payment_percentage'] ?? 0);
@@ -264,7 +264,7 @@ class CicilEmasTransaksiController extends Controller
                 'kode_barcode' => $pkg['kode_barcode'] ?? null,
                 'nama_barang' => $pkg['nama_barang'] ?? __('Barang'),
                 'kode_intern' => $pkg['kode_intern'] ?? null,
-                'kode_group' => $pkg['kode_group'] ?? null,
+                'kode_baki' => $pkg['kode_baki'] ?? null,
                 'berat' => (float) ($pkg['berat'] ?? 0),
                 'harga' => (float) ($pkg['harga'] ?? 0),
             ];
@@ -346,14 +346,14 @@ class CicilEmasTransaksiController extends Controller
                 'kode_member' => $nasabah?->kode_member,
                 'paket' => $selectedPackages->map(function ($pkg) {
                     $label = $pkg['nama_barang'] ?? __('Barang');
-                    $code = $pkg['kode_intern'] ?? $pkg['kode_group'] ?? '—';
+                    $code = $pkg['kode_intern'] ?? $pkg['kode_baki'] ?? '—';
                     $barcode = $pkg['kode_barcode'] ?? '—';
                     return $label.' • '.number_format((float) ($pkg['berat'] ?? 0), 3, ',', '.').' gr • '.$code.' • '.$barcode;
                 })->implode(PHP_EOL),
                 'packages' => $selectedPackages->map(function ($pkg) {
                     return [
                         'nama_barang' => $pkg['nama_barang'] ?? __('Barang'),
-                        'kode' => $pkg['kode_intern'] ?? $pkg['kode_group'],
+                        'kode' => $pkg['kode_intern'] ?? $pkg['kode_baki'],
                         'barcode' => $pkg['kode_barcode'] ?? null,
                         'berat' => (float) ($pkg['berat'] ?? 0),
                         'harga' => (float) ($pkg['harga'] ?? 0),
@@ -420,7 +420,7 @@ class CicilEmasTransaksiController extends Controller
 
         $packages = Barang::query()
             ->whereIn('id', $ids->all())
-            ->get(['id', 'kode_barcode', 'nama_barang', 'kode_intern', 'kode_group', 'berat', 'harga'])
+            ->get(['id', 'kode_barcode', 'nama_barang', 'kode_intern', 'kode_baki', 'kode_jenis', 'berat', 'harga'])
             ->mapWithKeys(fn (Barang $barang) => [
                 (string) $barang->id => $this->transformBarang($barang),
             ]);
@@ -445,7 +445,8 @@ class CicilEmasTransaksiController extends Controller
             'kode_barcode' => $barang->kode_barcode,
             'nama_barang' => $barang->nama_barang,
             'kode_intern' => $barang->kode_intern,
-            'kode_group' => $barang->kode_group,
+            'kode_baki' => $barang->kode_baki,
+            'kode_jenis' => $barang->kode_jenis,
             'berat' => $barang->berat,
             'harga' => $barang->harga,
         ];
