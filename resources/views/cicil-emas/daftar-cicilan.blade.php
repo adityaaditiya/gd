@@ -39,13 +39,13 @@
         @endif
 
         <section class="flex flex-col gap-3 rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
-            <header class="flex flex-col gap-1">
+            <!-- <header class="flex flex-col gap-1">
                 <span class="text-xs font-semibold uppercase tracking-wide text-emerald-500">{{ __('Menu Daftar Cicilan') }}</span>
                 <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Penjadwalan Angsuran Otomatis') }}</h2>
                 <p class="text-sm text-neutral-600 dark:text-neutral-300">
                     {{ __('Setiap transaksi cicilan yang disetujui menghasilkan jadwal angsuran terstruktur sebagai panduan penagihan.') }}
                 </p>
-            </header>
+            </header> -->
 
             @if ($transactions->isEmpty())
                 <div class="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-neutral-300 p-6 text-center text-neutral-600 dark:border-neutral-600 dark:text-neutral-300">
@@ -66,10 +66,10 @@
                         <thead class="bg-neutral-50 text-xs uppercase tracking-wide text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
                             <tr>
                                 <th scope="col" class="px-4 py-3 text-left">{{ __('Tanggal') }}</th>
-                                <th scope="col" class="px-4 py-3 text-left">{{ __('Nomor Cicilan') }}</th>
-                                <th scope="col" class="px-4 py-3 text-left">{{ __('Jatuh Tempo Terdekat') }}</th>
+                                <th scope="col" class="px-4 py-3 text-center">Jatuh Tempo Terdekat</th>
+                                <th scope="col" class="px-4 py-3 text-center">Nomor Cicilan</th>
                                 <th scope="col" class="px-4 py-3 text-left">{{ __('Nasabah') }}</th>
-                                <th scope="col" class="px-4 py-3 text-left">{{ __('Paket Emas') }}</th>
+                                <th scope="col" class="px-4 py-3 text-left">{{ __('Data Emas') }}</th>
                                 <th scope="col" class="px-4 py-3 text-right">{{ __('Harga') }}</th>
                                 <th scope="col" class="px-4 py-3 text-right">{{ __('Uang Muka') }}</th>
                                 <th scope="col" class="px-4 py-3 text-right">{{ __('Margin') }}</th>
