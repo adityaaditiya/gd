@@ -71,6 +71,108 @@ const initTransaksiGadaiTableDropdown = () => {
     });
 };
 
+const initCicilanActionsDropdown = () => {
+    const table = document.querySelector('[data-cicilan-table]');
+
+    if (!table) {
+        return;
+    }
+
+    let activeDropdown = null;
+
+    const closeDropdown = () => {
+        if (!activeDropdown) {
+            return;
+        }
+
+        const { menu, toggle } = activeDropdown;
+
+        menu.classList.add('hidden');
+        toggle.setAttribute('aria-expanded', 'false');
+        activeDropdown = null;
+    };
+
+    table.addEventListener('click', (event) => {
+        const toggle = event.target.closest('[data-cicilan-toggle]');
+
+        if (toggle) {
+            event.preventDefault();
+
+            const container = toggle.closest('[data-cicilan-actions]');
+            const menu = container?.querySelector('[data-cicilan-menu]');
+
+            if (!menu) {
+                return;
+            }
+
+            if (activeDropdown && activeDropdown.menu === menu) {
+                closeDropdown();
+                return;
+            }
+
+            closeDropdown();
+
+            menu.classList.remove('hidden');
+            toggle.setAttribute('aria-expanded', 'true');
+            activeDropdown = { menu, toggle };
+
+            return;
+        }
+
+        const cancelButton = event.target.closest('[data-cicilan-cancel]');
+
+        if (cancelButton) {
+            event.preventDefault();
+
+            if (cancelButton.disabled) {
+                return;
+            }
+
+            closeDropdown();
+
+            const transactionId = cancelButton.dataset.transactionId || '';
+            const summary = cancelButton.dataset.summary || '';
+            const reason = cancelButton.dataset.reason || '';
+
+            window.dispatchEvent(
+                new CustomEvent('cicilan:cancel', {
+                    detail: {
+                        id: transactionId,
+                        summary,
+                        reason,
+                    },
+                }),
+            );
+
+            return;
+        }
+
+        if (event.target.closest('[data-cicilan-menu]')) {
+            return;
+        }
+
+        closeDropdown();
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!activeDropdown) {
+            return;
+        }
+
+        if (table.contains(event.target)) {
+            return;
+        }
+
+        closeDropdown();
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            closeDropdown();
+        }
+    });
+};
+
 const initCicilanCancelModal = () => {
     window.KRESNO = window.KRESNO || {};
     const state = window.KRESNO.cicilanCancelModal || {
@@ -364,6 +466,7 @@ const initCurrencyInputs = () => {
 
 document.addEventListener('DOMContentLoaded', () => {
     initTransaksiGadaiTableDropdown();
+    initCicilanActionsDropdown();
     initCurrencyInputs();
     initCicilanCancelModal();
 });
