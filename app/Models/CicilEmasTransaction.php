@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\User;
 
 /**
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CicilEmasInstallment> $installments
@@ -35,9 +34,6 @@ class CicilEmasTransaction extends Model
         'besaran_angsuran',
         'option_id',
         'option_label',
-        'dibatalkan_pada',
-        'alasan_pembatalan',
-        'dibatalkan_oleh',
     ];
 
     protected $casts = [
@@ -52,7 +48,6 @@ class CicilEmasTransaction extends Model
         'total_pembiayaan' => 'float',
         'tenor_bulan' => 'integer',
         'besaran_angsuran' => 'float',
-        'dibatalkan_pada' => 'datetime',
     ];
 
     public function nasabah(): BelongsTo
@@ -70,8 +65,4 @@ class CicilEmasTransaction extends Model
         return $this->hasMany(CicilEmasTransactionItem::class, 'transaction_id');
     }
 
-    public function pembatal(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'dibatalkan_oleh');
-    }
 }

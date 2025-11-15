@@ -32,7 +32,6 @@
                                 'aktif' => __('Aktif'),
                                 'menunggak' => __('Menunggak'),
                                 'lunas' => __('Lunas'),
-                                'batal' => __('Batal'),
                             ];
                         @endphp
                         <select
@@ -326,7 +325,6 @@
                         'Aktif' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-200',
                         'Menunggak' => 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-200',
                         'Lunas' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200',
-                        'Batal' => 'bg-neutral-200 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200',
                     ];
                 @endphp
                 @foreach(($portfolio['status_buckets'] ?? []) as $status => $count)
