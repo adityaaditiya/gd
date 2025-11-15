@@ -197,9 +197,7 @@ Route::middleware(['auth'])->group(function () {
             Route::view('pages', 'admin.pages.index')->name('pages.index');
 
             Route::get('master-sku', [MasterSkuController::class, 'index'])->name('master-sku.index');
-            Route::post('master-sku', [MasterSkuController::class, 'store'])->name('master-sku.store');
-            Route::put('master-sku/{masterSku}', [MasterSkuController::class, 'update'])->name('master-sku.update');
-            Route::delete('master-sku/{masterSku}', [MasterSkuController::class, 'destroy'])->name('master-sku.destroy');
+            Route::put('master-sku/{barang}', [MasterSkuController::class, 'update'])->name('master-sku.update');
 
             Route::controller(UserAccessController::class)
                 ->prefix('access')

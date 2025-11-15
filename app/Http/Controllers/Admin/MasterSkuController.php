@@ -3,59 +3,41 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\MasterSku;
+use App\Models\Barang;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class MasterSkuController extends Controller
 {
     public function index(): View
     {
-        $masterSkus = MasterSku::query()
-            ->orderBy('sku')
-            ->get(['id', 'sku', 'harga', 'updated_at']);
+        $barangs = Barang::query()
+            ->orderBy('nama_barang')
+            ->get([
+                'id',
+                'nama_barang',
+                'kode_intern',
+                'sku',
+                'harga',
+            ]);
 
         return view('admin.master-sku.index', [
-            'masterSkus' => $masterSkus,
+            'barangs' => $barangs,
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function update(Request $request, Barang $barang): RedirectResponse
     {
         $validated = $request->validate([
-            'sku' => ['required', 'string', 'max:191', 'unique:master_skus,sku'],
+            'sku' => ['nullable', 'string', 'max:191', 'unique:barangs,sku,' . $barang->id],
             'harga' => ['required', 'numeric', 'min:0'],
         ]);
 
-        MasterSku::query()->create($validated);
+        $barang->update($validated);
 
         return redirect()
             ->route('admin.master-sku.index')
-            ->with('status', __('Data SKU berhasil ditambahkan.'));
-    }
-
-    public function update(Request $request, MasterSku $masterSku): RedirectResponse
-    {
-        $validated = $request->validate([
-            'sku' => ['required', 'string', 'max:191', Rule::unique('master_skus', 'sku')->ignore($masterSku->id)],
-            'harga' => ['required', 'numeric', 'min:0'],
-        ]);
-
-        $masterSku->update($validated);
-
-        return redirect()
-            ->route('admin.master-sku.index')
-            ->with('status', __('Data SKU berhasil diperbarui.'));
-    }
-
-    public function destroy(MasterSku $masterSku): RedirectResponse
-    {
-        $masterSku->delete();
-
-        return redirect()
-            ->route('admin.master-sku.index')
-            ->with('status', __('Data SKU berhasil dihapus.'));
+            ->with('status', __('SKU dan harga barang berhasil diperbarui.'));
     }
 }
