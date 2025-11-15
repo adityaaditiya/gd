@@ -7,7 +7,7 @@
             </p>
         </div>
 
-        <!-- <section class="flex flex-col gap-3 rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+        <section class="flex flex-col gap-3 rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
             <header class="flex flex-col gap-1">
                 <span class="text-xs font-semibold uppercase tracking-wide text-rose-500">{{ __('Menu Pelunasan Cicilan') }}</span>
                 <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Pelunasan & Penyerahan Emas') }}</h2>
@@ -20,6 +20,6 @@
                 <li>{{ __('Hitung potensi diskon administrasi atau penyesuaian margin sesuai kebijakan perusahaan.') }}</li>
                 <li>{{ __('Koordinasikan jadwal pengambilan atau pengiriman emas, termasuk integrasi dengan vendor logistik dan pencetakan sertifikat.') }}</li>
             </ul>
-        </section> -->
+        </section>
     </div>
 </x-layouts.app>
