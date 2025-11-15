@@ -26,7 +26,6 @@ class CicilEmasTransaksiController extends Controller
                 'installments' => fn ($query) => $query->orderBy('due_date'),
             ])
             ->latest()
-            ->limit(100)
             ->get();
 
         return view('cicil-emas.daftar-cicilan', [

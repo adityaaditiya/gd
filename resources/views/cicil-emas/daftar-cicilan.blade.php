@@ -62,11 +62,7 @@
                 </div>
             @else
                 <div class="overflow-hidden rounded-lg border border-neutral-200 shadow-sm dark:border-neutral-700">
-                    <table
-                        id="cicilan-transactions-table"
-                        data-cicilan-table
-                        class="min-w-full divide-y divide-neutral-200 dark:divide-neutral-700"
-                    >
+                    <table class="min-w-full divide-y divide-neutral-200 dark:divide-neutral-700">
                         <thead class="bg-neutral-50 text-xs uppercase tracking-wide text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
                             <tr>
                                 <th scope="col" class="px-4 py-3 text-left">{{ __('Tanggal') }}</th>
