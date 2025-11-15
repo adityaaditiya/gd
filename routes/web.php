@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Admin\MasterSkuController;
+use App\Http\Controllers\Admin\MasterKodeGroupController;
 use App\Http\Controllers\Admin\UserAccessController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\BarangController;
@@ -196,10 +196,10 @@ Route::middleware(['auth'])->group(function () {
 
             Route::view('pages', 'admin.pages.index')->name('pages.index');
 
-            Route::get('master-sku', [MasterSkuController::class, 'index'])->name('master-sku.index');
-            Route::post('master-sku', [MasterSkuController::class, 'store'])->name('master-sku.store');
-            Route::put('master-sku/{masterSku}', [MasterSkuController::class, 'update'])->name('master-sku.update');
-            Route::delete('master-sku/{masterSku}', [MasterSkuController::class, 'destroy'])->name('master-sku.destroy');
+            Route::get('master-kode-group', [MasterKodeGroupController::class, 'index'])->name('master-kode-group.index');
+            Route::post('master-kode-group', [MasterKodeGroupController::class, 'store'])->name('master-kode-group.store');
+            Route::put('master-kode-group/{masterKodeGroup}', [MasterKodeGroupController::class, 'update'])->name('master-kode-group.update');
+            Route::delete('master-kode-group/{masterKodeGroup}', [MasterKodeGroupController::class, 'destroy'])->name('master-kode-group.destroy');
 
             Route::controller(UserAccessController::class)
                 ->prefix('access')

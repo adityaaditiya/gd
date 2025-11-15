@@ -20,9 +20,9 @@
 
         <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
             @php
-                $selectedSku = old('sku', $barang->sku);
+                $selectedKodeGroup = old('kode_group', $barang->kode_group);
                 $selectedPrice = old('harga', $barang->harga);
-                $hasSelectedInMaster = $masterSkus->contains(fn ($sku) => $sku->sku === $selectedSku);
+                $hasSelectedInMaster = $masterKodeGroups->contains(fn ($kodeGroup) => $kodeGroup->kode_group === $selectedKodeGroup);
             @endphp
 
             <form method="POST" action="{{ route('barang.data-barang.update', $barang) }}" class="space-y-5">
@@ -111,35 +111,35 @@
                 </div>
 
                 <div class="space-y-1.5">
-                    <label for="sku" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('SKU') }}</label>
+                    <label for="kode_group" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Kode Group') }}</label>
                     <select
-                        id="sku"
-                        name="sku"
-                        data-master-sku-select
+                        id="kode_group"
+                        name="kode_group"
+                        data-master-kode-group-select
                         required
                         class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-950 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
                     >
-                        <option value="">{{ __('Pilih SKU') }}</option>
-                        @foreach ($masterSkus as $masterSku)
+                        <option value="">{{ __('Pilih kode group') }}</option>
+                        @foreach ($masterKodeGroups as $masterKodeGroup)
                             <option
-                                value="{{ $masterSku->sku }}"
-                                data-price="{{ $masterSku->harga }}"
-                                @selected($selectedSku === $masterSku->sku)
+                                value="{{ $masterKodeGroup->kode_group }}"
+                                data-price="{{ $masterKodeGroup->harga }}"
+                                @selected($selectedKodeGroup === $masterKodeGroup->kode_group)
                             >
-                                {{ $masterSku->sku }} — Rp {{ number_format((float) $masterSku->harga, 2, ',', '.') }}
+                                {{ $masterKodeGroup->kode_group }} — Rp {{ number_format((float) $masterKodeGroup->harga, 2, ',', '.') }}
                             </option>
                         @endforeach
-                        @if ($selectedSku && ! $hasSelectedInMaster)
-                            <option value="{{ $selectedSku }}" data-price="{{ $selectedPrice }}" selected>
-                                {{ $selectedSku }} — {{ __('(tidak ditemukan di master)') }}
+                        @if ($selectedKodeGroup && ! $hasSelectedInMaster)
+                            <option value="{{ $selectedKodeGroup }}" data-price="{{ $selectedPrice }}" selected>
+                                {{ $selectedKodeGroup }} — {{ __('(tidak ditemukan di master)') }}
                             </option>
                         @endif
                     </select>
-                    @error('sku')
+                    @error('kode_group')
                         <p class="text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
                     @enderror
-                    @if ($masterSkus->isEmpty())
-                        <p class="text-xs text-amber-600 dark:text-amber-400">{{ __('Belum ada data SKU. Tambahkan data melalui menu Master SKU terlebih dahulu.') }}</p>
+                    @if ($masterKodeGroups->isEmpty())
+                        <p class="text-xs text-amber-600 dark:text-amber-400">{{ __('Belum ada data kode group. Tambahkan data melalui menu Master Kode Group terlebih dahulu.') }}</p>
                     @endif
                 </div>
 
@@ -187,7 +187,7 @@
                             value="{{ $selectedPrice }}"
                             step="0.01"
                             min="0"
-                            data-master-sku-price
+                            data-master-kode-group-price
                             readonly
                             class="w-full rounded-r-lg border-0 bg-transparent px-3 py-2 text-neutral-900 focus:outline-none focus:ring-0 dark:text-white"
                         />
@@ -216,5 +216,5 @@
         </div>
     </div>
 
-    @include('barang.partials.master-sku-script')
+    @include('barang.partials.master-kode-group-script')
 </x-layouts.app>

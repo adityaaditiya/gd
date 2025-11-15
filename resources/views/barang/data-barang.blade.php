@@ -13,6 +13,12 @@
             </div>
         @endif
 
+        @if (session('error'))
+            <div class="rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-700 dark:border-rose-500/60 dark:bg-rose-500/10 dark:text-rose-300">
+                <p class="font-semibold">{{ session('error') }}</p>
+            </div>
+        @endif
+
         <div class="space-y-4 rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -41,7 +47,7 @@
                             <th scope="col" class="px-4 py-3">{{ __('Kode Barcode') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('Nama Barang') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('Kode Intern') }}</th>
-                            <th scope="col" class="px-4 py-3">{{ __('SKU') }}</th>
+                            <th scope="col" class="px-4 py-3">{{ __('Kode Group') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('Kode Baki') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('Kode Jenis') }}</th>
                             <th scope="col" class="px-4 py-3 text-right">{{ __('Kadar (%)') }}</th>
@@ -58,7 +64,7 @@
                                 <td class="px-4 py-3 align-top font-medium text-neutral-900 dark:text-white">{{ $barang->kode_barcode }}</td>
                                 <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">{{ $barang->nama_barang }}</td>
                                 <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">{{ $barang->kode_intern }}</td>
-                                <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">{{ filled($barang->sku) ? $barang->sku : '–' }}</td>
+                                <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">{{ filled($barang->kode_group) ? $barang->kode_group : '–' }}</td>
                                 <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">{{ $barang->kode_baki }}</td>
                                 <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">{{ $barang->kode_jenis }}</td>
                                 <td class="px-4 py-3 align-top text-right text-neutral-700 dark:text-neutral-200">
@@ -68,35 +74,53 @@
                                 <td class="px-4 py-3 align-top text-right font-semibold text-neutral-900 dark:text-white">{{ 'Rp '.number_format((float) $barang->harga, 2, ',', '.') }}</td>
                                 <td class="px-4 py-3 align-top text-neutral-500 dark:text-neutral-400">{{ optional($barang->created_at)->format('d M Y') }}</td>
                                 <td class="px-4 py-3 align-top">
-                                    <div class="flex justify-end gap-2">
-                                        <a
-                                            href="{{ route('barang.data-barang.edit', $barang) }}"
-                                            class="inline-flex items-center gap-1 rounded-lg border border-neutral-300 px-3 py-1.5 text-xs font-semibold text-neutral-700 transition hover:border-emerald-500 hover:text-emerald-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-neutral-600 dark:text-neutral-200 dark:hover:border-emerald-400 dark:hover:text-emerald-300"
-                                        >
-                                            <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
-                                            </svg>
-                                            <span>{{ __('Ubah') }}</span>
-                                        </a>
-
-                                        <form
-                                            method="POST"
-                                            action="{{ route('barang.data-barang.destroy', $barang) }}"
-                                            onsubmit="return confirm('{{ __('Apakah Anda yakin ingin menghapus data ini?') }}');"
-                                        >
-                                            @csrf
-                                            @method('DELETE')
-                                            <button
-                                                type="submit"
-                                                class="inline-flex items-center gap-1 rounded-lg border border-rose-500 px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:border-rose-600 hover:bg-rose-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-500 dark:border-rose-500 dark:text-rose-300 dark:hover:border-rose-400 dark:hover:bg-rose-500/10"
-                                            >
+                                    @if ($barang->is_locked)
+                                        <div class="flex flex-col items-end gap-2">
+                                            <span class="inline-flex items-center gap-1 rounded-lg border border-neutral-300 px-3 py-1.5 text-xs font-semibold text-neutral-400 opacity-60 pointer-events-none dark:border-neutral-600 dark:text-neutral-500">
+                                                <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                                                </svg>
+                                                <span>{{ __('Ubah') }}</span>
+                                            </span>
+                                            <span class="inline-flex items-center gap-1 rounded-lg border border-rose-500 px-3 py-1.5 text-xs font-semibold text-rose-400 opacity-60 pointer-events-none dark:border-rose-500 dark:text-rose-400">
                                                 <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
                                                 </svg>
                                                 <span>{{ __('Hapus') }}</span>
-                                            </button>
-                                        </form>
-                                    </div>
+                                            </span>
+                                            <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Digunakan pada transaksi emas aktif') }}</p>
+                                        </div>
+                                    @else
+                                        <div class="flex justify-end gap-2">
+                                            <a
+                                                href="{{ route('barang.data-barang.edit', $barang) }}"
+                                                class="inline-flex items-center gap-1 rounded-lg border border-neutral-300 px-3 py-1.5 text-xs font-semibold text-neutral-700 transition hover:border-emerald-500 hover:text-emerald-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-neutral-600 dark:text-neutral-200 dark:hover:border-emerald-400 dark:hover:text-emerald-300"
+                                            >
+                                                <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                                                </svg>
+                                                <span>{{ __('Ubah') }}</span>
+                                            </a>
+
+                                            <form
+                                                method="POST"
+                                                action="{{ route('barang.data-barang.destroy', $barang) }}"
+                                                onsubmit="return confirm('{{ __('Apakah Anda yakin ingin menghapus data ini?') }}');"
+                                            >
+                                                @csrf
+                                                @method('DELETE')
+                                                <button
+                                                    type="submit"
+                                                    class="inline-flex items-center gap-1 rounded-lg border border-rose-500 px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:border-rose-600 hover:bg-rose-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-500 dark:border-rose-500 dark:text-rose-300 dark:hover:border-rose-400 dark:hover:bg-rose-500/10"
+                                                >
+                                                    <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                                    </svg>
+                                                    <span>{{ __('Hapus') }}</span>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    @endif
                                 </td>
                             </tr>
                         @empty
