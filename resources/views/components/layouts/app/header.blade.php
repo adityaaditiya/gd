@@ -132,11 +132,11 @@
                         </flux:navlist.item>
                         <flux:navlist.item
                             icon="tag"
-                            :href="route('admin.master-sku.index')"
-                            :current="request()->routeIs('admin.master-sku.*')"
+                            :href="route('admin.master-kode-group.index')"
+                            :current="request()->routeIs('admin.master-kode-group.*')"
                             wire:navigate
                         >
-                            {{ __('Master SKU') }}
+                            {{ __('Master Kode Group') }}
                         </flux:navlist.item>
                     </flux:navlist.group>
                 @endif

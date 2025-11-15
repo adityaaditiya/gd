@@ -41,7 +41,7 @@
                             <th scope="col" class="px-4 py-3">{{ __('Kode Barcode') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('Nama Barang') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('Kode Intern') }}</th>
-                            <th scope="col" class="px-4 py-3">{{ __('SKU') }}</th>
+                            <th scope="col" class="px-4 py-3">{{ __('Kode Group') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('Kode Baki') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('Kode Jenis') }}</th>
                             <th scope="col" class="px-4 py-3 text-right">{{ __('Kadar (%)') }}</th>
@@ -58,7 +58,7 @@
                                 <td class="px-4 py-3 align-top font-medium text-neutral-900 dark:text-white">{{ $barang->kode_barcode }}</td>
                                 <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">{{ $barang->nama_barang }}</td>
                                 <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">{{ $barang->kode_intern }}</td>
-                                <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">{{ filled($barang->sku) ? $barang->sku : '–' }}</td>
+                                <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">{{ filled($barang->kode_group) ? $barang->kode_group : '–' }}</td>
                                 <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">{{ $barang->kode_baki }}</td>
                                 <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">{{ $barang->kode_jenis }}</td>
                                 <td class="px-4 py-3 align-top text-right text-neutral-700 dark:text-neutral-200">
