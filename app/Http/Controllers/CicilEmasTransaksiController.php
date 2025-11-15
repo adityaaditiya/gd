@@ -26,7 +26,6 @@ class CicilEmasTransaksiController extends Controller
                 'installments' => fn ($query) => $query->orderBy('due_date'),
             ])
             ->latest()
-            ->limit(100)
             ->get();
 
         return view('cicil-emas.daftar-cicilan', [
@@ -198,10 +197,33 @@ class CicilEmasTransaksiController extends Controller
 
         $nasabah = Nasabah::find($validated['nasabah_id']);
 
-        $now = Carbon::now();
+        $transaction = CicilEmasTransaction::create([
+            'nasabah_id' => $nasabah?->id,
+            'package_id' => $packageId,
+            'pabrikan' => $pabrikanLabel,
+            'berat_gram' => $totalWeight,
+            'kadar' => $kadarLabel,
+            'harga_emas' => $totalPrice,
+            'dp_percentage' => $dpPercentage,
+            'estimasi_uang_muka' => $downPayment,
+            'pokok_pembiayaan' => $principalBalance,
+            'margin_percentage' => $marginPercentage,
+            'margin_amount' => $marginAmount,
+            'administrasi' => $administrationFee,
+            'total_pembiayaan' => $totalFinanced,
+            'tenor_bulan' => $tenor,
+            'besaran_angsuran' => $installment,
+            'option_id' => 'manual-tenor-'.$tenor,
+            'option_label' => __('DP Rp :dp (:percent%) • Tenor :tenor', [
+                'dp' => number_format($downPayment, 0, ',', '.'),
+                'percent' => number_format($dpPercentage, 2, ',', '.'),
+                'tenor' => $tenorLabel,
+            ]),
+        ]);
 
-        $itemsPayload = $selectedPackages->map(function ($pkg) {
+        $transaction->items()->createMany($selectedPackages->map(function ($pkg) use ($transaction) {
             return [
+                'transaction_id' => $transaction->getKey(),
                 'barang_id' => $pkg['barang_id'] ?? null,
                 'kode_barcode' => $pkg['kode_barcode'] ?? null,
                 'nama_barang' => $pkg['nama_barang'] ?? __('Barang'),
@@ -210,63 +232,9 @@ class CicilEmasTransaksiController extends Controller
                 'berat' => (float) ($pkg['berat'] ?? 0),
                 'harga' => (float) ($pkg['harga'] ?? 0),
             ];
-        })->all();
+        })->all());
 
-        $transaction = DB::transaction(function () use (
-            $nasabah,
-            $packageId,
-            $pabrikanLabel,
-            $totalWeight,
-            $kadarLabel,
-            $totalPrice,
-            $dpPercentage,
-            $downPayment,
-            $principalBalance,
-            $marginPercentage,
-            $marginAmount,
-            $administrationFee,
-            $totalFinanced,
-            $tenor,
-            $installment,
-            $tenorLabel,
-            $itemsPayload,
-            $now
-        ) {
-            $nomorCicilan = $this->generateNomorCicilan($now);
-
-            $transaction = CicilEmasTransaction::create([
-                'nomor_cicilan' => $nomorCicilan,
-                'nasabah_id' => $nasabah?->id,
-                'package_id' => $packageId,
-                'pabrikan' => $pabrikanLabel,
-                'berat_gram' => $totalWeight,
-                'kadar' => $kadarLabel,
-                'harga_emas' => $totalPrice,
-                'dp_percentage' => $dpPercentage,
-                'estimasi_uang_muka' => $downPayment,
-                'pokok_pembiayaan' => $principalBalance,
-                'margin_percentage' => $marginPercentage,
-                'margin_amount' => $marginAmount,
-                'administrasi' => $administrationFee,
-                'total_pembiayaan' => $totalFinanced,
-                'tenor_bulan' => $tenor,
-                'besaran_angsuran' => $installment,
-                'option_id' => 'manual-tenor-'.$tenor,
-                'option_label' => __('DP Rp :dp (:percent%) • Tenor :tenor', [
-                    'dp' => number_format($downPayment, 0, ',', '.'),
-                    'percent' => number_format($dpPercentage, 2, ',', '.'),
-                    'tenor' => $tenorLabel,
-                ]),
-            ]);
-
-            if (! empty($itemsPayload)) {
-                $transaction->items()->createMany($itemsPayload);
-            }
-
-            $this->generateInstallments($transaction, $tenor, $installment);
-
-            return $transaction;
-        });
+        $this->generateInstallments($transaction, $tenor, $installment);
 
         return redirect()
             ->route('cicil-emas.transaksi-emas')
@@ -347,26 +315,6 @@ class CicilEmasTransaksiController extends Controller
             'berat' => $barang->berat,
             'harga' => $barang->harga,
         ];
-    }
-
-    private function generateNomorCicilan(Carbon $timestamp): string
-    {
-        $date = $timestamp->copy()->setTimezone(config('app.timezone', 'UTC'));
-        $prefix = 'GE03'.$date->format('ymd');
-
-        $latestNumber = CicilEmasTransaction::whereDate('created_at', $date->toDateString())
-            ->where('nomor_cicilan', 'like', $prefix.'%')
-            ->lockForUpdate()
-            ->orderByDesc('nomor_cicilan')
-            ->value('nomor_cicilan');
-
-        $nextSequence = $latestNumber
-            ? ((int) substr($latestNumber, -3)) + 1
-            : 1;
-
-        $sequencePart = str_pad((string) $nextSequence, 3, '0', STR_PAD_LEFT);
-
-        return $prefix.$sequencePart;
     }
 
     private function normalizePackageId($value): ?int
