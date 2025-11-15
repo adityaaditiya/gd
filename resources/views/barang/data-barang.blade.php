@@ -41,7 +41,9 @@
                             <th scope="col" class="px-4 py-3">{{ __('Kode Barcode') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('Nama Barang') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('Kode Intern') }}</th>
+                            <th scope="col" class="px-4 py-3">{{ __('SKU') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('Kode Group') }}</th>
+                            <th scope="col" class="px-4 py-3 text-right">{{ __('Kadar (%)') }}</th>
                             <th scope="col" class="px-4 py-3 text-right">{{ __('Berat (gram)') }}</th>
                             <th scope="col" class="px-4 py-3 text-right">{{ __('Harga') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('Dibuat') }}</th>
@@ -55,7 +57,11 @@
                                 <td class="px-4 py-3 align-top font-medium text-neutral-900 dark:text-white">{{ $barang->kode_barcode }}</td>
                                 <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">{{ $barang->nama_barang }}</td>
                                 <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">{{ $barang->kode_intern }}</td>
+                                <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">{{ filled($barang->sku) ? $barang->sku : '–' }}</td>
                                 <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">{{ $barang->kode_group }}</td>
+                                <td class="px-4 py-3 align-top text-right text-neutral-700 dark:text-neutral-200">
+                                    {{ $barang->kadar !== null ? number_format((float) $barang->kadar, 2, ',', '.') : '–' }}
+                                </td>
                                 <td class="px-4 py-3 align-top text-right text-neutral-700 dark:text-neutral-200">{{ number_format((float) $barang->berat, 3, ',', '.') }}</td>
                                 <td class="px-4 py-3 align-top text-right font-semibold text-neutral-900 dark:text-white">{{ 'Rp '.number_format((float) $barang->harga, 2, ',', '.') }}</td>
                                 <td class="px-4 py-3 align-top text-neutral-500 dark:text-neutral-400">{{ optional($barang->created_at)->format('d M Y') }}</td>
@@ -93,7 +99,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-400">
+                                <td colspan="11" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-400">
                                     {{ __('Belum ada data barang yang tersimpan.') }}
                                 </td>
                             </tr>
