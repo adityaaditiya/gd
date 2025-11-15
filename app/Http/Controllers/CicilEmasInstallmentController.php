@@ -32,7 +32,7 @@ class CicilEmasInstallmentController extends Controller
             || filled($filters['due_until'] ?? null);
 
         $query = CicilEmasInstallment::with(['transaction.nasabah'])
-            ->whereHas('transaction', fn ($query) => $query->whereNull('dibatalkan_pada'))
+            ->whereHas('transaction')
             ->orderBy('due_date')
             ->orderBy('sequence');
 
@@ -88,12 +88,6 @@ class CicilEmasInstallmentController extends Controller
     public function pay(Request $request, CicilEmasInstallment $installment): RedirectResponse
     {
         $installment->loadMissing('transaction');
-
-        if ($installment->transaction?->dibatalkan_pada) {
-            return redirect()
-                ->route('cicil-emas.angsuran-rutin', $request->query())
-                ->with('error', __('Pembayaran tidak dapat diproses karena transaksi cicilan sudah dibatalkan.'));
-        }
 
         $validated = $request->validate([
             'payment_date' => ['required', 'date'],

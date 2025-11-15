@@ -2,26 +2,6 @@
     @php
         /** @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\CicilEmasTransaction> $transactions */
         $highlightId = session('transaction_summary.transaksi_id');
-        $pendingCancelId = old('transaction_id');
-        $pendingCancelReason = old('alasan_pembatalan');
-        $transactionsById = $transactions->keyBy('id');
-        $pendingCancelSummary = '';
-
-        if ($pendingCancelId && $transactionsById->has((int) $pendingCancelId)) {
-            $pendingTransaction = $transactionsById->get((int) $pendingCancelId);
-            $nasabahName = $pendingTransaction->nasabah?->nama ?? __('Nasabah tidak diketahui');
-            $packageLabel = $pendingTransaction->option_label
-                ?? ($pendingTransaction->items->count() === 1
-                    ? ($pendingTransaction->items->first()->nama_barang ?? $pendingTransaction->pabrikan)
-                    : ($pendingTransaction->items->count() > 1
-                        ? __(':count barang', ['count' => $pendingTransaction->items->count()])
-                        : $pendingTransaction->pabrikan));
-
-            $pendingCancelSummary = __('Cicilan :nasabah • :paket', [
-                'nasabah' => $nasabahName,
-                'paket' => $packageLabel,
-            ]);
-        }
     @endphp
 
     <div class="flex flex-col gap-6">
@@ -82,7 +62,6 @@
                             @foreach ($transactions as $transaction)
                                 @php
                                     $isHighlighted = (string) $highlightId === (string) $transaction->id;
-                                    $isCancelled = $transaction->dibatalkan_pada !== null;
                                     $nearestInstallment = $transaction->relationLoaded('installments')
                                         ? $transaction->installments
                                             ->filter(fn ($installment) => $installment->paid_at === null)
@@ -94,7 +73,7 @@
                                     $nearestDueDate = $nearestInstallment?->due_date;
                                     $isOverdue = $nearestDueDate ? $nearestDueDate->isPast() : false;
 
-                                    if (! $hasPendingInstallment && $transaction->relationLoaded('installments') && ! $isCancelled) {
+                                    if (! $hasPendingInstallment && $transaction->relationLoaded('installments')) {
                                         $allInstallmentsPaid = $transaction->installments->isNotEmpty()
                                             && $transaction->installments->every(fn ($installment) => $installment->paid_at !== null);
                                     } else {
@@ -111,9 +90,7 @@
                                         </div>
                                     </td>
                                     <td class="px-4 py-3 align-top">
-                                        @if ($isCancelled)
-                                            <span class="text-sm font-semibold text-neutral-500 dark:text-neutral-400">{{ __('Dibatalkan') }}</span>
-                                        @elseif ($hasPendingInstallment && $nearestDueDate)
+                                        @if ($hasPendingInstallment && $nearestDueDate)
                                             <div class="flex flex-col">
                                                 <span @class([
                                                     'font-semibold text-neutral-900 dark:text-white' => ! $isOverdue,
@@ -207,84 +184,4 @@
         </section>
     </div>
 
-    <div
-        id="cicilan-cancel-modal"
-        class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 px-4 py-6 backdrop-blur-sm"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="cicilan-cancel-modal-title"
-        data-open-on-load="{{ ($errors->has('alasan_pembatalan') || $errors->has('transaction_id')) ? 'true' : 'false' }}"
-        data-initial-transaction="{{ $pendingCancelId ?? '' }}"
-        data-initial-summary="{{ e($pendingCancelSummary) }}"
-        data-initial-reason="{{ e($pendingCancelReason) }}"
-        data-action-template="{{ route('cicil-emas.daftar-cicilan.cancel', ['transaction' => '__TRANSACTION__']) }}"
-    >
-        <div class="mx-auto w-full max-w-lg rounded-2xl bg-white shadow-xl dark:bg-neutral-900">
-            <div class="flex items-center justify-between border-b border-neutral-200 px-6 py-4 dark:border-neutral-700">
-                <div>
-                    <h2 id="cicilan-cancel-modal-title" class="text-lg font-semibold text-neutral-900 dark:text-white">
-                        {{ __('Batalkan Transaksi Cicilan') }}
-                    </h2>
-                    <p class="text-sm text-neutral-500 dark:text-neutral-300" data-cancel-summary></p>
-                </div>
-                <button
-                    type="button"
-                    class="text-neutral-400 transition hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300"
-                    data-cancel-close
-                >
-                    <span class="sr-only">{{ __('Tutup modal') }}</span>
-                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-            <form
-                method="POST"
-                class="space-y-4 px-6 py-5"
-                data-cancel-form
-                action="{{ route('cicil-emas.daftar-cicilan.cancel', ['transaction' => '__TRANSACTION__']) }}"
-            >
-                @csrf
-                <input type="hidden" name="transaction_id" value="{{ $pendingCancelId ?? '' }}" data-cancel-transaction>
-                @error('transaction_id')
-                    <p class="text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
-                @enderror
-                <label class="flex flex-col gap-2 text-sm text-neutral-700 dark:text-neutral-200">
-                    <span class="font-medium">{{ __('Alasan Pembatalan') }}</span>
-                    <textarea
-                        name="alasan_pembatalan"
-                        rows="4"
-                        required
-                        class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-red-400 dark:focus:ring-red-500/40"
-                        placeholder="{{ __('Jelaskan mengapa cicilan ini dibatalkan…') }}"
-                        data-cancel-reason
-                    >{{ old('alasan_pembatalan') }}</textarea>
-                    @error('alasan_pembatalan')
-                        <span class="text-xs text-red-600 dark:text-red-400">{{ $message }}</span>
-                    @enderror
-                </label>
-                <p class="text-xs text-neutral-500 dark:text-neutral-400">
-                    {{ __('Pembatalan akan menghapus cicilan dari daftar aktif dan mencegah pencatatan pembayaran selanjutnya.') }}
-                </p>
-                <div class="flex items-center justify-between gap-3">
-                    <button
-                        type="button"
-                        class="inline-flex items-center justify-center rounded-lg border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-600 transition hover:bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-400 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800/70"
-                        data-cancel-close
-                    >
-                        {{ __('Batal') }}
-                    </button>
-                    <button
-                        type="submit"
-                        class="inline-flex items-center justify-center gap-2 rounded-lg border border-red-600 bg-red-600 px-4 py-2 text-sm font-semibold text-red shadow-sm transition hover:border-red-700 hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500 dark:border-red-500 dark:bg-red-500 dark:hover:border-red-400 dark:hover:bg-red-400"
-                    >
-                        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                        </svg>
-                        <span>{{ __('Konfirmasi Batal') }}</span>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
 </x-layouts.app>
