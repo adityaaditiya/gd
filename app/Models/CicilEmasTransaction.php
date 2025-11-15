@@ -17,7 +17,6 @@ class CicilEmasTransaction extends Model
     use HasFactory;
 
     protected $fillable = [
-        'nomor_cicilan',
         'nasabah_id',
         'package_id',
         'pabrikan',
