@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CicilEmasInstallment;
+use App\Models\CicilEmasTransaction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -32,7 +33,9 @@ class CicilEmasInstallmentController extends Controller
             || filled($filters['due_until'] ?? null);
 
         $query = CicilEmasInstallment::with(['transaction.nasabah'])
-            ->whereHas('transaction')
+            ->whereHas('transaction', function ($query) {
+                $query->where('status', '!=', CicilEmasTransaction::STATUS_CANCELLED);
+            })
             ->orderBy('due_date')
             ->orderBy('sequence');
 
