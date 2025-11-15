@@ -43,7 +43,9 @@ class CicilEmasTransaksiController extends Controller
 
         $usedBarangIds = CicilEmasTransactionItem::query()
             ->whereNotNull('barang_id')
-            ->whereHas('transaction')
+            ->whereHas('transaction', function ($query) {
+                $query->where('status', CicilEmasTransaction::STATUS_ACTIVE);
+            })
             ->pluck('barang_id')
             ->filter()
             ->map(fn ($value) => (int) $value)
@@ -326,6 +328,7 @@ class CicilEmasTransaksiController extends Controller
                 'besaran_angsuran' => $installment,
                 'option_id' => 'manual-tenor-'.$tenor,
                 'option_label' => $optionLabel,
+                'status' => CicilEmasTransaction::STATUS_ACTIVE,
             ]);
 
             if (! empty($itemsPayload)) {
@@ -372,6 +375,64 @@ class CicilEmasTransaksiController extends Controller
                 'transaksi_id' => $transaction->id,
                 'nomor_cicilan' => $transaction->nomor_cicilan,
             ]);
+    }
+
+    public function cancel(Request $request, CicilEmasTransaction $transaction): RedirectResponse
+    {
+        session()->flash('transaction_error_id', $transaction->id);
+
+        $validated = $request->validate([
+            'alasan_batal' => ['required', 'string', 'max:1000'],
+        ]);
+
+        if (! $transaction->isCancelable()) {
+            $message = __('Transaksi cicilan tidak dapat dibatalkan karena sudah tidak aktif.');
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors(['alasan_batal' => $message])
+                ->with('error', $message)
+                ->with('transaction_error_id', $transaction->id);
+        }
+
+        $user = $request->user();
+
+        if (! $user) {
+            abort(403, __('Pengguna tidak dikenali.'));
+        }
+
+        $totalPaid = $transaction->installments()
+            ->whereNotNull('paid_at')
+            ->sum('paid_amount');
+
+        DB::transaction(function () use ($transaction, $validated, $user) {
+            $transaction->refresh();
+
+            if (! $transaction->isCancelable()) {
+                session()->flash('transaction_error_id', $transaction->id);
+
+                throw ValidationException::withMessages([
+                    'alasan_batal' => __('Transaksi cicilan sudah dibatalkan atau selesai.'),
+                ]);
+            }
+
+            $transaction->status = CicilEmasTransaction::STATUS_CANCELLED;
+            $transaction->cancelled_at = Carbon::now();
+            $transaction->cancelled_by = $user->id;
+            $transaction->cancellation_reason = trim((string) $validated['alasan_batal']);
+            $transaction->save();
+        });
+
+        $message = __('Transaksi cicil emas dibatalkan. Total angsuran terbayar: :amount.', [
+            'amount' => number_format((float) $totalPaid, 0, ',', '.'),
+        ]);
+
+        session()->forget('transaction_error_id');
+
+        return redirect()
+            ->route('cicil-emas.daftar-cicilan')
+            ->with('status', $message);
     }
 
     private function generateCicilanNumber(Carbon $date): string

@@ -2,6 +2,7 @@
     @php
         /** @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\CicilEmasTransaction> $transactions */
         $highlightId = session('transaction_summary.transaksi_id');
+        $transactionErrorId = (string) session('transaction_error_id');
     @endphp
 
     <div class="flex flex-col gap-6">
@@ -56,6 +57,8 @@
                                 <th scope="col" class="px-4 py-3 text-right">{{ __('Administrasi') }}</th>
                                 <th scope="col" class="px-4 py-3 text-right">{{ __('Angsuran / Bln') }}</th>
                                 <th scope="col" class="px-4 py-3 text-center">{{ __('Tenor') }}</th>
+                                <th scope="col" class="px-4 py-3 text-center">{{ __('Status') }}</th>
+                                <th scope="col" class="px-4 py-3 text-left">{{ __('Pembatalan') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-neutral-200 bg-white text-sm dark:divide-neutral-700 dark:bg-neutral-900">
@@ -79,9 +82,36 @@
                                     } else {
                                         $allInstallmentsPaid = false;
                                     }
+
+                                    $status = $transaction->status;
+                                    $isCancelled = $status === \App\Models\CicilEmasTransaction::STATUS_CANCELLED;
+                                    $isSettled = $status === \App\Models\CicilEmasTransaction::STATUS_SETTLED;
+                                    $totalPaidAmount = $transaction->relationLoaded('installments')
+                                        ? $transaction->installments->sum(fn ($installment) => (float) ($installment->paid_amount ?? 0))
+                                        : 0;
+
+                                    $statusBadge = [
+                                        'label' => __('Aktif'),
+                                        'class' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300',
+                                    ];
+
+                                    if ($isCancelled) {
+                                        $statusBadge = [
+                                            'label' => __('Batal'),
+                                            'class' => 'bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-300',
+                                        ];
+                                    } elseif ($isSettled) {
+                                        $statusBadge = [
+                                            'label' => __('Lunas'),
+                                            'class' => 'bg-sky-100 text-sky-700 dark:bg-sky-500/10 dark:text-sky-300',
+                                        ];
+                                    }
+
+                                    $formTextareaValue = $transactionErrorId === (string) $transaction->id ? old('alasan_batal') : '';
                                 @endphp
                                 <tr @class([
                                     'bg-emerald-50/60 dark:bg-emerald-500/10' => $isHighlighted,
+                                    'opacity-70 dark:opacity-60' => $isCancelled,
                                 ])>
                                     <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">
                                         <div class="flex flex-col">
@@ -174,6 +204,62 @@
                                     </td>
                                     <td class="px-4 py-3 align-top text-center text-neutral-700 dark:text-neutral-200">
                                         <span class="inline-flex rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200">{{ $transaction->tenor_bulan }} {{ __('Bulan') }}</span>
+                                    </td>
+                                    <td class="px-4 py-3 align-top text-center text-neutral-700 dark:text-neutral-200">
+                                        <span @class([
+                                            'inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-semibold',
+                                            $statusBadge['class'],
+                                        ])>
+                                            {{ $statusBadge['label'] }}
+                                        </span>
+                                        @if ($totalPaidAmount > 0)
+                                            <div class="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
+                                                {{ __('Terbayar: :amount', ['amount' => number_format($totalPaidAmount, 0, ',', '.')]) }}
+                                            </div>
+                                        @endif
+                                        @if ($isCancelled && $transaction->cancelled_at)
+                                            <div class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                                                {{ __('Dibatalkan :date', ['date' => optional($transaction->cancelled_at)->translatedFormat('d M Y H:i')]) }}
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">
+                                        @if ($transaction->isCancelable())
+                                            <form method="POST" action="{{ route('cicil-emas.transaksi.cancel', $transaction) }}" class="flex flex-col gap-2">
+                                                @csrf
+                                                <label for="alasan-batal-{{ $transaction->id }}" class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+                                                    {{ __('Alasan Pembatalan') }}
+                                                </label>
+                                                <textarea
+                                                    id="alasan-batal-{{ $transaction->id }}"
+                                                    name="alasan_batal"
+                                                    rows="2"
+                                                    required
+                                                    class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-700 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+                                                >{{ $formTextareaValue }}</textarea>
+                                                @if ($transactionErrorId === (string) $transaction->id)
+                                                    @error('alasan_batal')
+                                                        <p class="text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                                                    @enderror
+                                                @endif
+                                                <button
+                                                    type="submit"
+                                                    class="inline-flex items-center justify-center gap-2 rounded-lg bg-red-500 px-3 py-2 text-sm font-semibold text-white shadow hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500/40"
+                                                    onclick="return confirm('{{ __('Batalkan transaksi ini? Pembayaran yang sudah masuk perlu direkonsiliasi manual.') }}');"
+                                                >
+                                                    {{ __('Batalkan Transaksi') }}
+                                                </button>
+                                            </form>
+                                        @else
+                                            <div class="flex flex-col gap-1 text-xs text-neutral-500 dark:text-neutral-400">
+                                                @if ($isCancelled && $transaction->cancellation_reason)
+                                                    <span>{{ __('Alasan: :reason', ['reason' => $transaction->cancellation_reason]) }}</span>
+                                                @endif
+                                                @if ($totalPaidAmount > 0)
+                                                    <span>{{ __('Total angsuran tercatat :amount', ['amount' => number_format($totalPaidAmount, 0, ',', '.')]) }}</span>
+                                                @endif
+                                            </div>
+                                        @endif
                                     </td>
                                 </tr>
                             @endforeach
