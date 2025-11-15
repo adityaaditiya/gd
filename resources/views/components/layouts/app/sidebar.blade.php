@@ -63,7 +63,7 @@
                     'nasabah.cdd-nasabah',
                 ];
                 $isNasabahActive = request()->routeIs(...$nasabahRoutes);
-                $masterRoutes = ['admin.users.*', 'admin.pages.*', 'admin.master-sku.*'];
+                $masterRoutes = ['admin.users.*', 'admin.pages.*', 'admin.master-kode-group.*'];
                 $isMasterActive = request()->routeIs(...$masterRoutes);
             @endphp
 
@@ -950,15 +950,15 @@
                                 {{ __('Halaman Baru') }}
                             </a>
                             <a
-                                href="{{ route('admin.master-sku.index') }}"
+                                href="{{ route('admin.master-kode-group.index') }}"
                                 wire:navigate
                                 @class([
                                     'block rounded-lg px-3 py-2 transition-colors duration-200',
-                                    'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('admin.master-sku.*'),
-                                    'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('admin.master-sku.*'),
+                                    'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('admin.master-kode-group.*'),
+                                    'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('admin.master-kode-group.*'),
                                 ])
                             >
-                                {{ __('Master SKU') }}
+                                {{ __('Master Kode Group') }}
                             </a>
                         </div>
                     </div>

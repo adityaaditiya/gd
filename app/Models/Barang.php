@@ -18,7 +18,7 @@ class Barang extends Model
         'berat',
         'harga',
         'kadar',
-        'sku',
+        'kode_group',
     ];
 
     protected $casts = [

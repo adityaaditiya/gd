@@ -124,8 +124,8 @@ class UserAccessController extends Controller
                         'actions' => ['create', 'read', 'update', 'delete'],
                     ],
                     [
-                        'key' => 'master-sku',
-                        'label' => 'Master SKU',
+                        'key' => 'master-kode-group',
+                        'label' => 'Master Kode Group',
                         'children' => [],
                         'actions' => ['create', 'read', 'update', 'delete'],
                     ],

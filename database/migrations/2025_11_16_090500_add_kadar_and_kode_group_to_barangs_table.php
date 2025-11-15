@@ -16,19 +16,19 @@ return new class extends Migration
         }
 
         $shouldAddKadar = ! Schema::hasColumn('barangs', 'kadar');
-        $shouldAddSku = ! Schema::hasColumn('barangs', 'sku');
+        $shouldAddKodeGroup = ! Schema::hasColumn('barangs', 'kode_group');
 
-        if (! $shouldAddKadar && ! $shouldAddSku) {
+        if (! $shouldAddKadar && ! $shouldAddKodeGroup) {
             return;
         }
 
-        Schema::table('barangs', function (Blueprint $table) use ($shouldAddKadar, $shouldAddSku) {
+        Schema::table('barangs', function (Blueprint $table) use ($shouldAddKadar, $shouldAddKodeGroup) {
             if ($shouldAddKadar) {
                 $table->decimal('kadar', 5, 2)->nullable()->after('harga');
             }
 
-            if ($shouldAddSku) {
-                $table->string('sku')->nullable()->after('kadar');
+            if ($shouldAddKodeGroup) {
+                $table->string('kode_group')->nullable()->after('kadar');
             }
         });
     }
@@ -43,8 +43,8 @@ return new class extends Migration
         }
 
         Schema::table('barangs', function (Blueprint $table) {
-            if (Schema::hasColumn('barangs', 'sku')) {
-                $table->dropColumn('sku');
+            if (Schema::hasColumn('barangs', 'kode_group')) {
+                $table->dropColumn('kode_group');
             }
 
             if (Schema::hasColumn('barangs', 'kadar')) {

@@ -5,12 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class MasterSku extends Model
+class MasterKodeGroup extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'sku',
+        'kode_group',
         'harga',
     ];
 
