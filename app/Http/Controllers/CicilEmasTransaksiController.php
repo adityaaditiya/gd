@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Barang;
 use App\Models\CicilEmasTransaction;
+use App\Models\CicilEmasTransactionItem;
 use App\Models\Nasabah;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -35,11 +36,50 @@ class CicilEmasTransaksiController extends Controller
 
     public function create(): View
     {
-        $packages = Barang::query()
-            ->orderBy('nama_barang')
-            ->get(['id', 'kode_barcode', 'nama_barang', 'kode_intern', 'kode_group', 'berat', 'harga'])
-            ->map(fn (Barang $barang) => $this->transformBarang($barang))
+        $oldPackageIds = collect(session()->getOldInput('package_ids', []))
+            ->map(fn ($value) => $this->normalizePackageId($value))
+            ->filter(fn ($value) => $value !== null)
+            ->unique()
             ->values();
+
+        $usedBarangIds = CicilEmasTransactionItem::query()
+            ->whereNotNull('barang_id')
+            ->whereHas('transaction', fn ($query) => $query->whereNull('dibatalkan_pada'))
+            ->pluck('barang_id')
+            ->filter()
+            ->map(fn ($value) => (int) $value)
+            ->unique()
+            ->values();
+
+        $packagesQuery = Barang::query()
+            ->orderBy('nama_barang');
+
+        if ($usedBarangIds->isNotEmpty()) {
+            $packagesQuery->whereNotIn('id', $usedBarangIds->all());
+        }
+
+        $packages = $packagesQuery
+            ->get(['id', 'kode_barcode', 'nama_barang', 'kode_intern', 'kode_group', 'berat', 'harga'])
+            ->map(fn (Barang $barang) => $this->transformBarang($barang));
+
+        $missingOldPackageIds = $oldPackageIds->reject(function ($id) use ($packages) {
+            return $packages->contains(fn ($pkg) => (int) ($pkg['barang_id'] ?? 0) === $id);
+        });
+
+        if ($missingOldPackageIds->isNotEmpty()) {
+            $additionalPackages = Barang::query()
+                ->whereIn('id', $missingOldPackageIds->all())
+                ->get(['id', 'kode_barcode', 'nama_barang', 'kode_intern', 'kode_group', 'berat', 'harga'])
+                ->map(fn (Barang $barang) => $this->transformBarang($barang));
+
+            $packages = $packages
+                ->concat($additionalPackages)
+                ->unique(fn ($pkg) => $pkg['barang_id'])
+                ->values();
+        } else {
+            $packages = $packages->values();
+        }
+
         $nasabahs = Nasabah::orderBy('nama')
             ->get(['id', 'nama', 'kode_member']);
 
@@ -117,6 +157,21 @@ class CicilEmasTransaksiController extends Controller
 
             if ($normalizedPackageIds->count() !== $rawPackageIds->count()) {
                 $validator->errors()->add('package_ids', __('Format data barang tidak valid.'));
+            }
+
+            if ($normalizedPackageIds->isNotEmpty()) {
+                $conflictingItems = CicilEmasTransactionItem::query()
+                    ->whereNotNull('barang_id')
+                    ->whereIn('barang_id', $normalizedPackageIds->all())
+                    ->whereHas('transaction', fn ($query) => $query->whereNull('dibatalkan_pada'))
+                    ->exists();
+
+                if ($conflictingItems) {
+                    $validator->errors()->add(
+                        'package_ids',
+                        __('Beberapa barang yang dipilih sudah digunakan dalam transaksi cicil emas lainnya.'),
+                    );
+                }
             }
         });
 
@@ -232,10 +287,26 @@ class CicilEmasTransaksiController extends Controller
             $tenor,
             $installment,
             $optionLabel,
-            $itemsPayload
+            $itemsPayload,
+            $selectedPackageIds
         ) {
             $now = Carbon::now();
             $transactionNumber = $this->generateCicilanNumber($now);
+
+            if ($selectedPackageIds->isNotEmpty()) {
+                $conflictExists = CicilEmasTransactionItem::query()
+                    ->whereNotNull('barang_id')
+                    ->whereIn('barang_id', $selectedPackageIds->all())
+                    ->whereHas('transaction', fn ($query) => $query->whereNull('dibatalkan_pada'))
+                    ->lockForUpdate()
+                    ->exists();
+
+                if ($conflictExists) {
+                    throw ValidationException::withMessages([
+                        'package_ids' => __('Beberapa barang yang dipilih sudah digunakan dalam transaksi cicil emas lainnya.'),
+                    ]);
+                }
+            }
 
             $transaction = CicilEmasTransaction::create([
                 'nomor_cicilan' => $transactionNumber,
