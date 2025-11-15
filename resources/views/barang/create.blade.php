@@ -21,10 +21,6 @@
         <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
             <form method="POST" action="{{ route('barang.data-barang.store') }}" class="space-y-5">
                 @csrf
-                @php
-                    $isCreateContext = old('context') === 'create';
-                @endphp
-                <input type="hidden" name="context" value="create">
 
                 <div class="space-y-1.5">
                     <label for="kode_barcode" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Kode Barcode') }}</label>
@@ -93,30 +89,17 @@
 
                 <div class="space-y-1.5">
                     <label for="sku" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('SKU') }}</label>
-                    <select
+                    <input
+                        type="text"
                         id="sku"
                         name="sku"
-                        data-master-sku-select
-                        required
+                        value="{{ old('sku') }}"
+                        maxlength="191"
                         class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-950 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
-                    >
-                        <option value="">{{ __('Pilih SKU') }}</option>
-                        @foreach ($masterSkus as $masterSku)
-                            <option
-                                value="{{ $masterSku->sku }}"
-                                data-price="{{ $masterSku->harga }}"
-                                @selected($isCreateContext && old('sku') === $masterSku->sku)
-                            >
-                                {{ $masterSku->sku }} — Rp {{ number_format((float) $masterSku->harga, 2, ',', '.') }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @if ($isCreateContext && $errors->has('sku'))
-                        <p class="text-sm text-rose-600 dark:text-rose-400">{{ $errors->first('sku') }}</p>
-                    @endif
-                    @if ($masterSkus->isEmpty())
-                        <p class="text-xs text-amber-600 dark:text-amber-400">{{ __('Belum ada data SKU. Tambahkan data melalui menu Master SKU terlebih dahulu.') }}</p>
-                    @endif
+                    />
+                    @error('sku')
+                        <p class="text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div class="space-y-1.5">
@@ -160,14 +143,16 @@
                             type="number"
                             id="harga"
                             name="harga"
-                            value="{{ $isCreateContext ? old('harga') : '' }}"
+                            value="{{ old('harga') }}"
+                            required
                             step="0.01"
                             min="0"
-                            data-master-sku-price
-                            readonly
                             class="w-full rounded-r-lg border-0 bg-transparent px-3 py-2 text-neutral-900 focus:outline-none focus:ring-0 dark:text-white"
                         />
                     </div>
+                    @error('harga')
+                        <p class="text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div class="flex items-center justify-end gap-3">
@@ -191,6 +176,4 @@
             </form>
         </div>
     </div>
-
-    @include('barang.partials.master-sku-script')
 </x-layouts.app>
