@@ -19,18 +19,36 @@ use Illuminate\View\View;
 
 class CicilEmasTransaksiController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $transactions = CicilEmasTransaction::with([
+        $perPageOptions = [10, 25, 50, 100];
+        $perPage = (int) $request->integer('per_page', 10);
+
+        if (! in_array($perPage, $perPageOptions, true)) {
+            $perPage = 10;
+        }
+
+        $latestTransactionIds = CicilEmasTransaction::query()
+            ->latest()
+            ->limit(100)
+            ->pluck('id');
+
+        $transactionsQuery = CicilEmasTransaction::with([
                 'nasabah',
                 'items',
                 'installments' => fn ($query) => $query->orderBy('due_date'),
             ])
-            ->latest()
-            ->get();
+            ->whereIn('id', $latestTransactionIds)
+            ->orderByDesc('created_at');
+
+        $transactions = $transactionsQuery
+            ->paginate($perPage)
+            ->withQueryString();
 
         return view('cicil-emas.daftar-cicilan', [
             'transactions' => $transactions,
+            'perPage' => $perPage,
+            'perPageOptions' => $perPageOptions,
         ]);
     }
 
