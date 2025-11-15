@@ -61,7 +61,6 @@ class BarangController extends Controller
                 'string',
                 'max:191',
                 Rule::exists('master_kode_groups', 'kode_group'),
-                Rule::unique('barangs', 'kode_group'),
             ],
         ]);
 
@@ -109,7 +108,6 @@ class BarangController extends Controller
                 'string',
                 'max:191',
                 Rule::exists('master_kode_groups', 'kode_group'),
-                Rule::unique('barangs', 'kode_group')->ignore($barang->id),
             ],
         ]);
 
