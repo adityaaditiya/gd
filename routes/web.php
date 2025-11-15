@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\MasterSkuController;
 use App\Http\Controllers\Admin\UserAccessController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\BarangController;
@@ -194,6 +195,9 @@ Route::middleware(['auth'])->group(function () {
             Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
 
             Route::view('pages', 'admin.pages.index')->name('pages.index');
+
+            Route::get('master-sku', [MasterSkuController::class, 'index'])->name('master-sku.index');
+            Route::put('master-sku/{barang}', [MasterSkuController::class, 'update'])->name('master-sku.update');
 
             Route::controller(UserAccessController::class)
                 ->prefix('access')
