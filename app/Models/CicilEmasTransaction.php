@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+use App\Models\User;
+
 /**
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CicilEmasInstallment> $installments
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CicilEmasTransactionItem> $items
@@ -14,6 +16,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class CicilEmasTransaction extends Model
 {
     use HasFactory;
+
+    public const STATUS_ACTIVE = 'active';
+    public const STATUS_CANCELLED = 'cancelled';
+    public const STATUS_SETTLED = 'settled';
 
     protected $fillable = [
         'nomor_cicilan',
@@ -34,6 +40,10 @@ class CicilEmasTransaction extends Model
         'besaran_angsuran',
         'option_id',
         'option_label',
+        'status',
+        'cancelled_at',
+        'cancelled_by',
+        'cancellation_reason',
     ];
 
     protected $casts = [
@@ -48,6 +58,11 @@ class CicilEmasTransaction extends Model
         'total_pembiayaan' => 'float',
         'tenor_bulan' => 'integer',
         'besaran_angsuran' => 'float',
+        'cancelled_at' => 'datetime',
+    ];
+
+    protected $attributes = [
+        'status' => self::STATUS_ACTIVE,
     ];
 
     public function nasabah(): BelongsTo
@@ -65,4 +80,18 @@ class CicilEmasTransaction extends Model
         return $this->hasMany(CicilEmasTransactionItem::class, 'transaction_id');
     }
 
+    public function cancelledBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'cancelled_by');
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', self::STATUS_ACTIVE);
+    }
+
+    public function isCancelable(): bool
+    {
+        return $this->status === self::STATUS_ACTIVE;
+    }
 }
