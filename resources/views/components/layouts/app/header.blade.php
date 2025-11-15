@@ -136,7 +136,7 @@
                             :current="request()->routeIs('admin.master-sku.*')"
                             wire:navigate
                         >
-                            {{ __('Master Kode Group') }}
+                            {{ __('Master SKU') }}
                         </flux:navlist.item>
                     </flux:navlist.group>
                 @endif

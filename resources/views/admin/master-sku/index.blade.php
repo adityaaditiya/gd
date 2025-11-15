@@ -1,9 +1,9 @@
-<x-layouts.app :title="__('Master Kode Group')">
+<x-layouts.app :title="__('Master SKU')">
     <div class="space-y-8">
         <div class="flex flex-col gap-2">
-            <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white">{{ __('Master Kode Group') }}</h1>
+            <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white">{{ __('Master SKU') }}</h1>
             <p class="text-sm text-neutral-600 dark:text-neutral-300">
-                {{ __('Kelola daftar kode group dan harga dasar yang digunakan saat menambah atau mengubah data barang.') }}
+                {{ __('Kelola daftar SKU dan harga dasar yang digunakan saat menambah atau mengubah data barang.') }}
             </p>
         </div>
 
@@ -15,9 +15,9 @@
 
         <div class="space-y-6 rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
             <div>
-                <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Tambah Kode Group Baru') }}</h2>
+                <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Tambah SKU Baru') }}</h2>
                 <p class="text-sm text-neutral-600 dark:text-neutral-300">
-                    {{ __('Masukkan kode group dan harga agar tersedia pada formulir data barang.') }}
+                    {{ __('Masukkan kode SKU dan harga agar tersedia pada formulir data barang.') }}
                 </p>
             </div>
 
@@ -29,19 +29,19 @@
                 <input type="hidden" name="form_mode" value="create">
 
                 <div class="space-y-2">
-                    <label for="kode_group" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Kode Group') }}</label>
+                    <label for="sku" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('SKU') }}</label>
                     <input
                         type="text"
-                        id="kode_group"
-                        name="kode_group"
-                        value="{{ $isCreateContext ? old('kode_group') : '' }}"
+                        id="sku"
+                        name="sku"
+                        value="{{ $isCreateContext ? old('sku') : '' }}"
                         maxlength="191"
                         required
                         class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-emerald-500 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-100"
-                        placeholder="{{ __('Masukkan kode group') }}"
+                        placeholder="{{ __('Masukkan SKU') }}"
                     >
-                    @if ($isCreateContext && $errors->has('kode_group'))
-                        <p class="text-xs text-rose-600 dark:text-rose-400">{{ $errors->first('kode_group') }}</p>
+                    @if ($isCreateContext && $errors->has('sku'))
+                        <p class="text-xs text-rose-600 dark:text-rose-400">{{ $errors->first('sku') }}</p>
                     @endif
                 </div>
 
@@ -71,7 +71,7 @@
                         <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                         </svg>
-                        <span>{{ __('Tambah Kode Group') }}</span>
+                        <span>{{ __('Tambah SKU') }}</span>
                     </button>
                 </div>
             </form>
@@ -80,9 +80,9 @@
         <div class="space-y-4 rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                    <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Daftar Kode Group Tersimpan') }}</h2>
+                    <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Daftar SKU Tersimpan') }}</h2>
                     <span class="text-sm text-neutral-500 dark:text-neutral-400">
-                        {{ trans_choice('{0}Tidak ada kode group|{1}1 kode group|[2,*]:count kode group', $masterSkus->count(), ['count' => $masterSkus->count()]) }}
+                        {{ trans_choice('{0}Tidak ada SKU|{1}1 SKU|[2,*]:count SKU', $masterSkus->count(), ['count' => $masterSkus->count()]) }}
                     </span>
                 </div>
             </div>
@@ -92,7 +92,7 @@
                     <thead class="bg-neutral-50 text-xs uppercase tracking-wide text-neutral-500 dark:bg-neutral-950 dark:text-neutral-400">
                         <tr>
                             <th scope="col" class="px-4 py-3">#</th>
-                            <th scope="col" class="px-4 py-3">{{ __('Kode Group') }}</th>
+                            <th scope="col" class="px-4 py-3">{{ __('SKU') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('Harga (Rp)') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('Terakhir Diubah') }}</th>
                             <th scope="col" class="px-4 py-3 text-right">{{ __('Aksi') }}</th>
@@ -111,18 +111,18 @@
                                     <td class="px-4 py-3 align-top text-neutral-500 dark:text-neutral-400">{{ $loop->iteration }}</td>
                                     <td class="px-4 py-3 align-top">
                                         <div class="space-y-2">
-                                            <label class="sr-only" for="kode_group-{{ $masterSku->id }}">{{ __('Kode Group') }}</label>
+                                            <label class="sr-only" for="sku-{{ $masterSku->id }}">{{ __('SKU') }}</label>
                                             <input
                                                 type="text"
-                                                id="kode_group-{{ $masterSku->id }}"
-                                                name="kode_group"
-                                                value="{{ $isActiveRow ? old('kode_group') : $masterSku->kode_group }}"
+                                                id="sku-{{ $masterSku->id }}"
+                                                name="sku"
+                                                value="{{ $isActiveRow ? old('sku') : $masterSku->sku }}"
                                                 maxlength="191"
                                                 required
                                                 class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-emerald-500 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-100"
                                             >
-                                            @if ($isActiveRow && $errors->has('kode_group'))
-                                                <p class="text-xs text-rose-600 dark:text-rose-400">{{ $errors->first('kode_group') }}</p>
+                                            @if ($isActiveRow && $errors->has('sku'))
+                                                <p class="text-xs text-rose-600 dark:text-rose-400">{{ $errors->first('sku') }}</p>
                                             @endif
                                         </div>
                                     </td>
@@ -161,7 +161,7 @@
                                                 type="submit"
                                                 form="delete-master-sku-{{ $masterSku->id }}"
                                                 class="inline-flex items-center gap-1 rounded-lg border border-rose-600 bg-rose-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:border-rose-700 hover:bg-rose-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-500 dark:border-rose-500 dark:bg-rose-500 dark:hover:border-rose-400 dark:hover:bg-rose-400"
-                                                onclick="return confirm('{{ __('Hapus kode group ini?') }}')"
+                                                onclick="return confirm('{{ __('Hapus SKU ini?') }}')"
                                             >
                                                 <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 4.5 15 15m0-15-15 15" />
@@ -179,7 +179,7 @@
                         @empty
                             <tr>
                                 <td colspan="5" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-400">
-                                    {{ __('Belum ada data kode group yang tersimpan.') }}
+                                    {{ __('Belum ada data SKU yang tersimpan.') }}
                                 </td>
                             </tr>
                         @endforelse
