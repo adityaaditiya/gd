@@ -108,6 +108,9 @@
                     @error('kode_jenis')
                         <p class="text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
                     @enderror
+                    @if ($masterSkus->isEmpty())
+                        <p class="text-xs text-amber-600 dark:text-amber-400">{{ __('Belum ada data SKU. Tambahkan data melalui menu Master SKU terlebih dahulu.') }}</p>
+                    @endif
                 </div>
 
                 <div class="space-y-1.5">
