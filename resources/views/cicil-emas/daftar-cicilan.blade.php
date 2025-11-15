@@ -62,10 +62,7 @@
                 </div>
             @else
                 <div class="overflow-hidden rounded-lg border border-neutral-200 shadow-sm dark:border-neutral-700">
-                    <table
-                        class="min-w-full divide-y divide-neutral-200 dark:divide-neutral-700"
-                        data-cicilan-table
-                    >
+                    <table class="min-w-full divide-y divide-neutral-200 dark:divide-neutral-700">
                         <thead class="bg-neutral-50 text-xs uppercase tracking-wide text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
                             <tr>
                                 <th scope="col" class="px-4 py-3 text-left">{{ __('Tanggal') }}</th>
@@ -79,7 +76,6 @@
                                 <th scope="col" class="px-4 py-3 text-right">{{ __('Administrasi') }}</th>
                                 <th scope="col" class="px-4 py-3 text-right">{{ __('Angsuran / Bln') }}</th>
                                 <th scope="col" class="px-4 py-3 text-center">{{ __('Tenor') }}</th>
-                                <th scope="col" class="px-4 py-3 text-center">{{ __('Aksi') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-neutral-200 bg-white text-sm dark:divide-neutral-700 dark:bg-neutral-900">
@@ -104,18 +100,6 @@
                                     } else {
                                         $allInstallmentsPaid = false;
                                     }
-
-                                    $packageLabel = $transaction->option_label
-                                        ?? ($transaction->items->count() === 1
-                                            ? ($transaction->items->first()->nama_barang ?? $transaction->pabrikan)
-                                            : ($transaction->items->count() > 1
-                                                ? __(':count barang', ['count' => $transaction->items->count()])
-                                                : $transaction->pabrikan));
-
-                                    $cancelSummary = __('Cicilan :nasabah • :paket', [
-                                        'nasabah' => $transaction->nasabah?->nama ?? __('Nasabah tidak diketahui'),
-                                        'paket' => $packageLabel,
-                                    ]);
                                 @endphp
                                 <tr @class([
                                     'bg-emerald-50/60 dark:bg-emerald-500/10' => $isHighlighted,
@@ -213,43 +197,6 @@
                                     </td>
                                     <td class="px-4 py-3 align-top text-center text-neutral-700 dark:text-neutral-200">
                                         <span class="inline-flex rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200">{{ $transaction->tenor_bulan }} {{ __('Bulan') }}</span>
-                                    </td>
-                                    <td class="px-4 py-3 align-top">
-                                        <div class="relative flex justify-center" data-cicilan-actions>
-                                            <button
-                                                type="button"
-                                                class="inline-flex items-center rounded-full border border-neutral-200 bg-white p-2 text-neutral-500 transition hover:border-neutral-300 hover:text-neutral-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:border-neutral-500 dark:hover:text-white"
-                                                data-cicilan-toggle
-                                                aria-haspopup="true"
-                                                aria-expanded="false"
-                                            >
-                                                <span class="sr-only">{{ __('Menu aksi untuk cicilan') }}</span>
-                                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h.008M12 12h.008M19 12h.008" />
-                                                </svg>
-                                            </button>
-                                            <div
-                                                class="absolute right-0 top-full z-20 mt-2 hidden w-48 rounded-lg border border-neutral-200 bg-white py-1 text-sm shadow-lg dark:border-neutral-600 dark:bg-neutral-900"
-                                                data-cicilan-menu
-                                                role="menu"
-                                            >
-                                                <button
-                                                    type="button"
-                                                    class="flex w-full items-center gap-2 px-4 py-2 text-left text-neutral-700 transition hover:bg-neutral-50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:text-neutral-200 dark:hover:bg-neutral-700/60"
-                                                    data-cicilan-cancel
-                                                    data-transaction-id="{{ $transaction->id }}"
-                                                    data-summary="{{ e($cancelSummary) }}"
-                                                    data-reason="{{ e($transaction->alasan_pembatalan ?? '') }}"
-                                                    {{ $isCancelled ? 'disabled' : '' }}
-                                                    role="menuitem"
-                                                >
-                                                    <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                                                    </svg>
-                                                    <span>{{ __('Batal Transaksi') }}</span>
-                                                </button>
-                                            </div>
-                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
