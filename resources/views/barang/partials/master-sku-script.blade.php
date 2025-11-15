@@ -1,9 +1,9 @@
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const kodeGroupSelect = document.querySelector('[data-master-kode-group-select]');
-        const priceInput = document.querySelector('[data-master-kode-group-price]');
+        const skuSelect = document.querySelector('[data-master-sku-select]');
+        const priceInput = document.querySelector('[data-master-sku-price]');
 
-        if (!kodeGroupSelect || !priceInput) {
+        if (!skuSelect || !priceInput) {
             return;
         }
 
@@ -21,7 +21,7 @@
         };
 
         const updatePrice = () => {
-            const selectedOption = kodeGroupSelect.options[kodeGroupSelect.selectedIndex];
+            const selectedOption = skuSelect.options[skuSelect.selectedIndex];
             if (!selectedOption) {
                 priceInput.value = '';
                 return;
@@ -31,7 +31,7 @@
             priceInput.value = formatPrice(price);
         };
 
-        kodeGroupSelect.addEventListener('change', updatePrice);
+        skuSelect.addEventListener('change', updatePrice);
         updatePrice();
     });
 </script>

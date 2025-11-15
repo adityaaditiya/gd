@@ -23,10 +23,10 @@ class BarangController extends Controller
                 'kode_intern',
                 'kode_baki',
                 'kode_jenis',
-                'kode_group',
                 'berat',
                 'harga',
                 'kadar',
+                'sku',
                 'created_at',
             ]);
 
@@ -38,8 +38,8 @@ class BarangController extends Controller
     public function create(): View
     {
         $masterSkus = MasterSku::query()
-            ->orderBy('kode_group')
-            ->get(['id', 'kode_group', 'harga']);
+            ->orderBy('sku')
+            ->get(['id', 'sku', 'harga']);
 
         return view('barang.create', [
             'masterSkus' => $masterSkus,
@@ -56,19 +56,20 @@ class BarangController extends Controller
             'kode_jenis' => ['required', 'string', 'max:191'],
             'berat' => ['required', 'numeric', 'min:0'],
             'kadar' => ['nullable', 'numeric', 'min:0'],
-            'kode_group' => [
+            'sku' => [
                 'required',
                 'string',
                 'max:191',
-                Rule::exists('master_skus', 'kode_group'),
+                Rule::exists('master_skus', 'sku'),
+                Rule::unique('barangs', 'sku'),
             ],
         ]);
 
-        $masterSku = MasterSku::query()->firstWhere('kode_group', $validated['kode_group']);
+        $masterSku = MasterSku::query()->firstWhere('sku', $validated['sku']);
 
         if (! $masterSku) {
             throw ValidationException::withMessages([
-                'kode_group' => __('Kode group tidak ditemukan pada master data.'),
+                'sku' => __('SKU tidak ditemukan pada master data.'),
             ]);
         }
 
@@ -84,8 +85,8 @@ class BarangController extends Controller
     public function edit(Barang $barang): View
     {
         $masterSkus = MasterSku::query()
-            ->orderBy('kode_group')
-            ->get(['id', 'kode_group', 'harga']);
+            ->orderBy('sku')
+            ->get(['id', 'sku', 'harga']);
 
         return view('barang.edit', [
             'barang' => $barang,
@@ -103,19 +104,20 @@ class BarangController extends Controller
             'kode_jenis' => ['required', 'string', 'max:191'],
             'berat' => ['required', 'numeric', 'min:0'],
             'kadar' => ['nullable', 'numeric', 'min:0'],
-            'kode_group' => [
+            'sku' => [
                 'required',
                 'string',
                 'max:191',
-                Rule::exists('master_skus', 'kode_group'),
+                Rule::exists('master_skus', 'sku'),
+                Rule::unique('barangs', 'sku')->ignore($barang->id),
             ],
         ]);
 
-        $masterSku = MasterSku::query()->firstWhere('kode_group', $validated['kode_group']);
+        $masterSku = MasterSku::query()->firstWhere('sku', $validated['sku']);
 
         if (! $masterSku) {
             throw ValidationException::withMessages([
-                'kode_group' => __('Kode group tidak ditemukan pada master data.'),
+                'sku' => __('SKU tidak ditemukan pada master data.'),
             ]);
         }
 
