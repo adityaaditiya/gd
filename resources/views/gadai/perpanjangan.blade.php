@@ -29,7 +29,7 @@
                     ]) }}
                 </p>
             </div>
-            <!-- <a
+            <a
     href="{{ $listRoute }}"
     class="ml-auto inline-flex items-center gap-2 rounded-lg border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-400 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800/70"
 >
@@ -37,7 +37,7 @@
         <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
     </svg>
     <span>{{ __('Kembali ke daftar transaksi') }}</span>
-</a> -->
+</a>
         </div>
 
         <div class="grid gap-6 lg:grid-cols-[2fr,1fr]">
@@ -117,7 +117,7 @@
                             <input
                                 type="text"
                                 name="biaya_admin"
-                                value="{{ old('biaya_admin') }}"
+                                value="{{ old('biaya_admin', '0.00') }}"
                                 inputmode="decimal"
                                 data-currency-input
                                 class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
@@ -134,7 +134,7 @@
                         <input
                             type="text"
                             name="biaya_titip"
-                            value="{{ old('biaya_titip') }}"
+                            value="{{ old('biaya_titip', '0.00') }}"
                             inputmode="decimal"
                             data-currency-input
                             class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
