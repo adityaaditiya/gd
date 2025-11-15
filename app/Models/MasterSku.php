@@ -10,7 +10,7 @@ class MasterSku extends Model
     use HasFactory;
 
     protected $fillable = [
-        'sku',
+        'kode_group',
         'harga',
     ];
 

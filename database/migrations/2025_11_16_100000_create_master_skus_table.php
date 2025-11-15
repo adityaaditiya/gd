@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('master_skus', function (Blueprint $table) {
             $table->id();
-            $table->string('sku')->unique();
+            $table->string('kode_group')->unique();
             $table->decimal('harga', 16, 2);
             $table->timestamps();
         });

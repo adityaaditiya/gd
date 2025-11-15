@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('kode_barcode')->unique();
             $table->string('nama_barang');
             $table->string('kode_intern')->unique();
+            $table->string('kode_group')->index();
             $table->string('kode_baki')->index();
             $table->string('kode_jenis');
             $table->decimal('berat', 8, 3);

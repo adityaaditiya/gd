@@ -958,7 +958,7 @@
                                     'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('admin.master-sku.*'),
                                 ])
                             >
-                                {{ __('Master SKU') }}
+                                {{ __('Master Kode Group') }}
                             </a>
                         </div>
                     </div>

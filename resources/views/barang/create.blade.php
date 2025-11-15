@@ -108,30 +108,30 @@
                 </div>
 
                 <div class="space-y-1.5">
-                    <label for="sku" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('SKU') }}</label>
+                    <label for="kode_group" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Kode Group') }}</label>
                     <select
-                        id="sku"
-                        name="sku"
-                        data-master-sku-select
+                        id="kode_group"
+                        name="kode_group"
+                        data-master-kode-group-select
                         required
                         class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-950 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
                     >
-                        <option value="">{{ __('Pilih SKU') }}</option>
+                        <option value="">{{ __('Pilih kode group') }}</option>
                         @foreach ($masterSkus as $masterSku)
                             <option
-                                value="{{ $masterSku->sku }}"
+                                value="{{ $masterSku->kode_group }}"
                                 data-price="{{ $masterSku->harga }}"
-                                @selected($isCreateContext && old('sku') === $masterSku->sku)
+                                @selected($isCreateContext && old('kode_group') === $masterSku->kode_group)
                             >
-                                {{ $masterSku->sku }} — Rp {{ number_format((float) $masterSku->harga, 2, ',', '.') }}
+                                {{ $masterSku->kode_group }} — Rp {{ number_format((float) $masterSku->harga, 2, ',', '.') }}
                             </option>
                         @endforeach
                     </select>
-                    @if ($isCreateContext && $errors->has('sku'))
-                        <p class="text-sm text-rose-600 dark:text-rose-400">{{ $errors->first('sku') }}</p>
+                    @if ($isCreateContext && $errors->has('kode_group'))
+                        <p class="text-sm text-rose-600 dark:text-rose-400">{{ $errors->first('kode_group') }}</p>
                     @endif
                     @if ($masterSkus->isEmpty())
-                        <p class="text-xs text-amber-600 dark:text-amber-400">{{ __('Belum ada data SKU. Tambahkan data melalui menu Master SKU terlebih dahulu.') }}</p>
+                        <p class="text-xs text-amber-600 dark:text-amber-400">{{ __('Belum ada data kode group. Tambahkan data melalui menu Master Kode Group terlebih dahulu.') }}</p>
                     @endif
                 </div>
 
@@ -179,7 +179,7 @@
                             value="{{ $isCreateContext ? old('harga') : '' }}"
                             step="0.01"
                             min="0"
-                            data-master-sku-price
+                            data-master-kode-group-price
                             readonly
                             class="w-full rounded-r-lg border-0 bg-transparent px-3 py-2 text-neutral-900 focus:outline-none focus:ring-0 dark:text-white"
                         />

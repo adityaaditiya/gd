@@ -14,8 +14,8 @@ class MasterSkuController extends Controller
     public function index(): View
     {
         $masterSkus = MasterSku::query()
-            ->orderBy('sku')
-            ->get(['id', 'sku', 'harga', 'updated_at']);
+            ->orderBy('kode_group')
+            ->get(['id', 'kode_group', 'harga', 'updated_at']);
 
         return view('admin.master-sku.index', [
             'masterSkus' => $masterSkus,
@@ -25,7 +25,7 @@ class MasterSkuController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'sku' => ['required', 'string', 'max:191', 'unique:master_skus,sku'],
+            'kode_group' => ['required', 'string', 'max:191', 'unique:master_skus,kode_group'],
             'harga' => ['required', 'numeric', 'min:0'],
         ]);
 
@@ -33,13 +33,13 @@ class MasterSkuController extends Controller
 
         return redirect()
             ->route('admin.master-sku.index')
-            ->with('status', __('Data SKU berhasil ditambahkan.'));
+            ->with('status', __('Data kode group berhasil ditambahkan.'));
     }
 
     public function update(Request $request, MasterSku $masterSku): RedirectResponse
     {
         $validated = $request->validate([
-            'sku' => ['required', 'string', 'max:191', Rule::unique('master_skus', 'sku')->ignore($masterSku->id)],
+            'kode_group' => ['required', 'string', 'max:191', Rule::unique('master_skus', 'kode_group')->ignore($masterSku->id)],
             'harga' => ['required', 'numeric', 'min:0'],
         ]);
 
@@ -47,7 +47,7 @@ class MasterSkuController extends Controller
 
         return redirect()
             ->route('admin.master-sku.index')
-            ->with('status', __('Data SKU berhasil diperbarui.'));
+            ->with('status', __('Data kode group berhasil diperbarui.'));
     }
 
     public function destroy(MasterSku $masterSku): RedirectResponse
@@ -56,6 +56,6 @@ class MasterSkuController extends Controller
 
         return redirect()
             ->route('admin.master-sku.index')
-            ->with('status', __('Data SKU berhasil dihapus.'));
+            ->with('status', __('Data kode group berhasil dihapus.'));
     }
 }
