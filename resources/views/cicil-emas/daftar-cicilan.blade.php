@@ -66,6 +66,7 @@
                         <thead class="bg-neutral-50 text-xs uppercase tracking-wide text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
                             <tr>
                                 <th scope="col" class="px-4 py-3 text-left">{{ __('Tanggal') }}</th>
+                                <th scope="col" class="px-4 py-3 text-left">{{ __('Nomor Cicilan') }}</th>
                                 <th scope="col" class="px-4 py-3 text-left">{{ __('Jatuh Tempo Terdekat') }}</th>
                                 <th scope="col" class="px-4 py-3 text-left">{{ __('Nasabah') }}</th>
                                 <th scope="col" class="px-4 py-3 text-left">{{ __('Paket Emas') }}</th>
@@ -126,6 +127,13 @@
                                             </div>
                                         @elseif ($allInstallmentsPaid)
                                             <span class="text-sm font-semibold text-emerald-600 dark:text-emerald-300">{{ __('Lunas') }}</span>
+                                        @else
+                                            <span class="text-sm font-semibold text-neutral-500 dark:text-neutral-400">—</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">
+                                        @if ($transaction->nomor_cicilan)
+                                            <span class="font-mono text-sm font-semibold text-neutral-900 dark:text-white">{{ $transaction->nomor_cicilan }}</span>
                                         @else
                                             <span class="text-sm font-semibold text-neutral-500 dark:text-neutral-400">—</span>
                                         @endif
