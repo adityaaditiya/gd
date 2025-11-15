@@ -165,7 +165,9 @@ class CicilEmasTransaksiController extends Controller
                 $conflictingItems = CicilEmasTransactionItem::query()
                     ->whereNotNull('barang_id')
                     ->whereIn('barang_id', $normalizedPackageIds->all())
-                    ->whereHas('transaction')
+                    ->whereHas('transaction', function ($query) {
+                        $query->where('status', CicilEmasTransaction::STATUS_ACTIVE);
+                    })
                     ->exists();
 
                 if ($conflictingItems) {
@@ -299,7 +301,9 @@ class CicilEmasTransaksiController extends Controller
                 $conflictExists = CicilEmasTransactionItem::query()
                     ->whereNotNull('barang_id')
                     ->whereIn('barang_id', $selectedPackageIds->all())
-                    ->whereHas('transaction')
+                    ->whereHas('transaction', function ($query) {
+                        $query->where('status', CicilEmasTransaction::STATUS_ACTIVE);
+                    })
                     ->lockForUpdate()
                     ->exists();
 
