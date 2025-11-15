@@ -243,9 +243,10 @@ class CicilEmasTransaksiController extends Controller
         $principalBalance = max($totalPrice - $downPayment, 0);
         $marginPercentage = $this->resolveMarginPercentage($tenor);
         $marginAmount = round($principalBalance * ($marginPercentage / 100), 2);
-        $totalFinanced = $principalBalance + $marginAmount + $administrationFee;
+        $financedWithoutAdministration = $principalBalance + $marginAmount;
+        $totalFinanced = $financedWithoutAdministration + $administrationFee;
         $installment = $tenor > 0
-            ? round($totalFinanced / $tenor, 2)
+            ? round($financedWithoutAdministration / $tenor, 2)
             : 0.0;
 
         $dpPercentage = $totalPrice > 0
