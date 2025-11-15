@@ -15,8 +15,7 @@ class BarangController extends Controller
     public function index(): View
     {
         $barangs = Barang::query()
-            ->orderBy('nama_barang')
-            ->get([
+            ->select([
                 'id',
                 'kode_barcode',
                 'nama_barang',
@@ -28,7 +27,13 @@ class BarangController extends Controller
                 'kadar',
                 'kode_group',
                 'created_at',
-            ]);
+            ])
+            ->withCount([
+                'cicilEmasItems as active_cicil_emas_usage_count' => fn ($query) => $query
+                    ->whereHas('transaction', fn ($transaction) => $transaction->whereNull('dibatalkan_pada')),
+            ])
+            ->orderBy('nama_barang')
+            ->get();
 
         return view('barang.data-barang', [
             'barangs' => $barangs,
@@ -81,8 +86,14 @@ class BarangController extends Controller
             ->with('status', __('Data barang berhasil disimpan.'));
     }
 
-    public function edit(Barang $barang): View
+    public function edit(Barang $barang): View|RedirectResponse
     {
+        if ($barang->is_locked) {
+            return redirect()
+                ->route('barang.data-barang')
+                ->with('error', __('Barang ini sudah digunakan dalam transaksi emas dan tidak dapat diubah.'));
+        }
+
         $masterKodeGroups = MasterKodeGroup::query()
             ->orderBy('kode_group')
             ->get(['id', 'kode_group', 'harga']);
@@ -95,6 +106,12 @@ class BarangController extends Controller
 
     public function update(Request $request, Barang $barang): RedirectResponse
     {
+        if ($barang->is_locked) {
+            return redirect()
+                ->route('barang.data-barang')
+                ->with('error', __('Barang ini sudah digunakan dalam transaksi emas dan tidak dapat diubah.'));
+        }
+
         $validated = $request->validate([
             'kode_barcode' => ['required', 'string', 'max:191', 'unique:barangs,kode_barcode,' . $barang->id],
             'nama_barang' => ['required', 'string', 'max:191'],
@@ -130,6 +147,12 @@ class BarangController extends Controller
 
     public function destroy(Barang $barang): RedirectResponse
     {
+        if ($barang->is_locked) {
+            return redirect()
+                ->route('barang.data-barang')
+                ->with('error', __('Barang ini sudah digunakan dalam transaksi emas dan tidak dapat dihapus.'));
+        }
+
         $barang->delete();
 
         return redirect()
