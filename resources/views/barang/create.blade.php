@@ -88,6 +88,37 @@
                 </div>
 
                 <div class="space-y-1.5">
+                    <label for="sku" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('SKU') }}</label>
+                    <input
+                        type="text"
+                        id="sku"
+                        name="sku"
+                        value="{{ old('sku') }}"
+                        maxlength="191"
+                        class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-950 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+                    />
+                    @error('sku')
+                        <p class="text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="space-y-1.5">
+                    <label for="kadar" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Kadar (%)') }}</label>
+                    <input
+                        type="number"
+                        id="kadar"
+                        name="kadar"
+                        value="{{ old('kadar') }}"
+                        step="0.01"
+                        min="0"
+                        class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-950 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+                    />
+                    @error('kadar')
+                        <p class="text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="space-y-1.5">
                     <label for="berat" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Berat (gram)') }}</label>
                     <input
                         type="number"

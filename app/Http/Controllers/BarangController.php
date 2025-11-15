@@ -21,6 +21,8 @@ class BarangController extends Controller
                 'kode_group',
                 'berat',
                 'harga',
+                'kadar',
+                'sku',
                 'created_at',
             ]);
 
@@ -43,6 +45,8 @@ class BarangController extends Controller
             'kode_group' => ['required', 'string', 'max:191'],
             'berat' => ['required', 'numeric', 'min:0'],
             'harga' => ['required', 'numeric', 'min:0'],
+            'kadar' => ['nullable', 'numeric', 'min:0'],
+            'sku' => ['nullable', 'string', 'max:191', 'unique:barangs,sku'],
         ]);
 
         Barang::create($validated);
@@ -68,6 +72,8 @@ class BarangController extends Controller
             'kode_group' => ['required', 'string', 'max:191'],
             'berat' => ['required', 'numeric', 'min:0'],
             'harga' => ['required', 'numeric', 'min:0'],
+            'kadar' => ['nullable', 'numeric', 'min:0'],
+            'sku' => ['nullable', 'string', 'max:191', 'unique:barangs,sku,' . $barang->id],
         ]);
 
         $barang->update($validated);
