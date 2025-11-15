@@ -23,7 +23,8 @@ class LaporanCicilEmasController extends Controller
             'nasabah',
             'installments' => fn ($builder) => $builder->orderBy('sequence'),
             'items',
-        ])->orderByDesc('created_at');
+        ])->where('status', '!=', CicilEmasTransaction::STATUS_CANCELLED)
+            ->orderByDesc('created_at');
 
         if (! empty($validated['start_date'])) {
             $query->whereDate('created_at', '>=', $validated['start_date']);
