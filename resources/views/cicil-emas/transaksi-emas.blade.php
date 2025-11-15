@@ -1086,9 +1086,10 @@
                     const marginPercentage = resolveMarginPercentage(tenorValue);
                     const marginAmount = Math.round(principalBalance * (marginPercentage / 100) * 100) / 100;
                     const administrationAmount = getAdministrationValue();
-                    const totalFinanced = principalBalance + marginAmount + administrationAmount;
+                    const financedWithoutAdministration = principalBalance + marginAmount;
+                    const totalFinanced = financedWithoutAdministration + administrationAmount;
                     const installment = tenorValue > 0
-                        ? Math.round((totalFinanced / tenorValue) * 100) / 100
+                        ? Math.round((financedWithoutAdministration / tenorValue) * 100) / 100
                         : 0;
 
                     const weightDisplay = formatWeight(totalWeight);

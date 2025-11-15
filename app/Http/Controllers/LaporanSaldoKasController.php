@@ -32,6 +32,7 @@ class LaporanSaldoKasController extends Controller
             ->with([
                 'jadwalLelang.barang.transaksi.nasabah',
                 'transaksiGadai.nasabah',
+                'cicilEmasTransaction.nasabah',
             ])
             ->when($tanggalDari, fn ($query) => $query->whereDate('tanggal', '>=', $tanggalDari))
             ->when($tanggalSampai, fn ($query) => $query->whereDate('tanggal', '<=', $tanggalSampai))
