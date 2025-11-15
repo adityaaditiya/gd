@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Barang;
 use App\Models\CicilEmasTransaction;
 use App\Models\CicilEmasTransactionItem;
+use App\Models\MutasiKas;
 use App\Models\Nasabah;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -164,7 +165,9 @@ class CicilEmasTransaksiController extends Controller
                 $conflictingItems = CicilEmasTransactionItem::query()
                     ->whereNotNull('barang_id')
                     ->whereIn('barang_id', $normalizedPackageIds->all())
-                    ->whereHas('transaction')
+                    ->whereHas('transaction', function ($query) {
+                        $query->where('status', CicilEmasTransaction::STATUS_ACTIVE);
+                    })
                     ->exists();
 
                 if ($conflictingItems) {
@@ -298,7 +301,9 @@ class CicilEmasTransaksiController extends Controller
                 $conflictExists = CicilEmasTransactionItem::query()
                     ->whereNotNull('barang_id')
                     ->whereIn('barang_id', $selectedPackageIds->all())
-                    ->whereHas('transaction')
+                    ->whereHas('transaction', function ($query) {
+                        $query->where('status', CicilEmasTransaction::STATUS_ACTIVE);
+                    })
                     ->lockForUpdate()
                     ->exists();
 
@@ -336,6 +341,24 @@ class CicilEmasTransaksiController extends Controller
             }
 
             $this->generateInstallments($transaction, $tenor, $installment);
+
+            $cashInAmount = round(max($downPayment + $administrationFee, 0), 2);
+
+            if ($cashInAmount > 0) {
+                $transaction->loadMissing('nasabah');
+
+                MutasiKas::create([
+                    'cicil_emas_transaction_id' => $transaction->id,
+                    'tanggal' => $now->toDateString(),
+                    'referensi' => __('Cicil Emas :nomor', ['nomor' => $transactionNumber]),
+                    'tipe' => 'masuk',
+                    'jumlah' => number_format($cashInAmount, 2, '.', ''),
+                    'sumber' => __('Cicil Emas'),
+                    'keterangan' => __('Penerimaan uang muka dan administrasi dari :nasabah', [
+                        'nasabah' => $transaction->nasabah?->nama ?? __('Nasabah tidak diketahui'),
+                    ]),
+                ]);
+            }
 
             return $transaction;
         });
@@ -422,6 +445,8 @@ class CicilEmasTransaksiController extends Controller
             $transaction->cancelled_by = $user->id;
             $transaction->cancellation_reason = trim((string) $validated['alasan_batal']);
             $transaction->save();
+
+            MutasiKas::where('cicil_emas_transaction_id', $transaction->id)->delete();
         });
 
         $message = __('Transaksi cicil emas dibatalkan. Total angsuran terbayar: :amount.', [

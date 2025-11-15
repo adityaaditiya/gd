@@ -14,6 +14,7 @@ class MutasiKas extends Model
 
     protected $fillable = [
         'transaksi_gadai_id',
+        'cicil_emas_transaction_id',
         'jadwal_lelang_id',
         'tanggal',
         'referensi',
@@ -36,5 +37,10 @@ class MutasiKas extends Model
     public function transaksiGadai(): BelongsTo
     {
         return $this->belongsTo(TransaksiGadai::class, 'transaksi_gadai_id', 'transaksi_id');
+    }
+
+    public function cicilEmasTransaction(): BelongsTo
+    {
+        return $this->belongsTo(CicilEmasTransaction::class, 'cicil_emas_transaction_id');
     }
 }
