@@ -130,6 +130,14 @@
                         >
                             {{ __('Master User') }}
                         </flux:navlist.item>
+                        <flux:navlist.item
+                            icon="tag"
+                            :href="route('admin.master-sku.index')"
+                            :current="request()->routeIs('admin.master-sku.*')"
+                            wire:navigate
+                        >
+                            {{ __('Master Kode Group') }}
+                        </flux:navlist.item>
                     </flux:navlist.group>
                 @endif
             </flux:navlist>

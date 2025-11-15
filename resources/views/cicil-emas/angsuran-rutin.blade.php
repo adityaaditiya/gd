@@ -213,7 +213,7 @@
                                                 <span class="text-xs text-neutral-500 dark:text-neutral-400">
                                                     {{ $item->nama_barang ?? $transaction?->pabrikan }} •
                                                     {{ number_format((float) ($item->berat ?? $transaction?->berat_gram ?? 0), 3, ',', '.') }} gr •
-                                                    {{ $item->kode_group ?? $item->kode_intern ?? $transaction?->kadar }}
+                                                    {{ $item->kode_baki ?? $item->kode_intern ?? $transaction?->kadar }}
                                                 </span>
                                             @elseif ($items->count() > 1)
                                                 <span class="text-xs text-neutral-500 dark:text-neutral-400">
@@ -223,7 +223,7 @@
                                                 </span>
                                                 <ul class="mt-1 list-disc space-y-1 ps-4 text-[11px] text-neutral-500 dark:text-neutral-400">
                                                     @foreach ($items->take(3) as $item)
-                                                        <li>{{ $item->nama_barang }} • {{ number_format((float) ($item->berat ?? 0), 3, ',', '.') }} gr • {{ $item->kode_group ?? $item->kode_intern ?? '—' }}</li>
+                                                        <li>{{ $item->nama_barang }} • {{ number_format((float) ($item->berat ?? 0), 3, ',', '.') }} gr • {{ $item->kode_baki ?? $item->kode_intern ?? '—' }}</li>
                                                     @endforeach
                                                     @if ($items->count() > 3)
                                                         <li>+ {{ $items->count() - 3 }} {{ __('barang lainnya') }}</li>

@@ -15,20 +15,20 @@ return new class extends Migration
             return;
         }
 
-        $shouldAddKodeGroup = !Schema::hasColumn('barangs', 'kode_group');
+        $shouldAddKodeBaki = !Schema::hasColumn('barangs', 'kode_baki');
         $shouldAddBerat = !Schema::hasColumn('barangs', 'berat');
 
-        if (! $shouldAddKodeGroup && ! $shouldAddBerat) {
+        if (! $shouldAddKodeBaki && ! $shouldAddBerat) {
             return;
         }
 
-        Schema::table('barangs', function (Blueprint $table) use ($shouldAddKodeGroup, $shouldAddBerat) {
-            if ($shouldAddKodeGroup) {
-                $table->string('kode_group')->default('')->after('kode_intern')->index();
+        Schema::table('barangs', function (Blueprint $table) use ($shouldAddKodeBaki, $shouldAddBerat) {
+            if ($shouldAddKodeBaki) {
+                $table->string('kode_baki')->default('')->after('kode_intern')->index();
             }
 
             if ($shouldAddBerat) {
-                $table->decimal('berat', 8, 3)->default(0)->after('kode_group');
+                $table->decimal('berat', 8, 3)->default(0)->after('kode_baki');
             }
         });
     }
@@ -48,9 +48,9 @@ return new class extends Migration
             });
         }
 
-        if (Schema::hasColumn('barangs', 'kode_group')) {
+        if (Schema::hasColumn('barangs', 'kode_baki')) {
             Schema::table('barangs', function (Blueprint $table) {
-                $table->dropColumn('kode_group');
+                $table->dropColumn('kode_baki');
             });
         }
     }

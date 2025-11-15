@@ -27,7 +27,7 @@ class TransactionInsight
             return [
                 'model' => $item,
                 'nama_barang' => $item->nama_barang,
-                'kode' => $item->kode_group ?? $item->kode_intern,
+                'kode' => $item->kode_baki ?? $item->kode_intern,
                 'berat' => (float) ($item->berat ?? 0),
                 'harga' => (float) ($item->harga ?? 0),
                 'current_barang' => $barang,

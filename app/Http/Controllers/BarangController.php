@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Barang;
+use App\Models\MasterSku;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class BarangController extends Controller
@@ -18,11 +21,12 @@ class BarangController extends Controller
                 'kode_barcode',
                 'nama_barang',
                 'kode_intern',
+                'kode_baki',
+                'kode_jenis',
                 'kode_group',
                 'berat',
                 'harga',
                 'kadar',
-                'sku',
                 'created_at',
             ]);
 
@@ -33,7 +37,13 @@ class BarangController extends Controller
 
     public function create(): View
     {
-        return view('barang.create');
+        $masterSkus = MasterSku::query()
+            ->orderBy('kode_group')
+            ->get(['id', 'kode_group', 'harga']);
+
+        return view('barang.create', [
+            'masterSkus' => $masterSkus,
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -42,12 +52,27 @@ class BarangController extends Controller
             'kode_barcode' => ['required', 'string', 'max:191', 'unique:barangs,kode_barcode'],
             'nama_barang' => ['required', 'string', 'max:191'],
             'kode_intern' => ['required', 'string', 'max:191', 'unique:barangs,kode_intern'],
-            'kode_group' => ['required', 'string', 'max:191'],
+            'kode_baki' => ['required', 'string', 'max:191'],
+            'kode_jenis' => ['required', 'string', 'max:191'],
             'berat' => ['required', 'numeric', 'min:0'],
-            'harga' => ['required', 'numeric', 'min:0'],
             'kadar' => ['nullable', 'numeric', 'min:0'],
-            'sku' => ['nullable', 'string', 'max:191', 'unique:barangs,sku'],
+            'kode_group' => [
+                'required',
+                'string',
+                'max:191',
+                Rule::exists('master_skus', 'kode_group'),
+            ],
         ]);
+
+        $masterSku = MasterSku::query()->firstWhere('kode_group', $validated['kode_group']);
+
+        if (! $masterSku) {
+            throw ValidationException::withMessages([
+                'kode_group' => __('Kode group tidak ditemukan pada master data.'),
+            ]);
+        }
+
+        $validated['harga'] = $masterSku->harga;
 
         Barang::create($validated);
 
@@ -58,8 +83,13 @@ class BarangController extends Controller
 
     public function edit(Barang $barang): View
     {
+        $masterSkus = MasterSku::query()
+            ->orderBy('kode_group')
+            ->get(['id', 'kode_group', 'harga']);
+
         return view('barang.edit', [
             'barang' => $barang,
+            'masterSkus' => $masterSkus,
         ]);
     }
 
@@ -69,12 +99,27 @@ class BarangController extends Controller
             'kode_barcode' => ['required', 'string', 'max:191', 'unique:barangs,kode_barcode,' . $barang->id],
             'nama_barang' => ['required', 'string', 'max:191'],
             'kode_intern' => ['required', 'string', 'max:191', 'unique:barangs,kode_intern,' . $barang->id],
-            'kode_group' => ['required', 'string', 'max:191'],
+            'kode_baki' => ['required', 'string', 'max:191'],
+            'kode_jenis' => ['required', 'string', 'max:191'],
             'berat' => ['required', 'numeric', 'min:0'],
-            'harga' => ['required', 'numeric', 'min:0'],
             'kadar' => ['nullable', 'numeric', 'min:0'],
-            'sku' => ['nullable', 'string', 'max:191', 'unique:barangs,sku,' . $barang->id],
+            'kode_group' => [
+                'required',
+                'string',
+                'max:191',
+                Rule::exists('master_skus', 'kode_group'),
+            ],
         ]);
+
+        $masterSku = MasterSku::query()->firstWhere('kode_group', $validated['kode_group']);
+
+        if (! $masterSku) {
+            throw ValidationException::withMessages([
+                'kode_group' => __('Kode group tidak ditemukan pada master data.'),
+            ]);
+        }
+
+        $validated['harga'] = $masterSku->harga;
 
         $barang->update($validated);
 

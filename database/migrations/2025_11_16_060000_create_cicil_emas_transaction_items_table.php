@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('kode_barcode')->nullable();
             $table->string('nama_barang');
             $table->string('kode_intern')->nullable();
-            $table->string('kode_group')->nullable();
+            $table->string('kode_baki')->nullable();
             $table->decimal('berat', 10, 3)->default(0);
             $table->decimal('harga', 15, 2)->default(0);
             $table->timestamps();

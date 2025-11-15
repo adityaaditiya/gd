@@ -16,7 +16,7 @@ class CicilEmasTransactionItem extends Model
         'kode_barcode',
         'nama_barang',
         'kode_intern',
-        'kode_group',
+        'kode_baki',
         'berat',
         'harga',
     ];
