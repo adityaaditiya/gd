@@ -540,19 +540,7 @@ class CicilEmasTransaksiController extends Controller
             abort(403, __('Pengguna tidak dikenali.'));
         }
 
-        $reason = Str::of($validated['alasan_pembatalan'])
-            ->stripTags()
-            ->squish()
-            ->toString();
-
-        if ($reason === '') {
-            return redirect()
-                ->route('cicil-emas.daftar-cicilan')
-                ->withInput($request->all())
-                ->withErrors([
-                    'alasan_pembatalan' => __('Alasan pembatalan tidak boleh kosong.'),
-                ]);
-        }
+        $reason = trim((string) $validated['alasan_pembatalan']);
 
         DB::transaction(function () use ($transaction, $userId, $reason) {
             $transaction->update([
