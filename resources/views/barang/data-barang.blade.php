@@ -35,7 +35,7 @@
 
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-neutral-200 text-left text-sm text-neutral-700 dark:divide-neutral-700 dark:text-neutral-200">
-                    <thead class="bg-neutral-50 text-xs uppercase tracking-wide text-neutral-500 dark:bg-neutral-950 dark:text-neutral-400">
+                    <thead class="bg-neutral-50 text-xs uppercase tracking-wide text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
                         <tr>
                             <th scope="col" class="px-4 py-3">#</th>
                             <th scope="col" class="px-4 py-3">{{ __('Kode Barcode') }}</th>

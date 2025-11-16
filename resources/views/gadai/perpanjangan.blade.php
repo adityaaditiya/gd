@@ -60,7 +60,7 @@
                                 name="tanggal_mulai_baru"
                                 value="{{ old('tanggal_mulai_baru', $defaultTanggalMulai) }}"
                                 required
-                                class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
+                                class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-black dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
                             >
                             @error('tanggal_mulai_baru')
                                 <span class="text-xs text-red-600 dark:text-red-400">{{ $message }}</span>
@@ -76,7 +76,7 @@
                                 min="1"
                                 max="365"
                                 required
-                                class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
+                                class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-black dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
                             >
                             @error('tenor_hari')
                                 <span class="text-xs text-red-600 dark:text-red-400">{{ $message }}</span>
@@ -94,7 +94,7 @@
                                 required
                                 inputmode="decimal"
                                 data-currency-input
-                                class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
+                                class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-black dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
                                 placeholder="{{ __('Nominal bunga yang diterima saat perpanjangan…') }}"
                             >
                             <span class="text-[11px] text-neutral-500 dark:text-neutral-400">
@@ -120,7 +120,7 @@
                                 value="{{ old('biaya_admin', '0.00') }}"
                                 inputmode="decimal"
                                 data-currency-input
-                                class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
+                                class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-black dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
                                 placeholder="{{ __('Jika ada biaya administrasi tambahan…') }}"
                             >
                             @error('biaya_admin')
@@ -137,7 +137,7 @@
                             value="{{ old('biaya_titip', '0.00') }}"
                             inputmode="decimal"
                             data-currency-input
-                            class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
+                            class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-black dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
                             placeholder="{{ __('Catat biaya penitipan tambahan bila ditarik saat perpanjangan…') }}"
                         >
                         @error('biaya_titip')
@@ -150,7 +150,7 @@
                         <textarea
                             name="catatan"
                             rows="3"
-                            class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
+                            class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-black dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
                             placeholder="{{ __('Contoh: Denda keterlambatan dibebaskan, tenor diperpanjang atas permintaan nasabah…') }}"
                         >{{ old('catatan') }}</textarea>
                         @error('catatan')

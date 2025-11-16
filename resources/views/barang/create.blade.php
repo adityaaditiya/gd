@@ -36,7 +36,7 @@
                         required
                         maxlength="191"
                         autofocus
-                        class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-950 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+                        class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-950 dark:text-black dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
                     />
                     @error('kode_barcode')
                         <p class="text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
@@ -52,7 +52,7 @@
                         value="{{ old('nama_barang') }}"
                         required
                         maxlength="191"
-                        class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-950 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+                        class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-950 dark:text-black dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
                     />
                     @error('nama_barang')
                         <p class="text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
@@ -68,7 +68,7 @@
                         value="{{ old('kode_intern') }}"
                         required
                         maxlength="191"
-                        class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-950 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+                        class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-950 dark:text-black dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
                     />
                     @error('kode_intern')
                         <p class="text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
@@ -84,7 +84,7 @@
                         value="{{ old('kode_baki') }}"
                         required
                         maxlength="191"
-                        class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-950 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+                        class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-950 dark:text-black dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
                     />
                     @error('kode_baki')
                         <p class="text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
@@ -100,7 +100,7 @@
                         value="{{ old('kode_jenis') }}"
                         required
                         maxlength="191"
-                        class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-950 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+                        class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-950 dark:text-black dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
                     />
                     @error('kode_jenis')
                         <p class="text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
@@ -114,7 +114,7 @@
                         name="kode_group"
                         data-master-kode-group-select
                         required
-                        class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-950 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+                        class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-950 dark:text-black dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
                     >
                         <option value="">{{ __('Pilih kode group') }}</option>
                         @foreach ($masterKodeGroups as $masterKodeGroup)
@@ -144,7 +144,7 @@
                         value="{{ old('kadar') }}"
                         step="0.01"
                         min="0"
-                        class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-950 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+                        class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-950 dark:text-black dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
                     />
                     @error('kadar')
                         <p class="text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
@@ -161,7 +161,7 @@
                         required
                         step="0.001"
                         min="0"
-                        class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-950 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+                        class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-950 dark:text-black dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
                     />
                     @error('berat')
                         <p class="text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
@@ -181,7 +181,7 @@
                             min="0"
                             data-master-kode-group-price
                             readonly
-                            class="w-full rounded-r-lg border-0 bg-transparent px-3 py-2 text-neutral-900 focus:outline-none focus:ring-0 dark:text-white"
+                            class="w-full rounded-r-lg border-0 bg-transparent px-3 py-2 text-neutral-900 focus:outline-none focus:ring-0 dark:text-black"
                         />
                     </div>
                 </div>

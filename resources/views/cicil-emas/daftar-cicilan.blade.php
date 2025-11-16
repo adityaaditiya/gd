@@ -48,8 +48,8 @@
                         <thead class="bg-neutral-50 text-xs uppercase tracking-wide text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
                             <tr>
                                 <th scope="col" class="px-4 py-3 text-left">{{ __('Tanggal') }}</th>
-                                <th scope="col" class="px-4 py-3 text-left">{{ __('Nomor Cicilan') }}</th>
-                                <th scope="col" class="px-4 py-3 text-left">{{ __('Jatuh Tempo Terdekat') }}</th>
+                                <th scope="col" class="px-4 py-3 text-center">{{ __('Jatuh Tempo Terdekat') }}</th>
+                                <th scope="col" class="px-4 py-3 text-center">{{ __('Nomor Cicilan') }}</th>
                                 <th scope="col" class="px-4 py-3 text-left">{{ __('Nasabah') }}</th>
                                 <th scope="col" class="px-4 py-3 text-left">{{ __('Paket Emas') }}</th>
                                 <th scope="col" class="px-4 py-3 text-right">{{ __('Harga') }}</th>
@@ -149,6 +149,7 @@
                                     <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">
                                         <div class="flex flex-col">
                                             <span class="font-semibold text-neutral-900 dark:text-white">{{ $transaction->nasabah->nama ?? __('Tidak diketahui') }}</span>
+                                            <span class="text-xs text-neutral-500 dark:text-neutral-400">{{ $transaction->nasabah->telepon ?? __('Tidak diketahui') }}</span></span>
                                             @if ($transaction->nasabah && $transaction->nasabah->kode_member)
                                                 <span class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Kode Member: :kode', ['kode' => $transaction->nasabah->kode_member]) }}</span>
                                             @endif
@@ -228,14 +229,15 @@
                                         @if ($transaction->isCancelable())
                                             <form method="POST" action="{{ route('cicil-emas.transaksi.cancel', $transaction) }}" class="flex flex-col gap-2">
                                                 @csrf
-                                                <label for="alasan-batal-{{ $transaction->id }}" class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+                                                <!-- <label for="alasan-batal-{{ $transaction->id }}" class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
                                                     {{ __('Alasan Pembatalan') }}
-                                                </label>
+                                                </label> -->
                                                 <textarea
                                                     id="alasan-batal-{{ $transaction->id }}"
                                                     name="alasan_batal"
                                                     rows="2"
                                                     required
+                                                    placeholder="{{ __('Alasan Pembatalan') }}"
                                                     class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-700 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
                                                 >{{ $formTextareaValue }}</textarea>
                                                 @if ($transactionErrorId === (string) $transaction->id)
@@ -274,14 +276,14 @@
                         @foreach (request()->except(['per_page', 'page']) as $name => $value)
                             <input type="hidden" name="{{ $name }}" value="{{ $value }}">
                         @endforeach
-                        <label for="rows-per-page" class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+                        <label for="rows-per-page" class="text-xm font-semibold tracking-wide text-neutral-500 dark:text-neutral-400">
                             {{ __('Rows per page') }}
                             <span class="ms-1 inline-flex items-center rounded-full bg-neutral-200 px-2 py-0.5 text-[11px] font-semibold text-neutral-700 dark:bg-neutral-700 dark:text-neutral-200">{{ $perPage }}</span>
                         </label>
                         <select
                             id="rows-per-page"
                             name="per_page"
-                            class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-700 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 sm:w-32"
+                            class="flex items-center gap-3 rounded-lg border border-neutral-300 bg-white px-1 py-1 text-sm text-neutral-700 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 sm:w-32"
                             onchange="this.form.submit()"
                         >
                             @foreach ($perPageOptions as $option)
