@@ -117,7 +117,11 @@
         </div>
 
         <div>
-            {{ $transaksiBatal->links() }}
+            <x-table-pagination
+                :paginator="$transaksiBatal"
+                :per-page-options="$perPageOptions"
+                :filters="request()->except('page')"
+            />
         </div>
     </div>
 </x-layouts.app>

@@ -151,7 +151,11 @@
         </div>
 
         <div>
-            {{ $transaksiLunas->links() }}
+            <x-table-pagination
+                :paginator="$transaksiLunas"
+                :per-page-options="$perPageOptions"
+                :filters="request()->except('page')"
+            />
         </div>
     </div>
 </x-layouts.app>

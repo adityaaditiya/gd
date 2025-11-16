@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\JadwalLelang;
+use App\Support\LatestLimitedPaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
 
@@ -27,7 +27,7 @@ class LaporanLelangController extends Controller
         $tanggalDari = $validated['tanggal_dari'] ?? null;
         $tanggalSampai = $validated['tanggal_sampai'] ?? null;
         $search = trim((string) ($validated['search'] ?? ''));
-        $perPage = (int) ($validated['per_page'] ?? 25);
+        $perPage = (int) ($validated['per_page'] ?? LatestLimitedPaginator::PER_PAGE_OPTIONS[0]);
 
         $jadwalQuery = JadwalLelang::query()
             ->with(['barang.transaksi.nasabah'])
@@ -52,10 +52,7 @@ class LaporanLelangController extends Controller
             ->orderBy('tanggal_rencana')
             ->latest('created_at');
 
-        /** @var LengthAwarePaginator $jadwalLelang */
-        $jadwalLelang = $jadwalQuery
-            ->paginate($perPage > 0 ? $perPage : 25)
-            ->withQueryString();
+        $jadwalLelang = LatestLimitedPaginator::fromQuery($jadwalQuery, $request, $perPage);
 
         $summary = [
             'total_harga_laku' => $jadwalLelang->getCollection()->sum('harga_laku'),
@@ -69,7 +66,11 @@ class LaporanLelangController extends Controller
             'jadwalLelang' => $jadwalLelang,
             'summary' => $summary,
             'statusOptions' => self::STATUS_OPTIONS,
-            'filters' => Arr::only($validated, ['status', 'tanggal_dari', 'tanggal_sampai', 'search', 'per_page']),
+            'filters' => array_merge(
+                Arr::only($validated, ['status', 'tanggal_dari', 'tanggal_sampai', 'search', 'per_page']),
+                ['per_page' => $jadwalLelang->perPage()],
+            ),
+            'perPageOptions' => LatestLimitedPaginator::PER_PAGE_OPTIONS,
         ]);
     }
 }

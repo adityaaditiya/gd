@@ -226,9 +226,11 @@
             </table>
         </div>
 
-        <div>
-            {{ $transaksiGadai->links() }}
-        </div>
+        <x-table-pagination
+            :paginator="$transaksiGadai"
+            :per-page-options="$perPageOptions"
+            :filters="request()->except('page')"
+        />
     </div>
 
     <div

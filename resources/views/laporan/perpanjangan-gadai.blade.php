@@ -184,7 +184,11 @@
         </div>
 
         <div>
-            {{ $riwayat->links() }}
+            <x-table-pagination
+                :paginator="$riwayat"
+                :per-page-options="$perPageOptions"
+                :filters="request()->except('page')"
+            />
         </div>
     </div>
 </x-layouts.app>

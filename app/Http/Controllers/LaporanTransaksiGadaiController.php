@@ -3,16 +3,23 @@
 namespace App\Http\Controllers;
 
 use App\Models\TransaksiGadai;
+use App\Support\LatestLimitedPaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class LaporanTransaksiGadaiController extends Controller
 {
     public function index(Request $request): View
     {
-        $search = trim((string) $request->input('search'));
+        $validated = $request->validate([
+            'search' => ['nullable', 'string', 'max:255'],
+            'per_page' => ['nullable', 'integer', Rule::in(LatestLimitedPaginator::PER_PAGE_OPTIONS)],
+        ]);
 
-        $transaksiGadai = TransaksiGadai::with([
+        $search = trim((string) ($validated['search'] ?? ''));
+
+        $transaksiQuery = TransaksiGadai::with([
             'nasabah',
             'kasir',
             'barangJaminan',
@@ -31,9 +38,9 @@ class LaporanTransaksiGadaiController extends Controller
                         });
                 });
             })
-            ->latest('tanggal_gadai')
-            ->paginate(15)
-            ->withQueryString();
+            ->latest('tanggal_gadai');
+
+        $transaksiGadai = LatestLimitedPaginator::fromQuery($transaksiQuery, $request);
 
         $transaksiGadai->getCollection()->each(function (TransaksiGadai $transaksi) {
             $transaksi->refreshBungaTerutangRiil();
@@ -42,6 +49,7 @@ class LaporanTransaksiGadaiController extends Controller
         return view('laporan.transaksi-gadai', [
             'transaksiGadai' => $transaksiGadai,
             'search' => $search,
+            'perPageOptions' => LatestLimitedPaginator::PER_PAGE_OPTIONS,
         ]);
     }
 }
