@@ -18,7 +18,7 @@
                 <div>
                     <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Daftar Barang') }}</h2>
                     <span class="text-sm text-neutral-500 dark:text-neutral-400">
-                        {{ trans_choice('{0}Tidak ada barang|{1}1 barang|[2,*]:count barang', $barangs->count(), ['count' => $barangs->count()]) }}
+                        {{ trans_choice('{0}Tidak ada barang|{1}1 barang|[2,*]:count barang', $barangs->total(), ['count' => $barangs->total()]) }}
                     </span>
                 </div>
 
@@ -54,7 +54,9 @@
                     <tbody class="divide-y divide-neutral-200 bg-white dark:divide-neutral-800 dark:bg-neutral-900">
                         @forelse ($barangs as $barang)
                             <tr class="transition hover:bg-neutral-50 dark:hover:bg-neutral-800/60">
-                                <td class="px-4 py-3 align-top text-neutral-500 dark:text-neutral-400">{{ $loop->iteration }}</td>
+                                <td class="px-4 py-3 align-top text-neutral-500 dark:text-neutral-400">
+                                    {{ $barangs->firstItem() ? $barangs->firstItem() + $loop->index : $loop->iteration }}
+                                </td>
                                 <td class="px-4 py-3 align-top font-medium text-neutral-900 dark:text-white">{{ $barang->kode_barcode }}</td>
                                 <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">{{ $barang->nama_barang }}</td>
                                 <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">{{ $barang->kode_intern }}</td>
@@ -108,6 +110,69 @@
                         @endforelse
                     </tbody>
                 </table>
+            </div>
+
+            <div class="mt-4 border-t border-neutral-200 pt-4 dark:border-neutral-800">
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <form method="GET" class="flex items-center gap-3 text-sm text-neutral-600 dark:text-neutral-300">
+                        <label for="rows-per-page" class="flex items-center gap-1">
+                            <span class="font-medium">Rows per page</span>
+                            <span class="rounded bg-neutral-100 px-2 py-0.5 text-xs font-semibold text-neutral-700 dark:bg-neutral-800 dark:text-neutral-100">
+                                {{ $barangs->perPage() }}
+                            </span>
+                        </label>
+                        <select
+                            id="rows-per-page"
+                            name="per_page"
+                            class="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-700 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+                            onchange="this.form.submit()"
+                        >
+                            @foreach ($perPageOptions as $option)
+                                <option value="{{ $option }}" @selected($barangs->perPage() === $option)>{{ $option }}</option>
+                            @endforeach
+                        </select>
+                    </form>
+
+                    <nav class="flex flex-wrap items-center gap-1 text-sm font-medium" aria-label="Pagination">
+                        @php
+                            $isOnFirstPage = $barangs->onFirstPage();
+                            $isOnLastPage = $barangs->currentPage() === $barangs->lastPage();
+                            $totalPages = max(1, $barangs->lastPage());
+                        @endphp
+
+                        <a
+                            href="{{ $isOnFirstPage ? '#' : $barangs->url(1) }}"
+                            class="inline-flex items-center rounded-lg border px-3 py-2 {{ $isOnFirstPage ? 'cursor-not-allowed border-neutral-200 text-neutral-400 dark:border-neutral-700 dark:text-neutral-600' : 'border-neutral-300 text-neutral-700 hover:bg-neutral-50 dark:border-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-800/70' }}"
+                            aria-disabled="{{ $isOnFirstPage ? 'true' : 'false' }}"
+                        >&laquo; First</a>
+                        <a
+                            href="{{ $isOnFirstPage ? '#' : $barangs->previousPageUrl() }}"
+                            class="inline-flex items-center rounded-lg border px-3 py-2 {{ $isOnFirstPage ? 'cursor-not-allowed border-neutral-200 text-neutral-400 dark:border-neutral-700 dark:text-neutral-600' : 'border-neutral-300 text-neutral-700 hover:bg-neutral-50 dark:border-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-800/70' }}"
+                            aria-disabled="{{ $isOnFirstPage ? 'true' : 'false' }}"
+                        >&lsaquo; Back</a>
+
+                        @for ($page = 1; $page <= $totalPages; $page++)
+                            <a
+                                href="{{ $barangs->url($page) }}"
+                                class="inline-flex items-center rounded-lg border px-3 py-2 {{ $page === $barangs->currentPage() ? 'border-neutral-900 bg-neutral-900 text-white dark:border-white dark:bg-white dark:text-neutral-900' : 'border-neutral-300 text-neutral-700 hover:bg-neutral-50 dark:border-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-800/70' }}"
+                                aria-current="{{ $page === $barangs->currentPage() ? 'page' : 'false' }}"
+                            >
+                                {{ $page }}
+                            </a>
+                        @endfor
+
+                        <a
+                            href="{{ $isOnLastPage ? '#' : $barangs->nextPageUrl() }}"
+                            class="inline-flex items-center rounded-lg border px-3 py-2 {{ $isOnLastPage ? 'cursor-not-allowed border-neutral-200 text-neutral-400 dark:border-neutral-700 dark:text-neutral-600' : 'border-neutral-300 text-neutral-700 hover:bg-neutral-50 dark:border-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-800/70' }}"
+                            aria-disabled="{{ $isOnLastPage ? 'true' : 'false' }}"
+                        >Next &rsaquo;</a>
+                        <a
+                            href="{{ $isOnLastPage ? '#' : $barangs->url($barangs->lastPage()) }}"
+                            class="inline-flex items-center rounded-lg border px-3 py-2 {{ $isOnLastPage ? 'cursor-not-allowed border-neutral-200 text-neutral-400 dark:border-neutral-700 dark:text-neutral-600' : 'border-neutral-300 text-neutral-700 hover:bg-neutral-50 dark:border-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-800/70' }}"
+                            aria-disabled="{{ $isOnLastPage ? 'true' : 'false' }}"
+                        >Last &raquo;</a>
+                    </nav>
+                </div>
             </div>
         </div>
     </div>

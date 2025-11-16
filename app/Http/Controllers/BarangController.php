@@ -13,14 +13,26 @@ use Illuminate\View\View;
 
 class BarangController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        $perPageOptions = [10, 25, 50, 100];
+        $requestedPerPage = (int) $request->query('per_page', 10);
+        $perPage = in_array($requestedPerPage, $perPageOptions, true) ? $requestedPerPage : 10;
+
+        $latestBarangIds = Barang::query()
+            ->latest('created_at')
+            ->limit(100)
+            ->pluck('id');
+
         $barangs = Barang::query()
-            ->orderBy('nama_barang')
-            ->get($this->barangIndexColumns());
+            ->when($latestBarangIds->isNotEmpty(), fn ($query) => $query->whereIn('id', $latestBarangIds))
+            ->latest('created_at')
+            ->paginate($perPage, $this->barangIndexColumns())
+            ->appends(['per_page' => $perPage]);
 
         return view('barang.data-barang', [
             'barangs' => $barangs,
+            'perPageOptions' => $perPageOptions,
         ]);
     }
 
