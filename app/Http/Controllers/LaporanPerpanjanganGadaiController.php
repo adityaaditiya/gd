@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\PerpanjanganGadai;
+use App\Support\LatestLimitedPaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class LaporanPerpanjanganGadaiController extends Controller
 {
@@ -15,6 +17,7 @@ class LaporanPerpanjanganGadaiController extends Controller
             'search' => ['nullable', 'string', 'max:255'],
             'tanggal_dari' => ['nullable', 'date'],
             'tanggal_sampai' => ['nullable', 'date', 'after_or_equal:tanggal_dari'],
+            'per_page' => ['nullable', 'integer', Rule::in(LatestLimitedPaginator::PER_PAGE_OPTIONS)],
         ]);
 
         $filters = $validator->safe()->only(['search', 'tanggal_dari', 'tanggal_sampai']);
@@ -22,7 +25,7 @@ class LaporanPerpanjanganGadaiController extends Controller
         $tanggalDari = $filters['tanggal_dari'] ?? null;
         $tanggalSampai = $filters['tanggal_sampai'] ?? null;
 
-        $riwayat = PerpanjanganGadai::query()
+        $riwayatQuery = PerpanjanganGadai::query()
             ->with([
                 'transaksi.nasabah',
                 'transaksi.kasir',
@@ -46,15 +49,16 @@ class LaporanPerpanjanganGadaiController extends Controller
             ->when($tanggalSampai, function ($query) use ($tanggalSampai) {
                 $query->whereDate('tanggal_perpanjangan', '<=', $tanggalSampai);
             })
-            ->latest('tanggal_perpanjangan')
-            ->paginate(20)
-            ->withQueryString();
+            ->latest('tanggal_perpanjangan');
+
+        $riwayat = LatestLimitedPaginator::fromQuery($riwayatQuery, $request);
 
         return view('laporan.perpanjangan-gadai', [
             'riwayat' => $riwayat,
             'search' => $search,
             'tanggalDari' => $tanggalDari,
             'tanggalSampai' => $tanggalSampai,
+            'perPageOptions' => LatestLimitedPaginator::PER_PAGE_OPTIONS,
         ]);
     }
 }

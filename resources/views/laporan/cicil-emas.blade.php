@@ -215,6 +215,12 @@
                         </tbody>
                     </table>
                 </div>
+
+                <x-table-pagination
+                    :paginator="$insights"
+                    :per-page-options="$perPageOptions"
+                    :filters="$filters"
+                />
             @endif
         </section>
     </div>

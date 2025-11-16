@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Barang;
 use App\Models\CicilEmasTransaction;
 use App\Support\CicilEmas\TransactionInsight;
+use App\Support\LatestLimitedPaginator;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class LaporanCicilEmasController extends Controller
@@ -17,6 +20,7 @@ class LaporanCicilEmasController extends Controller
             'status' => ['nullable', 'in:Aktif,Menunggak,Lunas'],
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
+            'per_page' => ['nullable', 'integer', Rule::in(LatestLimitedPaginator::PER_PAGE_OPTIONS)],
         ]);
 
         $query = CicilEmasTransaction::with([
@@ -34,7 +38,9 @@ class LaporanCicilEmasController extends Controller
             $query->whereDate('created_at', '<=', $validated['end_date']);
         }
 
-        $transactions = $query->get();
+        $transactions = $query
+            ->limit(LatestLimitedPaginator::MAX_ITEMS)
+            ->get();
 
         $barangIds = $transactions
             ->flatMap(fn (CicilEmasTransaction $transaction) => $transaction->items->pluck('barang_id'))
@@ -58,11 +64,15 @@ class LaporanCicilEmasController extends Controller
         $metrics = $this->buildMetrics($insights);
         $statusBuckets = $metrics['status_buckets'];
 
+        /** @var LengthAwarePaginator $paginatedInsights */
+        $paginatedInsights = LatestLimitedPaginator::fromCollection($insights, $request);
+
         return view('laporan.cicil-emas', [
-            'insights' => $insights,
-            'filters' => $validated,
+            'insights' => $paginatedInsights,
+            'filters' => array_merge($validated, ['per_page' => $paginatedInsights->perPage()]),
             'metrics' => $metrics,
             'statusBuckets' => $statusBuckets,
+            'perPageOptions' => LatestLimitedPaginator::PER_PAGE_OPTIONS,
         ]);
     }
 

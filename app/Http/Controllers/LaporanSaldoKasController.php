@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\MutasiKas;
+use App\Support\LatestLimitedPaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -26,7 +27,7 @@ class LaporanSaldoKasController extends Controller
         $tanggalSampai = $validated['tanggal_sampai'] ?? null;
         $tipe = $validated['tipe'] ?? null;
         $search = trim((string) ($validated['search'] ?? ''));
-        $perPage = (int) ($validated['per_page'] ?? 25);
+        $perPage = (int) ($validated['per_page'] ?? LatestLimitedPaginator::PER_PAGE_OPTIONS[0]);
 
         $mutasiQuery = MutasiKas::query()
             ->with([
@@ -46,9 +47,7 @@ class LaporanSaldoKasController extends Controller
             ->orderByDesc('tanggal')
             ->orderByDesc('id');
 
-        $mutasiKas = $mutasiQuery
-            ->paginate($perPage > 0 ? $perPage : 25)
-            ->withQueryString();
+        $mutasiKas = LatestLimitedPaginator::fromQuery($mutasiQuery, $request, $perPage);
 
         $totalMasuk = $mutasiKas->getCollection()->where('tipe', 'masuk')->sum('jumlah');
         $totalKeluar = $mutasiKas->getCollection()->where('tipe', 'keluar')->sum('jumlah');
@@ -60,7 +59,11 @@ class LaporanSaldoKasController extends Controller
             'totalKeluar' => $totalKeluar,
             'saldo' => $saldo,
             'tipeOptions' => self::TIPE_OPTIONS,
-            'filters' => Arr::only($validated, ['tanggal_dari', 'tanggal_sampai', 'tipe', 'search', 'per_page']),
+            'filters' => array_merge(
+                Arr::only($validated, ['tanggal_dari', 'tanggal_sampai', 'tipe', 'search', 'per_page']),
+                ['per_page' => $mutasiKas->perPage()],
+            ),
+            'perPageOptions' => LatestLimitedPaginator::PER_PAGE_OPTIONS,
         ]);
     }
 }

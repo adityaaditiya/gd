@@ -50,8 +50,11 @@ class CicilEmasInstallmentController extends Controller
                         ->orWhere('kode_member', 'like', "%{$search}%")
                         ->orWhere('nik', 'like', "%{$search}%");
                 })->orWhereHas('transaction', function ($transactionQuery) use ($search) {
-                    $transactionQuery->where('pabrikan', 'like', "%{$search}%")
-                        ->orWhere('option_label', 'like', "%{$search}%");
+                    $transactionQuery->where(function ($transactionQuery) use ($search) {
+                        $transactionQuery->where('nomor_cicilan', 'like', "%{$search}%")
+                            ->orWhere('pabrikan', 'like', "%{$search}%")
+                            ->orWhere('option_label', 'like', "%{$search}%");
+                    });
                 });
             });
         }

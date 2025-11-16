@@ -115,7 +115,11 @@
         </div>
 
         <div>
-            {{ $jadwalLelang->links() }}
+            <x-table-pagination
+                :paginator="$jadwalLelang"
+                :per-page-options="$perPageOptions"
+                :filters="request()->except('page')"
+            />
         </div>
     </div>
 </x-layouts.app>

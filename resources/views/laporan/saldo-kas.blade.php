@@ -105,7 +105,11 @@
         </div>
 
         <div>
-            {{ $mutasiKas->links() }}
+            <x-table-pagination
+                :paginator="$mutasiKas"
+                :per-page-options="$perPageOptions"
+                :filters="$filters"
+            />
         </div>
     </div>
 </x-layouts.app>

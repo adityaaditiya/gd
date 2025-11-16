@@ -47,12 +47,12 @@
             <form method="GET" class="grid gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-4 text-sm dark:border-neutral-700 dark:bg-neutral-800/60 md:grid-cols-5">
                 <div class="md:col-span-2">
                     <label class="flex flex-col gap-1">
-                        <span class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Cari Nasabah / Paket') }}</span>
+                        <span class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Cari Nomor Cicilan / Nasabah / Paket') }}</span>
                         <input
                             type="search"
                             name="search"
                             value="{{ $filters['search'] ?? '' }}"
-                            placeholder="{{ __('Nama, kode member, NIK, atau paket cicilan') }}"
+                            placeholder="{{ __('Nomor cicilan, nama, kode member, NIK, atau paket cicilan') }}"
                             class="rounded-md border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/30 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100"
                         >
                     </label>
