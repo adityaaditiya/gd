@@ -6,6 +6,7 @@ use App\Models\Barang;
 use App\Models\MasterKodeGroup;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -16,19 +17,7 @@ class BarangController extends Controller
     {
         $barangs = Barang::query()
             ->orderBy('nama_barang')
-            ->get([
-                'id',
-                'kode_barcode',
-                'nama_barang',
-                'kode_intern',
-                'kode_baki',
-                'kode_jenis',
-                'berat',
-                'harga',
-                'kadar',
-                'kode_group',
-                'created_at',
-            ]);
+            ->get($this->barangIndexColumns());
 
         return view('barang.data-barang', [
             'barangs' => $barangs,
@@ -135,5 +124,39 @@ class BarangController extends Controller
         return redirect()
             ->route('barang.data-barang')
             ->with('status', __('Data barang berhasil dihapus.'));
+    }
+
+    private function barangIndexColumns(): array
+    {
+        static $columns;
+
+        if ($columns !== null) {
+            return $columns;
+        }
+
+        if (! Schema::hasTable('barangs')) {
+            return $columns = [];
+        }
+
+        $available = Schema::getColumnListing('barangs');
+
+        $preferred = [
+            'id',
+            'kode_barcode',
+            'nama_barang',
+            'kode_intern',
+            'kode_baki',
+            'kode_jenis',
+            'berat',
+            'harga',
+            'kadar',
+            'kode_group',
+            'created_at',
+        ];
+
+        return $columns = array_values(array_filter(
+            $preferred,
+            fn ($column) => in_array($column, $available, true)
+        ));
     }
 }
