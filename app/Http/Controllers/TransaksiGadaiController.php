@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BarangJaminan;
+use App\Models\MasterPerhitunganGadai;
 use App\Models\MutasiKas;
 use App\Models\PerpanjanganGadai;
 use App\Models\Nasabah;
@@ -107,11 +108,33 @@ class TransaksiGadaiController extends Controller
             ->limit(100)
             ->get();
 
+        $masterPerhitunganGadai = MasterPerhitunganGadai::query()
+            ->orderBy('type')
+            ->orderBy('range_awal')
+            ->get();
+
+        $masterPerhitunganGadaiForJs = $masterPerhitunganGadai
+            ->map(static function (MasterPerhitunganGadai $row) {
+                return [
+                    'type' => $row->type,
+                    'range_awal' => (float) $row->range_awal,
+                    'range_akhir' => (float) $row->range_akhir,
+                    'tarif_bunga_harian' => (float) $row->tarif_bunga_harian,
+                    'tenor_hari' => (int) $row->tenor_hari,
+                    'jatuh_tempo_awal' => (int) $row->jatuh_tempo_awal,
+                    'biaya_admin' => (float) $row->biaya_admin,
+                ];
+            })
+            ->values()
+            ->toArray();
+
         return view('gadai.pemberian-kredit', [
             'barangSiapGadai' => $barangSiapGadai,
             'nasabahList' => $nasabahList,
             'today' => Carbon::today()->toDateString(),
             'defaultNoSbg' => $this->nextNoSbg(Carbon::today()),
+            'masterPerhitunganGadai' => $masterPerhitunganGadai,
+            'masterPerhitunganGadaiForJs' => $masterPerhitunganGadaiForJs,
         ]);
     }
 
@@ -140,6 +163,27 @@ class TransaksiGadaiController extends Controller
 
         $nilaiTaksiran = (float) $barangCollection->sum('nilai_taksiran');
         $uangPinjaman = (float) $data['uang_pinjaman'];
+
+        $masterFormula = MasterPerhitunganGadai::query()
+            ->where('type', $data['type'])
+            ->where('range_awal', '<=', $uangPinjaman)
+            ->where('range_akhir', '>=', $uangPinjaman)
+            ->orderBy('range_awal')
+            ->first();
+
+        if (!$masterFormula) {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'type' => __('Tidak ditemukan rumus master untuk type :type dengan nominal :amount.', [
+                        'type' => $data['type'],
+                        'amount' => $this->formatCurrency($uangPinjaman),
+                    ]),
+                ]);
+        }
+
+        $data['type'] = $masterFormula->type;
+        $data['biaya_admin'] = $this->formatDecimal((float) $masterFormula->biaya_admin);
         $biayaAdmin = (float) $data['biaya_admin'];
         $biayaPremi = (float) $data['premi'];
         $totalPotongan = $biayaAdmin + $biayaPremi;
@@ -176,10 +220,11 @@ class TransaksiGadaiController extends Controller
         }
 
         $tanggalGadai = Carbon::parse($data['tanggal_gadai']);
-        $jatuhTempo = Carbon::parse($data['jatuh_tempo_awal']);
+        $jatuhTempo = $tanggalGadai->copy()->addDays((int) $masterFormula->jatuh_tempo_awal);
+        $data['jatuh_tempo_awal'] = $jatuhTempo->toDateString();
 
         $tenorHari = max(1, $tanggalGadai->diffInDays($jatuhTempo) + 1);
-        $tarifBungaHarian = 0.0015; // 0.15% per hari
+        $tarifBungaHarian = max(0, (float) $masterFormula->tarif_bunga_harian);
         $totalBunga = $this->formatDecimal($uangPinjaman * $tarifBungaHarian * $tenorHari);
         $hariBerjalan = $this->calculateActualDays($tanggalGadai, Carbon::today());
         $bungaTerutangRiil = $this->formatDecimal(
@@ -206,6 +251,7 @@ class TransaksiGadaiController extends Controller
                 'no_sbg' => $noSbg,
                 'nasabah_id' => $data['nasabah_id'],
                 'pegawai_kasir_id' => $kasirId,
+                'type' => $data['type'],
                 'tanggal_gadai' => $data['tanggal_gadai'],
                 'jatuh_tempo_awal' => $data['jatuh_tempo_awal'],
                 'tenor_hari' => $tenorHari,
@@ -762,6 +808,7 @@ class TransaksiGadaiController extends Controller
                 Rule::exists('barang_jaminan', 'barang_id')->whereNull('transaksi_id'),
             ],
             'nasabah_id' => ['required', 'exists:nasabahs,id'],
+            'type' => ['required', 'string', 'max:100'],
             'tanggal_gadai' => ['required', 'date'],
             'jatuh_tempo_awal' => ['required', 'date', 'after_or_equal:tanggal_gadai'],
             'uang_pinjaman' => ['required', 'string'],
@@ -770,6 +817,7 @@ class TransaksiGadaiController extends Controller
         ]);
 
         $validated['barang_ids'] = array_values(array_map('strval', $validated['barang_ids']));
+        $validated['type'] = trim($validated['type']);
         $validated['uang_pinjaman'] = $this->toDecimalString($validated['uang_pinjaman']);
         $validated['biaya_admin'] = $this->toDecimalString($validated['biaya_admin'] ?? '0');
         $validated['premi'] = $this->toDecimalString($validated['premi'] ?? '0');

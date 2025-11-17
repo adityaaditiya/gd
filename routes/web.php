@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\MasterKodeGroupController;
+use App\Http\Controllers\Admin\MasterPerhitunganGadaiController;
 use App\Http\Controllers\Admin\UserAccessController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\BarangController;
@@ -198,6 +199,11 @@ Route::middleware(['auth'])->group(function () {
             Route::post('master-kode-group', [MasterKodeGroupController::class, 'store'])->name('master-kode-group.store');
             Route::put('master-kode-group/{masterKodeGroup}', [MasterKodeGroupController::class, 'update'])->name('master-kode-group.update');
             Route::delete('master-kode-group/{masterKodeGroup}', [MasterKodeGroupController::class, 'destroy'])->name('master-kode-group.destroy');
+
+            Route::get('master-perhitungan-gadai', [MasterPerhitunganGadaiController::class, 'index'])->name('master-perhitungan-gadai.index');
+            Route::post('master-perhitungan-gadai', [MasterPerhitunganGadaiController::class, 'store'])->name('master-perhitungan-gadai.store');
+            Route::put('master-perhitungan-gadai/{masterPerhitunganGadai}', [MasterPerhitunganGadaiController::class, 'update'])->name('master-perhitungan-gadai.update');
+            Route::delete('master-perhitungan-gadai/{masterPerhitunganGadai}', [MasterPerhitunganGadaiController::class, 'destroy'])->name('master-perhitungan-gadai.destroy');
 
             Route::controller(UserAccessController::class)
                 ->prefix('access')
