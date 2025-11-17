@@ -113,12 +113,28 @@ class TransaksiGadaiController extends Controller
             ->orderBy('range_awal')
             ->get();
 
+        $masterPerhitunganGadaiForJs = $masterPerhitunganGadai
+            ->map(static function (MasterPerhitunganGadai $row) {
+                return [
+                    'type' => $row->type,
+                    'range_awal' => (float) $row->range_awal,
+                    'range_akhir' => (float) $row->range_akhir,
+                    'tarif_bunga_harian' => (float) $row->tarif_bunga_harian,
+                    'tenor_hari' => (int) $row->tenor_hari,
+                    'jatuh_tempo_awal' => (int) $row->jatuh_tempo_awal,
+                    'biaya_admin' => (float) $row->biaya_admin,
+                ];
+            })
+            ->values()
+            ->toArray();
+
         return view('gadai.pemberian-kredit', [
             'barangSiapGadai' => $barangSiapGadai,
             'nasabahList' => $nasabahList,
             'today' => Carbon::today()->toDateString(),
             'defaultNoSbg' => $this->nextNoSbg(Carbon::today()),
             'masterPerhitunganGadai' => $masterPerhitunganGadai,
+            'masterPerhitunganGadaiForJs' => $masterPerhitunganGadaiForJs,
         ]);
     }
 
