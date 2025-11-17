@@ -21,6 +21,7 @@ class TransaksiGadai extends Model
         'no_sbg',
         'nasabah_id',
         'pegawai_kasir_id',
+        'type',
         'tanggal_gadai',
         'jatuh_tempo_awal',
         'tenor_hari',
