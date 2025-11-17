@@ -948,6 +948,17 @@
                             >
                                 {{ __('Master Kode Group') }}
                             </a>
+                            <a
+                                href="{{ route('admin.master-perhitungan-gadai.index') }}"
+                                wire:navigate
+                                @class([
+                                    'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                    'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('admin.master-perhitungan-gadai.*'),
+                                    'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('admin.master-perhitungan-gadai.*'),
+                                ])
+                            >
+                                {{ __('Master Perhitungan Gadai') }}
+                            </a>
                         </div>
                     </div>
                 @endif

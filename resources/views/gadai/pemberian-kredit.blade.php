@@ -109,7 +109,9 @@
                                 <p class="text-sm text-neutral-600 dark:text-neutral-300">{{ __('Lengkapi informasi kontrak dan pastikan plafon pinjaman tidak melebihi 94% dari nilai taksiran.') }}</p>
                             </div>
                         </div> -->
-<div></div>
+                        @php
+                            $typeOptions = $masterPerhitunganGadai->pluck('type')->unique()->values();
+                        @endphp
                         <div class="grid gap-6 lg:grid-cols-2">
                             <div class="flex flex-col gap-2">
                                 <label for="no_sbg" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Nomor SBG') }}</label>
@@ -158,6 +160,30 @@
                             </div>
 
                             <div class="flex flex-col gap-2">
+                                <label for="type" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Type Kredit') }}</label>
+                                <select
+                                    id="type"
+                                    name="type"
+                                    {{ $typeOptions->isEmpty() ? 'disabled' : '' }}
+                                    required
+                                    class="block w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-neutral-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+                                >
+                                    <option value="" disabled {{ old('type') ? '' : 'selected' }} data-placeholder="true">{{ __('Pilih type kredit') }}</option>
+                                    @foreach ($typeOptions as $option)
+                                        <option value="{{ $option }}" {{ old('type') === $option ? 'selected' : '' }}>{{ $option }}</option>
+                                    @endforeach
+                                </select>
+                                @if ($typeOptions->isEmpty())
+                                    <p class="text-xs text-amber-600 dark:text-amber-400">{{ __('Belum ada konfigurasi Master Perhitungan Gadai. Tambahkan data terlebih dahulu untuk mengaktifkan form ini.') }}</p>
+                                @else
+                                    <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Tarif bunga, biaya admin, dan jatuh tempo mengikuti type yang dipilih.') }}</p>
+                                @endif
+                                @error('type')
+                                    <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="flex flex-col gap-2">
                                 <label for="tanggal_gadai" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Tanggal Gadai') }}</label>
                                 <input
                                     type="date"
@@ -183,11 +209,13 @@
                                     name="jatuh_tempo_awal"
                                     value="{{ old('jatuh_tempo_awal') }}"
                                     required
-                                    class="block w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+                                    readonly
+                                    class="block w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-neutral-300 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
                                 />
                                 @error('jatuh_tempo_awal')
                                     <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                 @enderror
+                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Tanggal jatuh tempo dihitung otomatis dari hari master yang terdaftar pada type yang dipilih.') }}</p>
                             </div>
 
                             <div class="flex flex-col gap-2">
@@ -199,7 +227,7 @@
                                     readonly
                                     class="block w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-neutral-300 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
                                 />
-                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Tenor dihitung otomatis dari tanggal gadai dan jatuh tempo secara inklusif dengan minimum 1 hari.') }}</p>
+                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Tenor dihitung otomatis dari tanggal gadai dan jatuh tempo yang bersumber dari Master Perhitungan Gadai.') }}</p>
                             </div>
 
                             <div class="flex flex-col gap-2">
@@ -217,6 +245,33 @@
                                 @error('uang_pinjaman')
                                     <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                 @enderror
+                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Masukkan nominal pinjaman untuk menentukan range master yang aktif.') }}</p>
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                                <label for="tarif_bunga_harian_input" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Tarif Bunga Harian (Desimal)') }}</label>
+                                <input
+                                    type="number"
+                                    step="0.0001"
+                                    min="0"
+                                    max="1"
+                                    id="tarif_bunga_harian_input"
+                                    value="{{ old('tarif_bunga_harian') }}"
+                                    placeholder="0.0000"
+                                    readonly
+                                    class="block w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-neutral-300 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
+                                />
+                                <p
+                                    class="text-xs text-neutral-500 dark:text-neutral-400"
+                                    data-formula-helper
+                                    data-default-message="{{ __('Tarif bunga, biaya admin, dan jatuh tempo mengikuti Master Perhitungan Gadai.') }}"
+                                    data-type-message="{{ __('Pilih type kredit terlebih dahulu untuk memuat tarif master.') }}"
+                                    data-amount-message="{{ __('Masukkan nominal pinjaman untuk mencari range master yang tepat.') }}"
+                                    data-not-found-message="{{ __('Tidak ada konfigurasi master yang cocok untuk nominal :amount.') }}"
+                                    data-empty-message="{{ __('Belum ada data Master Perhitungan Gadai. Silakan tambahkan di menu Master terlebih dahulu.') }}"
+                                >
+                                    {{ __('Tarif bunga, biaya admin, dan jatuh tempo mengikuti Master Perhitungan Gadai.') }}
+                                </p>
                             </div>
 
                             <div class="flex flex-col gap-2">
@@ -228,11 +283,13 @@
                                     name="biaya_admin"
                                     value="{{ old('biaya_admin') }}"
                                     data-currency-input
-                                    class="block w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+                                    readonly
+                                    class="block w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-neutral-300 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
                                 />
                                 @error('biaya_admin')
                                     <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                 @enderror
+                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Biaya admin mengikuti konfigurasi Master Perhitungan Gadai dan tidak dapat diubah manual.') }}</p>
                             </div>
 
                             <div class="flex flex-col gap-2">
@@ -275,7 +332,7 @@
                             </div>
 
                             <div class="flex flex-col gap-2">
-                                <label for="estimasi_bunga_display" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Estimasi Bunga (0,15%/hari)') }}</label>
+                                <label for="estimasi_bunga_display" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Estimasi Bunga (Tarif × Tenor)') }}</label>
                                 <input
                                     type="text"
                                     id="estimasi_bunga_display"
@@ -283,7 +340,7 @@
                                     readonly
                                     class="block w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-neutral-300 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
                                 />
-                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Nilai bunga mengikuti tarif flat 0,15% per hari dikalikan dengan nominal pinjaman dan tenor.') }}</p>
+                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Nilai bunga mengikuti tarif harian dari master dikalikan nominal pinjaman dan tenor aktual.') }}</p>
                             </div>
                         </div>
                     </section>
@@ -352,6 +409,9 @@
                     const barangSearchInput = document.getElementById('barang_search');
                     const nasabahSelect = document.getElementById('nasabah_id');
                     const nasabahSearchInput = document.getElementById('nasabah_search');
+                    const typeSelect = document.getElementById('type');
+                    const tarifBungaInput = document.getElementById('tarif_bunga_harian_input');
+                    const formulaHelper = root.querySelector('[data-formula-helper]');
 
                     if (!select) return;
 
@@ -427,6 +487,165 @@
                         return Math.max(1, diffDays + 1);
                     };
 
+                    const masterFormulas = @json(
+                        $masterPerhitunganGadai
+                            ->map(function ($row) {
+                                return [
+                                    'type' => $row->type,
+                                    'range_awal' => (float) $row->range_awal,
+                                    'range_akhir' => (float) $row->range_akhir,
+                                    'tarif_bunga_harian' => (float) $row->tarif_bunga_harian,
+                                    'tenor_hari' => (int) $row->tenor_hari,
+                                    'jatuh_tempo_awal' => (int) $row->jatuh_tempo_awal,
+                                    'biaya_admin' => (float) $row->biaya_admin,
+                                ];
+                            })
+                            ->values()
+                    );
+                    const todayString = root.dataset.today ?? '';
+                    const defaultFormulaMessage = formulaHelper?.dataset.defaultMessage ?? '';
+                    const typeMessage = formulaHelper?.dataset.typeMessage ?? defaultFormulaMessage;
+                    const amountMessage = formulaHelper?.dataset.amountMessage ?? defaultFormulaMessage;
+                    const notFoundTemplate = formulaHelper?.dataset.notFoundMessage ?? defaultFormulaMessage;
+                    const emptyMessage = formulaHelper?.dataset.emptyMessage ?? defaultFormulaMessage;
+
+                    const setFormulaHelper = (message, state = 'muted') => {
+                        if (!formulaHelper) return;
+                        formulaHelper.textContent = message;
+                        formulaHelper.classList.remove(
+                            'text-neutral-500',
+                            'dark:text-neutral-400',
+                            'text-emerald-600',
+                            'dark:text-emerald-300',
+                            'text-rose-600',
+                            'dark:text-rose-400'
+                        );
+
+                        if (state === 'success') {
+                            formulaHelper.classList.add('text-emerald-600', 'dark:text-emerald-300');
+                        } else if (state === 'error') {
+                            formulaHelper.classList.add('text-rose-600', 'dark:text-rose-400');
+                        } else {
+                            formulaHelper.classList.add('text-neutral-500', 'dark:text-neutral-400');
+                        }
+                    };
+
+                    const toInputDate = (date) => {
+                        if (isInvalidDate(date)) return '';
+                        const year = date.getFullYear();
+                        const month = `${date.getMonth() + 1}`.padStart(2, '0');
+                        const day = `${date.getDate()}`.padStart(2, '0');
+                        return `${year}-${month}-${day}`;
+                    };
+
+                    const applyCurrencyValue = (input, amount) => {
+                        if (!input) return;
+                        if (amount === null || amount === undefined || Number.isNaN(amount)) {
+                            input.value = '';
+                            input.dispatchEvent(new Event('input', { bubbles: true }));
+                            return;
+                        }
+
+                        input.value = amount.toString();
+                        input.dispatchEvent(new Event('input', { bubbles: true }));
+                    };
+
+                    const updateFormulaFields = () => {
+                        if (!typeSelect || !pinjamanInput) {
+                            return null;
+                        }
+
+                        if (!masterFormulas.length) {
+                            setFormulaHelper(emptyMessage, 'error');
+                            applyCurrencyValue(biayaAdminInput, null);
+                            if (tarifBungaInput) {
+                                tarifBungaInput.value = '';
+                            }
+                            return null;
+                        }
+
+                        const selectedType = typeSelect.value?.trim();
+                        const nominal = parseDecimal(pinjamanInput.value ?? '');
+                        const tanggalGadaiValue = tanggalGadaiInput?.value ?? todayString ?? '';
+
+                        if (!selectedType) {
+                            setFormulaHelper(typeMessage, 'muted');
+                            applyCurrencyValue(biayaAdminInput, null);
+                            if (tarifBungaInput) {
+                                tarifBungaInput.value = '';
+                            }
+                            if (jatuhTempoInput && tanggalGadaiValue) {
+                                jatuhTempoInput.value = tanggalGadaiValue;
+                            }
+                            return null;
+                        }
+
+                        if (nominal <= 0) {
+                            setFormulaHelper(amountMessage, 'muted');
+                            applyCurrencyValue(biayaAdminInput, null);
+                            if (tarifBungaInput) {
+                                tarifBungaInput.value = '';
+                            }
+                            if (jatuhTempoInput && tanggalGadaiValue) {
+                                jatuhTempoInput.value = tanggalGadaiValue;
+                            }
+                            return null;
+                        }
+
+                        const formula = masterFormulas.find((candidate) => {
+                            if (!candidate || candidate.type !== selectedType) {
+                                return false;
+                            }
+
+                            const minimum = Number(candidate.range_awal ?? 0);
+                            const maximum = Number(candidate.range_akhir ?? 0);
+                            return nominal >= minimum && nominal <= maximum;
+                        });
+
+                        if (!formula) {
+                            const message = notFoundTemplate.replace(':amount', formatCurrency(nominal));
+                            setFormulaHelper(message, 'error');
+                            applyCurrencyValue(biayaAdminInput, null);
+                            if (tarifBungaInput) {
+                                tarifBungaInput.value = '';
+                            }
+                            if (jatuhTempoInput && tanggalGadaiValue) {
+                                jatuhTempoInput.value = tanggalGadaiValue;
+                            }
+                            return null;
+                        }
+
+                        if (tarifBungaInput) {
+                            const rate = Number(formula.tarif_bunga_harian ?? 0);
+                            tarifBungaInput.value = Number.isFinite(rate) ? rate.toString() : '';
+                        }
+
+                        applyCurrencyValue(biayaAdminInput, Number(formula.biaya_admin ?? 0));
+
+                        if (jatuhTempoInput) {
+                            const baseDateSource = tanggalGadaiValue || todayString;
+                            let baseDate = baseDateSource ? new Date(baseDateSource) : new Date();
+
+                            if (isInvalidDate(baseDate)) {
+                                baseDate = new Date();
+                            }
+
+                            const offsetDays = Number.parseInt(formula.jatuh_tempo_awal ?? 0, 10);
+                            if (!Number.isNaN(offsetDays)) {
+                                const dueDate = new Date(baseDate);
+                                dueDate.setDate(dueDate.getDate() + offsetDays);
+                                jatuhTempoInput.value = toInputDate(dueDate);
+                            }
+                        }
+
+                        setFormulaHelper(
+                            `${formula.type} • ${formatCurrency(formula.range_awal ?? 0)} - ${formatCurrency(formula.range_akhir ?? 0)}`,
+                            'success'
+                        );
+
+                        return formula;
+                    };
+
                     let totalNilaiTerpilih = 0;
                     const emptyListMessage = @json(__('Belum ada barang dipilih.'));
 
@@ -487,7 +706,8 @@
 
                         const tanggalGadai = tanggalGadaiInput?.value ? new Date(tanggalGadaiInput.value) : null;
                         const jatuhTempo = jatuhTempoInput?.value ? new Date(jatuhTempoInput.value) : null;
-                        const ratePerDay = 0.0015;
+                        const ratePerDayRaw = tarifBungaInput ? parseDecimal(tarifBungaInput.value ?? '') : 0;
+                        const ratePerDay = ratePerDayRaw > 0 ? ratePerDayRaw : 0;
                         const tenor = calculateActualDays(tanggalGadai, jatuhTempo);
 
                         tenorDisplay.value = tenor > 0 ? `${tenor} hari` : '—';
@@ -518,13 +738,24 @@
                     nasabahSearchInput?.addEventListener('input', () => {
                         filterSelectOptions(nasabahSearchInput, nasabahSelect);
                     });
-                    tanggalGadaiInput?.addEventListener('change', updateBunga);
+                    tanggalGadaiInput?.addEventListener('change', () => {
+                        updateFormulaFields();
+                        updateBunga();
+                    });
                     jatuhTempoInput?.addEventListener('change', updateBunga);
-                    pinjamanInput?.addEventListener('input', updateBunga);
+                    typeSelect?.addEventListener('change', () => {
+                        updateFormulaFields();
+                        updateBunga();
+                    });
+                    pinjamanInput?.addEventListener('input', () => {
+                        updateFormulaFields();
+                        updateBunga();
+                    });
                     biayaAdminInput?.addEventListener('input', updateBunga);
                     premiInput?.addEventListener('input', updateBunga);
 
                     updateSummary();
+                    updateFormulaFields();
                     updateBunga();
                     filterSelectOptions(barangSearchInput, select);
                     filterSelectOptions(nasabahSearchInput, nasabahSelect);
