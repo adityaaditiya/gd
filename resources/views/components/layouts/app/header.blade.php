@@ -30,6 +30,12 @@
                             <flux:menu.item :href="route('admin.users.index')" icon="users" :current="request()->routeIs('admin.users.*')" wire:navigate>
                                 {{ __('Master User') }}
                             </flux:menu.item>
+                            <flux:menu.item :href="route('admin.master-kode-group.index')" icon="tag" :current="request()->routeIs('admin.master-kode-group.*')" wire:navigate>
+                                {{ __('Master Kode Group') }}
+                            </flux:menu.item>
+                            <flux:menu.item :href="route('admin.master-perhitungan-gadai.index')" icon="calculator" :current="request()->routeIs('admin.master-perhitungan-gadai.*')" wire:navigate>
+                                {{ __('Master Perhitungan Gadai') }}
+                            </flux:menu.item>
                         </flux:menu>
                     </flux:dropdown>
                 @endif
@@ -137,6 +143,14 @@
                             wire:navigate
                         >
                             {{ __('Master Kode Group') }}
+                        </flux:navlist.item>
+                        <flux:navlist.item
+                            icon="calculator"
+                            :href="route('admin.master-perhitungan-gadai.index')"
+                            :current="request()->routeIs('admin.master-perhitungan-gadai.*')"
+                            wire:navigate
+                        >
+                            {{ __('Master Perhitungan Gadai') }}
                         </flux:navlist.item>
                     </flux:navlist.group>
                 @endif
