@@ -489,15 +489,17 @@
 
                     const masterFormulas = @json(
                         $masterPerhitunganGadai
-                            ->map(fn ($row) => [
-                                'type' => $row->type,
-                                'range_awal' => (float) $row->range_awal,
-                                'range_akhir' => (float) $row->range_akhir,
-                                'tarif_bunga_harian' => (float) $row->tarif_bunga_harian,
-                                'tenor_hari' => (int) $row->tenor_hari,
-                                'jatuh_tempo_awal' => (int) $row->jatuh_tempo_awal,
-                                'biaya_admin' => (float) $row->biaya_admin,
-                            ])
+                            ->map(function ($row) {
+                                return [
+                                    'type' => $row->type,
+                                    'range_awal' => (float) $row->range_awal,
+                                    'range_akhir' => (float) $row->range_akhir,
+                                    'tarif_bunga_harian' => (float) $row->tarif_bunga_harian,
+                                    'tenor_hari' => (int) $row->tenor_hari,
+                                    'jatuh_tempo_awal' => (int) $row->jatuh_tempo_awal,
+                                    'biaya_admin' => (float) $row->biaya_admin,
+                                ];
+                            })
                             ->values()
                     );
                     const todayString = root.dataset.today ?? '';
