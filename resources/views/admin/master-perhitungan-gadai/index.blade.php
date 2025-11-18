@@ -179,26 +179,63 @@
             </div>
 
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-neutral-200 text-sm dark:divide-neutral-700">
+                <table
+                    class="min-w-full divide-y divide-neutral-200 text-sm dark:divide-neutral-700"
+                    data-master-table
+                >
                     <thead class="bg-neutral-50 dark:bg-neutral-800/50">
                         <tr>
-                            <th scope="col" class="px-4 py-3 text-left font-semibold text-neutral-700 dark:text-neutral-200">{{ __('Type') }}</th>
-                            <th scope="col" class="px-4 py-3 text-left font-semibold text-neutral-700 dark:text-neutral-200">{{ __('Range Awal') }}</th>
-                            <th scope="col" class="px-4 py-3 text-left font-semibold text-neutral-700 dark:text-neutral-200">{{ __('Range Akhir') }}</th>
-                            <th scope="col" class="px-4 py-3 text-left font-semibold text-neutral-700 dark:text-neutral-200">{{ __('Tarif Bunga Harian') }}</th>
-                            <th scope="col" class="px-4 py-3 text-left font-semibold text-neutral-700 dark:text-neutral-200">{{ __('Tenor (Hari)') }}</th>
-                            <th scope="col" class="px-4 py-3 text-left font-semibold text-neutral-700 dark:text-neutral-200">{{ __('Jatuh Tempo Awal (Hari)') }}</th>
-                            <th scope="col" class="px-4 py-3 text-left font-semibold text-neutral-700 dark:text-neutral-200">{{ __('Biaya Admin') }}</th>
-                            <th scope="col" class="px-4 py-3 text-left font-semibold text-neutral-700 dark:text-neutral-200">{{ __('Aksi') }}</th>
+                            @php
+                                $sortableColumns = [
+                                    ['key' => 'type', 'label' => __('Type')],
+                                    ['key' => 'range_awal', 'label' => __('Range Awal')],
+                                    ['key' => 'range_akhir', 'label' => __('Range Akhir')],
+                                    ['key' => 'tarif_bunga_harian', 'label' => __('Tarif Bunga Harian')],
+                                    ['key' => 'tenor_hari', 'label' => __('Tenor (Hari)')],
+                                    ['key' => 'jatuh_tempo_awal', 'label' => __('Jatuh Tempo Awal (Hari)')],
+                                    ['key' => 'biaya_admin', 'label' => __('Biaya Admin')],
+                                ];
+                            @endphp
+
+                            @foreach ($sortableColumns as $column)
+                                <th scope="col" class="px-4 py-3 text-left font-semibold text-neutral-700 dark:text-neutral-200">
+                                    <button
+                                        type="button"
+                                        class="flex items-center gap-1"
+                                        data-sort-key="{{ $column['key'] }}"
+                                    >
+                                        <span>{{ $column['label'] }}</span>
+                                        <span data-sort-icon class="hidden text-xs text-neutral-400 dark:text-neutral-500">
+                                            <svg class="size-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
+                                            </svg>
+                                        </span>
+                                    </button>
+                                </th>
+                            @endforeach
+
+                            <th scope="col" class="px-4 py-3 text-left font-semibold text-neutral-700 dark:text-neutral-200">
+                                <span>{{ __('Aksi') }}</span>
+                            </th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-neutral-200 dark:divide-neutral-800">
+                    <tbody class="divide-y divide-neutral-200 dark:divide-neutral-800" data-master-rows>
                         @forelse ($perhitunganList as $perhitungan)
                             @php
                                 $isEditing = (string) old('perhitungan_id') === (string) $perhitungan->id;
                                 $value = fn($field) => $isEditing ? old($field) : $perhitungan->{$field};
                             @endphp
-                            <tr class="bg-white text-neutral-900 dark:bg-neutral-900 dark:text-white">
+                            <tr
+                                class="bg-white text-neutral-900 dark:bg-neutral-900 dark:text-white"
+                                data-master-row
+                                data-type="{{ $perhitungan->type }}"
+                                data-range-awal="{{ $perhitungan->range_awal }}"
+                                data-range-akhir="{{ $perhitungan->range_akhir }}"
+                                data-tarif-bunga-harian="{{ $perhitungan->tarif_bunga_harian }}"
+                                data-tenor-hari="{{ $perhitungan->tenor_hari }}"
+                                data-jatuh-tempo-awal="{{ $perhitungan->jatuh_tempo_awal }}"
+                                data-biaya-admin="{{ $perhitungan->biaya_admin }}"
+                            >
                                 <td class="px-4 py-4 font-semibold">{{ $perhitungan->type }}</td>
                                 <td class="px-4 py-4">Rp {{ number_format($perhitungan->range_awal, 0, ',', '.') }}</td>
                                 <td class="px-4 py-4">Rp {{ number_format($perhitungan->range_akhir, 0, ',', '.') }}</td>
@@ -385,4 +422,113 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const table = document.querySelector('[data-master-table]');
+
+            if (!table) {
+                return;
+            }
+
+            const rowsContainer = table.querySelector('[data-master-rows]');
+            const sortButtons = table.querySelectorAll('[data-sort-key]');
+            const numericKeys = new Set([
+                'range_awal',
+                'range_akhir',
+                'tarif_bunga_harian',
+                'tenor_hari',
+                'jatuh_tempo_awal',
+                'biaya_admin',
+            ]);
+
+            const state = {
+                sortKey: null,
+                sortDirection: 'asc',
+            };
+
+            const toDatasetKey = (key) =>
+                String(key ?? '')
+                    .toLowerCase()
+                    .replace(/[-_](\w)/g, (_, letter) => letter.toUpperCase());
+
+            const getRowValue = (row, key) => {
+                const datasetKey = toDatasetKey(key);
+                const raw = row?.dataset?.[datasetKey];
+
+                if (numericKeys.has(key)) {
+                    const numericValue = Number(raw);
+                    return Number.isNaN(numericValue) ? 0 : numericValue;
+                }
+
+                return String(raw ?? '').toLowerCase();
+            };
+
+            const updateSortIndicators = () => {
+                sortButtons.forEach((button) => {
+                    const icon = button.querySelector('[data-sort-icon]');
+                    const isActive = state.sortKey === button.dataset.sortKey;
+
+                    if (!icon) {
+                        return;
+                    }
+
+                    if (isActive) {
+                        icon.classList.remove('hidden');
+                        icon.classList.toggle('rotate-180', state.sortDirection === 'desc');
+                    } else {
+                        icon.classList.add('hidden');
+                        icon.classList.remove('rotate-180');
+                    }
+                });
+            };
+
+            const sortRows = () => {
+                const rows = Array.from(rowsContainer?.querySelectorAll('[data-master-row]') ?? []);
+
+                if (!state.sortKey || rows.length <= 1) {
+                    return;
+                }
+
+                const sorted = rows.sort((rowA, rowB) => {
+                    const valueA = getRowValue(rowA, state.sortKey);
+                    const valueB = getRowValue(rowB, state.sortKey);
+
+                    if (valueA < valueB) {
+                        return state.sortDirection === 'asc' ? -1 : 1;
+                    }
+
+                    if (valueA > valueB) {
+                        return state.sortDirection === 'asc' ? 1 : -1;
+                    }
+
+                    return 0;
+                });
+
+                sorted.forEach((row) => rowsContainer.appendChild(row));
+            };
+
+            sortButtons.forEach((button) => {
+                const key = button.dataset.sortKey;
+
+                if (!key) {
+                    return;
+                }
+
+                button.addEventListener('click', () => {
+                    if (state.sortKey === key) {
+                        state.sortDirection = state.sortDirection === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        state.sortKey = key;
+                        state.sortDirection = 'asc';
+                    }
+
+                    sortRows();
+                    updateSortIndicators();
+                });
+            });
+
+            updateSortIndicators();
+        });
+    </script>
 </x-layouts.app>
