@@ -86,7 +86,7 @@
                                         <dd id="ringkasan-total-nilai" class="font-semibold text-neutral-900 dark:text-white">—</dd>
                                     </div>
                                     <div class="flex justify-between gap-2">
-                                        <dt class="text-neutral-600 dark:text-neutral-300">{{ __('Plafon Maksimal (94%)') }}</dt>
+                                        <dt class="text-neutral-600 dark:text-neutral-300">{{ __('Plafon Maksimal (80%)') }}</dt>
                                         <dd id="ringkasan-plafon" class="font-semibold text-neutral-900 dark:text-white">—</dd>
                                     </div>
                                 </dl>
@@ -96,7 +96,7 @@
                                         <li class="italic text-neutral-500 dark:text-neutral-400">{{ __('Belum ada barang dipilih.') }}</li>
                                     </ul>
                                 </div>
-                                <p class="mt-3 text-xs text-neutral-500 dark:text-neutral-400">{{ __('Total nilai taksiran digunakan sebagai acuan batas plafon pinjaman 94%.') }}</p>
+                                <p class="mt-3 text-xs text-neutral-500 dark:text-neutral-400">{{ __('Total nilai taksiran digunakan sebagai acuan batas plafon pinjaman 80%.') }}</p>
                             </div>
                         </div>
                     </section>
@@ -106,7 +106,7 @@
                             <span class="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-600 text-sm font-semibold text-white">2</span>
                             <div>
                                 <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Input Detail Kontrak') }}</h2>
-                                <p class="text-sm text-neutral-600 dark:text-neutral-300">{{ __('Lengkapi informasi kontrak dan pastikan plafon pinjaman tidak melebihi 94% dari nilai taksiran.') }}</p>
+                                <p class="text-sm text-neutral-600 dark:text-neutral-300">{{ __('Lengkapi informasi kontrak dan pastikan plafon pinjaman tidak melebihi 80% dari nilai taksiran.') }}</p>
                             </div>
                         </div> -->
                         @php
@@ -356,7 +356,7 @@
 
                         <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-700 dark:border-neutral-700 dark:bg-neutral-900/50 dark:black">
                             <ul class="list-disc space-y-1 pl-5">
-                                <li>{{ __('Nominal pinjaman otomatis divalidasi agar tidak melampaui plafon 94% dari nilai taksiran.') }}</li>
+                                <li>{{ __('Nominal pinjaman otomatis divalidasi agar tidak melampaui plafon 80% dari nilai taksiran.') }}</li>
                                 <li>{{ __('Barang jaminan yang dipilih tidak lagi tampil pada daftar siap gadai setelah SBG terbit.') }}</li>
                                 <li>{{ __('Kasir akan diarahkan ke halaman indeks kontrak untuk menindaklanjuti proses berikutnya.') }}</li>
                             </ul>
@@ -683,7 +683,7 @@
                         });
 
                         ringkasanTotal.textContent = formatCurrency(totalNilaiTerpilih);
-                        ringkasanPlafon.textContent = formatCurrency(totalNilaiTerpilih * 0.94);
+                        ringkasanPlafon.textContent = formatCurrency(totalNilaiTerpilih * 0.8);
                         select?.setAttribute('data-total-nilai', totalNilaiTerpilih.toString());
                     };
 
