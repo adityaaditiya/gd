@@ -29,14 +29,14 @@
                 <label for="search" class="text-sm font-medium text-neutral-700 dark:text-neutral-300">{{ __('Cari No. SBG / Barang') }}</label>
                 <input id="search" name="search" type="search" value="{{ $filters['search'] ?? '' }}" class="form-input rounded-md border-neutral-300 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white" placeholder="{{ __('Masukkan kata kunci') }}">
             </div>
-            <div class="flex flex-col gap-1">
+            <!-- <div class="flex flex-col gap-1">
                 <label for="per_page" class="text-sm font-medium text-neutral-700 dark:text-neutral-300">{{ __('Data per halaman') }}</label>
                 <select id="per_page" name="per_page" class="form-select rounded-md border-neutral-300 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white">
                     @foreach ([10, 25, 50, 100] as $size)
                         <option value="{{ $size }}" @selected(($filters['per_page'] ?? 25) == $size)>{{ $size }}</option>
                     @endforeach
                 </select>
-            </div>
+            </div> -->
             <div class="md:col-span-5 flex items-center justify-end gap-2">
                 <button type="reset" onclick="window.location='{{ route('laporan.lelang') }}'" class="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100 dark:border-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-800">
                     {{ __('Atur Ulang') }}
@@ -47,25 +47,7 @@
             </div>
         </form>
 
-        <div class="grid gap-3 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-700 dark:bg-neutral-900 md:grid-cols-4">
-            <div class="flex flex-col gap-1">
-                <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Total Harga Laku') }}</span>
-                <span class="text-xl font-semibold text-neutral-900 dark:text-white">Rp {{ number_format((float) $summary['total_harga_laku'], 0, ',', '.') }}</span>
-            </div>
-            <div class="flex flex-col gap-1">
-                <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Total Biaya Lelang') }}</span>
-                <span class="text-xl font-semibold text-neutral-900 dark:text-white">Rp {{ number_format((float) $summary['total_biaya_lelang'], 0, ',', '.') }}</span>
-            </div>
-            <div class="flex flex-col gap-1">
-                <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Distribusi ke Perusahaan') }}</span>
-                <span class="text-xl font-semibold text-neutral-900 dark:text-white">Rp {{ number_format((float) $summary['total_distribusi_perusahaan'], 0, ',', '.') }}</span>
-            </div>
-            <div class="flex flex-col gap-1">
-                <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Distribusi ke Nasabah / Piutang') }}</span>
-                <span class="text-xl font-semibold text-neutral-900 dark:text-white">Rp {{ number_format((float) $summary['total_distribusi_nasabah'], 0, ',', '.') }} / Rp {{ number_format((float) $summary['total_piutang_sisa'], 0, ',', '.') }}</span>
-            </div>
-        </div>
-
+        
         <div class="overflow-x-auto rounded-lg border border-neutral-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
             <table class="min-w-full divide-y divide-neutral-200 dark:divide-neutral-700">
                 <thead class="bg-neutral-50 text-xs uppercase tracking-wide text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
@@ -121,5 +103,25 @@
                 :filters="request()->except('page')"
             />
         </div>
+        
+        <div class="grid gap-3 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-700 dark:bg-neutral-900 md:grid-cols-4">
+            <div class="flex flex-col gap-1">
+                <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Total Harga Laku') }}</span>
+                <span class="text-xl font-semibold text-neutral-900 dark:text-white">Rp {{ number_format((float) $summary['total_harga_laku'], 0, ',', '.') }}</span>
+            </div>
+            <div class="flex flex-col gap-1">
+                <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Total Biaya Lelang') }}</span>
+                <span class="text-xl font-semibold text-neutral-900 dark:text-white">Rp {{ number_format((float) $summary['total_biaya_lelang'], 0, ',', '.') }}</span>
+            </div>
+            <div class="flex flex-col gap-1">
+                <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Distribusi ke Perusahaan') }}</span>
+                <span class="text-xl font-semibold text-neutral-900 dark:text-white">Rp {{ number_format((float) $summary['total_distribusi_perusahaan'], 0, ',', '.') }}</span>
+            </div>
+            <div class="flex flex-col gap-1">
+                <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Distribusi ke Nasabah / Piutang') }}</span>
+                <span class="text-xl font-semibold text-neutral-900 dark:text-white">Rp {{ number_format((float) $summary['total_distribusi_nasabah'], 0, ',', '.') }} / Rp {{ number_format((float) $summary['total_piutang_sisa'], 0, ',', '.') }}</span>
+            </div>
+        </div>
+
     </div>
 </x-layouts.app>
