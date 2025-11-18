@@ -97,7 +97,7 @@
                                 id="tarif_bunga_harian"
                                 name="tarif_bunga_harian"
                                 type="number"
-                                step="0.0001"
+                                step="0.00001"
                                 min="0"
                                 max="1"
                                 value="{{ old('tarif_bunga_harian') }}"
@@ -108,6 +108,7 @@
                                 <p class="text-sm text-rose-600">{{ $message }}</p>
                             @enderror
                             <p class="text-xs text-neutral-500">{{ __('Gunakan format desimal, contoh: 0.015 untuk 1.5% harian.') }}</p>
+                            <p class="text-xs text-neutral-500">{{ __('Panduan: untuk bunga total 2,5% dalam 30 hari gunakan ±0.00083 per hari.') }}</p>
                         </div>
                         <div class="space-y-1">
                             <label for="tenor_hari" class="block text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Tenor (Hari)') }}</label>
