@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CicilEmasInstallment;
 use App\Models\CicilEmasTransaction;
+use App\Models\MutasiKas;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -136,11 +137,55 @@ class CicilEmasInstallmentController extends Controller
             'penalty_amount' => $penaltyAmount,
         ]);
 
+        $this->recordCashLedgerEntry($installment, $paymentDate, $paidAmount, $penaltyAmount);
+
         return redirect()
             ->route('cicil-emas.angsuran-rutin', $request->query())
             ->with('status', __("Pembayaran angsuran ke-:sequence berhasil dicatat. Denda keterlambatan: Rp :penalty", [
                 'sequence' => $installment->sequence,
                 'penalty' => number_format($penaltyAmount, 2, ',', '.'),
             ]));
+}
+
+    private function recordCashLedgerEntry(
+        CicilEmasInstallment $installment,
+        Carbon $paymentDate,
+        float $paidAmount,
+        float $penaltyAmount
+    ): void {
+        $installment->loadMissing('transaction.nasabah');
+        $transaction = $installment->transaction;
+
+        if (! $transaction) {
+            return;
+        }
+
+        $totalCashIn = round($paidAmount + $penaltyAmount, 2);
+
+        if ($totalCashIn <= 0) {
+            return;
+        }
+
+        $reference = __('Angsuran Cicil Emas :nomor ke-:sequence', [
+            'nomor' => $transaction->nomor_cicilan ?? $transaction->id,
+            'sequence' => $installment->sequence,
+        ]);
+
+        MutasiKas::updateOrCreate(
+            [
+                'cicil_emas_transaction_id' => $transaction->id,
+                'referensi' => $reference,
+            ],
+            [
+                'tanggal' => $paymentDate->toDateString(),
+                'tipe' => 'masuk',
+                'jumlah' => number_format($totalCashIn, 2, '.', ''),
+                'sumber' => __('Angsuran Cicil Emas'),
+                'keterangan' => __('Pembayaran angsuran ke-:sequence untuk :nasabah', [
+                    'sequence' => $installment->sequence,
+                    'nasabah' => $transaction->nasabah?->nama ?? __('Nasabah tidak diketahui'),
+                ]),
+            ]
+        );
     }
 }
