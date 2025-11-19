@@ -425,111 +425,130 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const table = document.querySelector('[data-master-table]');
+        (() => {
+            window.appMasterPerhitunganGadai ??= {};
+            const namespace = window.appMasterPerhitunganGadai;
 
-            if (!table) {
-                return;
-            }
+            namespace.initializeSorter ??= () => {
+                const table = document.querySelector('[data-master-table]');
 
-            const rowsContainer = table.querySelector('[data-master-rows]');
-            const sortButtons = table.querySelectorAll('[data-sort-key]');
-            const numericKeys = new Set([
-                'range_awal',
-                'range_akhir',
-                'tarif_bunga_harian',
-                'tenor_hari',
-                'jatuh_tempo_awal',
-                'biaya_admin',
-            ]);
-
-            const state = {
-                sortKey: null,
-                sortDirection: 'asc',
-            };
-
-            const toDatasetKey = (key) =>
-                String(key ?? '')
-                    .toLowerCase()
-                    .replace(/[-_](\w)/g, (_, letter) => letter.toUpperCase());
-
-            const getRowValue = (row, key) => {
-                const datasetKey = toDatasetKey(key);
-                const raw = row?.dataset?.[datasetKey];
-
-                if (numericKeys.has(key)) {
-                    const numericValue = Number(raw);
-                    return Number.isNaN(numericValue) ? 0 : numericValue;
+                if (!table || table.dataset.sortInitialized === 'true') {
+                    return;
                 }
 
-                return String(raw ?? '').toLowerCase();
-            };
+                table.dataset.sortInitialized = 'true';
 
-            const updateSortIndicators = () => {
-                sortButtons.forEach((button) => {
-                    const icon = button.querySelector('[data-sort-icon]');
-                    const isActive = state.sortKey === button.dataset.sortKey;
+                const rowsContainer = table.querySelector('[data-master-rows]');
+                const sortButtons = table.querySelectorAll('[data-sort-key]');
+                const numericKeys = new Set([
+                    'range_awal',
+                    'range_akhir',
+                    'tarif_bunga_harian',
+                    'tenor_hari',
+                    'jatuh_tempo_awal',
+                    'biaya_admin',
+                ]);
 
-                    if (!icon) {
+                const state = {
+                    sortKey: null,
+                    sortDirection: 'asc',
+                };
+
+                const toDatasetKey = (key) =>
+                    String(key ?? '')
+                        .toLowerCase()
+                        .replace(/[-_](\w)/g, (_, letter) => letter.toUpperCase());
+
+                const getRowValue = (row, key) => {
+                    const datasetKey = toDatasetKey(key);
+                    const raw = row?.dataset?.[datasetKey];
+
+                    if (numericKeys.has(key)) {
+                        const numericValue = Number(raw);
+                        return Number.isNaN(numericValue) ? 0 : numericValue;
+                    }
+
+                    return String(raw ?? '').toLowerCase();
+                };
+
+                const updateSortIndicators = () => {
+                    sortButtons.forEach((button) => {
+                        const icon = button.querySelector('[data-sort-icon]');
+                        const isActive = state.sortKey === button.dataset.sortKey;
+
+                        if (!icon) {
+                            return;
+                        }
+
+                        if (isActive) {
+                            icon.classList.remove('hidden');
+                            icon.classList.toggle('rotate-180', state.sortDirection === 'desc');
+                        } else {
+                            icon.classList.add('hidden');
+                            icon.classList.remove('rotate-180');
+                        }
+                    });
+                };
+
+                const sortRows = () => {
+                    const rows = Array.from(rowsContainer?.querySelectorAll('[data-master-row]') ?? []);
+
+                    if (!state.sortKey || rows.length <= 1) {
                         return;
                     }
 
-                    if (isActive) {
-                        icon.classList.remove('hidden');
-                        icon.classList.toggle('rotate-180', state.sortDirection === 'desc');
-                    } else {
-                        icon.classList.add('hidden');
-                        icon.classList.remove('rotate-180');
+                    const sorted = rows.sort((rowA, rowB) => {
+                        const valueA = getRowValue(rowA, state.sortKey);
+                        const valueB = getRowValue(rowB, state.sortKey);
+
+                        if (valueA < valueB) {
+                            return state.sortDirection === 'asc' ? -1 : 1;
+                        }
+
+                        if (valueA > valueB) {
+                            return state.sortDirection === 'asc' ? 1 : -1;
+                        }
+
+                        return 0;
+                    });
+
+                    sorted.forEach((row) => rowsContainer.appendChild(row));
+                };
+
+                sortButtons.forEach((button) => {
+                    const key = button.dataset.sortKey;
+
+                    if (!key) {
+                        return;
                     }
+
+                    button.addEventListener('click', () => {
+                        if (state.sortKey === key) {
+                            state.sortDirection = state.sortDirection === 'asc' ? 'desc' : 'asc';
+                        } else {
+                            state.sortKey = key;
+                            state.sortDirection = 'asc';
+                        }
+
+                        sortRows();
+                        updateSortIndicators();
+                    });
                 });
+
+                updateSortIndicators();
             };
 
-            const sortRows = () => {
-                const rows = Array.from(rowsContainer?.querySelectorAll('[data-master-row]') ?? []);
-
-                if (!state.sortKey || rows.length <= 1) {
-                    return;
-                }
-
-                const sorted = rows.sort((rowA, rowB) => {
-                    const valueA = getRowValue(rowA, state.sortKey);
-                    const valueB = getRowValue(rowB, state.sortKey);
-
-                    if (valueA < valueB) {
-                        return state.sortDirection === 'asc' ? -1 : 1;
-                    }
-
-                    if (valueA > valueB) {
-                        return state.sortDirection === 'asc' ? 1 : -1;
-                    }
-
-                    return 0;
-                });
-
-                sorted.forEach((row) => rowsContainer.appendChild(row));
+            const runInitializer = () => {
+                window.requestAnimationFrame(() => namespace.initializeSorter());
             };
 
-            sortButtons.forEach((button) => {
-                const key = button.dataset.sortKey;
+            if (!namespace.listenersBound) {
+                document.addEventListener('DOMContentLoaded', runInitializer);
+                document.addEventListener('livewire:navigated', runInitializer);
+                namespace.listenersBound = true;
+            }
 
-                if (!key) {
-                    return;
-                }
-
-                button.addEventListener('click', () => {
-                    if (state.sortKey === key) {
-                        state.sortDirection = state.sortDirection === 'asc' ? 'desc' : 'asc';
-                    } else {
-                        state.sortKey = key;
-                        state.sortDirection = 'asc';
-                    }
-
-                    sortRows();
-                    updateSortIndicators();
-                });
-            });
-
-            updateSortIndicators();
-        });
+            runInitializer();
+        })();
     </script>
 </x-layouts.app>
