@@ -421,6 +421,29 @@
                     </tbody>
                 </table>
             </div>
+
+            <div class="border-t border-neutral-200 px-6 py-4 text-sm text-neutral-600 dark:border-neutral-800 dark:text-neutral-300">
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                        <label for="rowsPerPageSelect" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">
+                            Rows per page
+                            <span class="font-semibold text-neutral-900 dark:text-white" data-rows-per-page-display>10</span>
+                        </label>
+                        <select
+                            id="rowsPerPageSelect"
+                            class="w-28 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm font-semibold text-neutral-800 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white"
+                            data-rows-per-page
+                        >
+                            <option value="10" selected>10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                    </div>
+
+                    <nav class="flex flex-wrap items-center gap-1" aria-label="Pagination" data-pagination></nav>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -429,17 +452,26 @@
             window.appMasterPerhitunganGadai ??= {};
             const namespace = window.appMasterPerhitunganGadai;
 
-            namespace.initializeSorter ??= () => {
+            namespace.initializeEnhancements ??= () => {
                 const table = document.querySelector('[data-master-table]');
 
-                if (!table || table.dataset.sortInitialized === 'true') {
+                if (!table || table.dataset.masterEnhanced === 'true') {
                     return;
                 }
 
-                table.dataset.sortInitialized = 'true';
+                table.dataset.masterEnhanced = 'true';
 
                 const rowsContainer = table.querySelector('[data-master-rows]');
+
+                if (!rowsContainer) {
+                    return;
+                }
+
+                const rows = Array.from(rowsContainer.querySelectorAll('[data-master-row]') ?? []);
                 const sortButtons = table.querySelectorAll('[data-sort-key]');
+                const rowsPerPageSelect = document.querySelector('[data-rows-per-page]');
+                const rowsPerPageDisplay = document.querySelector('[data-rows-per-page-display]');
+                const paginationContainer = document.querySelector('[data-pagination]');
                 const numericKeys = new Set([
                     'range_awal',
                     'range_akhir',
@@ -450,9 +482,17 @@
                 ]);
 
                 const state = {
-                    sortKey: null,
+                    rows,
+                    sortedRows: [...rows],
+                    sortKey: rows.length > 0 ? 'type' : null,
                     sortDirection: 'asc',
+                    page: 1,
+                    rowsPerPage: Number(rowsPerPageSelect?.value ?? 10) || 10,
                 };
+
+                if (rowsPerPageSelect) {
+                    rowsPerPageSelect.value = String(state.rowsPerPage);
+                }
 
                 const toDatasetKey = (key) =>
                     String(key ?? '')
@@ -490,29 +530,154 @@
                     });
                 };
 
-                const sortRows = () => {
-                    const rows = Array.from(rowsContainer?.querySelectorAll('[data-master-row]') ?? []);
+                const updateRowsPerPageDisplay = () => {
+                    if (rowsPerPageDisplay) {
+                        rowsPerPageDisplay.textContent = state.rowsPerPage;
+                    }
+                };
 
-                    if (!state.sortKey || rows.length <= 1) {
+                const getTotalPages = () => {
+                    if (!state.sortedRows.length) {
+                        return 1;
+                    }
+
+                    return Math.ceil(state.sortedRows.length / state.rowsPerPage);
+                };
+
+                const renderPaginationControls = (totalPages) => {
+                    if (!paginationContainer) {
                         return;
                     }
 
-                    const sorted = rows.sort((rowA, rowB) => {
-                        const valueA = getRowValue(rowA, state.sortKey);
-                        const valueB = getRowValue(rowB, state.sortKey);
+                    paginationContainer.innerHTML = '';
 
-                        if (valueA < valueB) {
-                            return state.sortDirection === 'asc' ? -1 : 1;
+                    const hasRows = state.sortedRows.length > 0;
+
+                    const createButton = ({ label, onClick, disabled = false, isActive = false }) => {
+                        const button = document.createElement('button');
+                        button.type = 'button';
+                        button.textContent = label;
+
+                        const baseClasses = [
+                            'inline-flex',
+                            'items-center',
+                            'rounded-md',
+                            'px-3',
+                            'py-1.5',
+                            'text-xs',
+                            'font-semibold',
+                            'transition',
+                        ];
+
+                        if (isActive) {
+                            baseClasses.push('bg-neutral-900', 'text-white', 'dark:bg-white', 'dark:text-neutral-900');
+                        } else {
+                            baseClasses.push('text-neutral-700', 'hover:bg-neutral-100', 'dark:text-neutral-200', 'dark:hover:bg-neutral-800');
                         }
 
-                        if (valueA > valueB) {
-                            return state.sortDirection === 'asc' ? 1 : -1;
+                        const isDisabled = disabled || !hasRows;
+
+                        if (isDisabled) {
+                            baseClasses.push('cursor-not-allowed', 'opacity-50');
+                            button.disabled = true;
+                        } else if (typeof onClick === 'function') {
+                            button.addEventListener('click', onClick);
                         }
 
-                        return 0;
+                        button.className = baseClasses.join(' ');
+
+                        return button;
+                    };
+
+                    const goToPage = (page) => () => {
+                        state.page = Math.min(Math.max(1, page), totalPages);
+                        renderPage();
+                    };
+
+                    paginationContainer.appendChild(
+                        createButton({
+                            label: '<< First',
+                            onClick: goToPage(1),
+                            disabled: state.page === 1,
+                        }),
+                    );
+
+                    paginationContainer.appendChild(
+                        createButton({
+                            label: '< Back',
+                            onClick: goToPage(state.page - 1),
+                            disabled: state.page === 1,
+                        }),
+                    );
+
+                    for (let page = 1; page <= totalPages; page += 1) {
+                        paginationContainer.appendChild(
+                            createButton({
+                                label: String(page),
+                                onClick: goToPage(page),
+                                isActive: state.page === page,
+                            }),
+                        );
+                    }
+
+                    paginationContainer.appendChild(
+                        createButton({
+                            label: 'Next >',
+                            onClick: goToPage(state.page + 1),
+                            disabled: state.page === totalPages,
+                        }),
+                    );
+
+                    paginationContainer.appendChild(
+                        createButton({
+                            label: 'Last >>',
+                            onClick: goToPage(totalPages),
+                            disabled: state.page === totalPages,
+                        }),
+                    );
+                };
+
+                const renderPage = () => {
+                    const totalPages = getTotalPages();
+
+                    state.page = Math.min(Math.max(1, state.page), totalPages);
+
+                    const startIndex = (state.page - 1) * state.rowsPerPage;
+                    const endIndex = startIndex + state.rowsPerPage;
+
+                    state.sortedRows.forEach((row, index) => {
+                        const shouldShow = index >= startIndex && index < endIndex;
+                        row.classList.toggle('hidden', !shouldShow);
                     });
 
-                    sorted.forEach((row) => rowsContainer.appendChild(row));
+                    updateRowsPerPageDisplay();
+                    renderPaginationControls(totalPages);
+                };
+
+                const applySort = () => {
+                    state.sortedRows = [...state.rows];
+
+                    if (state.sortKey) {
+                        state.sortedRows.sort((rowA, rowB) => {
+                            const valueA = getRowValue(rowA, state.sortKey);
+                            const valueB = getRowValue(rowB, state.sortKey);
+
+                            if (valueA < valueB) {
+                                return state.sortDirection === 'asc' ? -1 : 1;
+                            }
+
+                            if (valueA > valueB) {
+                                return state.sortDirection === 'asc' ? 1 : -1;
+                            }
+
+                            return 0;
+                        });
+                    }
+
+                    state.sortedRows.forEach((row) => rowsContainer.appendChild(row));
+
+                    updateSortIndicators();
+                    renderPage();
                 };
 
                 sortButtons.forEach((button) => {
@@ -530,16 +695,23 @@
                             state.sortDirection = 'asc';
                         }
 
-                        sortRows();
-                        updateSortIndicators();
+                        state.page = 1;
+                        applySort();
                     });
                 });
 
-                updateSortIndicators();
+                rowsPerPageSelect?.addEventListener('change', (event) => {
+                    const value = Number(event.target.value);
+                    state.rowsPerPage = Number.isNaN(value) ? 10 : value;
+                    state.page = 1;
+                    renderPage();
+                });
+
+                applySort();
             };
 
             const runInitializer = () => {
-                window.requestAnimationFrame(() => namespace.initializeSorter());
+                window.requestAnimationFrame(() => namespace.initializeEnhancements());
             };
 
             if (!namespace.listenersBound) {
