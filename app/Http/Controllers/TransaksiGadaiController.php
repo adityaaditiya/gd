@@ -187,13 +187,13 @@ class TransaksiGadaiController extends Controller
         $biayaAdmin = (float) $data['biaya_admin'];
         $biayaPremi = (float) $data['premi'];
         $totalPotongan = $biayaAdmin + $biayaPremi;
-        $maxPinjaman = round($nilaiTaksiran * 0.94, 2);
+        $maxPinjaman = round($nilaiTaksiran * 0.8, 2);
 
         if ($nilaiTaksiran > 0 && $uangPinjaman - $maxPinjaman > 0.00001) {
             return back()
                 ->withInput()
                 ->withErrors([
-                    'uang_pinjaman' => __('Nominal pinjaman melebihi batas 94% dari nilai taksiran barang (maksimal :amount).', [
+                    'uang_pinjaman' => __('Nominal pinjaman melebihi batas 80% dari nilai taksiran barang (maksimal :amount).', [
                         'amount' => $this->formatCurrency($maxPinjaman),
                     ]),
                 ]);
