@@ -60,7 +60,7 @@ class MasterPerhitunganGadaiController extends Controller
             'required',
             'string',
             'max:191',
-            Rule::unique('master_perhitungan_gadai', 'type')->ignore($id),
+            // Rule::unique('master_perhitungan_gadai', 'type')->ignore($id),
         ];
 
         $rules = [

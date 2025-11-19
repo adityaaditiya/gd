@@ -34,11 +34,11 @@
 
         <section class="flex flex-col gap-4 rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
             <header class="flex flex-col gap-1">
-                <span class="text-xs font-semibold uppercase tracking-wide text-sky-500">{{ __('Menu Angsuran Rutin') }}</span>
+                <!-- <span class="text-xs font-semibold uppercase tracking-wide text-sky-500">{{ __('Menu Angsuran Rutin') }}</span>
                 <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Proses Pembayaran Terjadwal') }}</h2>
                 <p class="text-sm text-neutral-600 dark:text-neutral-300">
                     {{ __('Pastikan setiap jatuh tempo tercatat, pembayaran tervalidasi, dan denda dihitung otomatis bila terjadi keterlambatan.') }}
-                </p>
+                </p> -->
                 <p class="text-xs text-neutral-500 dark:text-neutral-400">
                     {{ __('Ketentuan denda: :rate% per hari dari nominal angsuran.', ['rate' => number_format($lateFeePercentagePerDay, 2, ',', '.')]) }}
                 </p>

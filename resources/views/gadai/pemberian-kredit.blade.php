@@ -8,7 +8,7 @@
         <div class="flex flex-col gap-2">
             <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white">{{ __('Pemberian Kredit Gadai') }}</h1>
             <p class="text-sm text-neutral-600 dark:text-neutral-300">
-                {{ __('Ikuti tiga langkah berikut untuk menerbitkan kontrak gadai elektronik berdasarkan barang jaminan yang siap diproses.') }}
+                {{ __('pilih barang jaminan yang sudah diverifikasi, pilih nasabah dan input nominal pinjaman yang disetujui.') }}
             </p>
         </div>
 
@@ -23,7 +23,7 @@
 
                     <section class="space-y-4">
                         <div class="flex items-center gap-3">
-                            <span class="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-600 text-sm font-semibold text-white">1</span>
+                            <!-- <span class="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-600 text-sm font-semibold text-white">1</span> -->
                             <div>
                                 <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Pilih Barang Jaminan Siap Gadai') }}</h2>
                                 <!-- <p class="text-sm text-neutral-600 dark:text-neutral-300">{{ __('Kasir memulai proses dengan memilih aset yang belum terikat kontrak.') }}</p> -->
@@ -344,7 +344,7 @@
                                     readonly
                                     class="block w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-neutral-300 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
                                 />
-                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Nilai bunga mengikuti tarif harian dari master dikalikan nominal pinjaman dan tenor aktual.') }}</p>
+                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Nilai bunga mengikuti tarif harian dari master perhitungan gadai dikalikan nominal pinjaman dan tenor aktual.') }}</p>
                             </div>
                         </div>
                     </section>
@@ -362,7 +362,7 @@
                             <ul class="list-disc space-y-1 pl-5">
                                 <li>{{ __('Nominal pinjaman otomatis divalidasi agar tidak melampaui plafon 80% dari nilai taksiran.') }}</li>
                                 <li>{{ __('Barang jaminan yang dipilih tidak lagi tampil pada daftar siap gadai setelah SBG terbit.') }}</li>
-                                <li>{{ __('Kasir akan diarahkan ke halaman indeks kontrak untuk menindaklanjuti proses berikutnya.') }}</li>
+                                <li>{{ __('Kasir akan diarahkan ke halaman lihat gadai untuk menindaklanjuti proses berikutnya.') }}</li>
                             </ul>
                         </div>
                     </section>
