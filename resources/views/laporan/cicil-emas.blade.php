@@ -35,95 +35,10 @@
             </form>
         </section>
 
-        <section class="grid gap-4 rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
-            <header class="flex items-center justify-between gap-4">
-                <div>
-                    <span class="text-xs font-semibold uppercase tracking-wide text-fuchsia-500">{{ __('Ringkasan Audit') }}</span>
-                    <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Snapshot Portofolio & Risiko') }}</h2>
-                </div>
-                <span class="rounded-full bg-fuchsia-100 px-3 py-1 text-xs font-semibold text-fuchsia-700 dark:bg-fuchsia-900/40 dark:text-fuchsia-200">
-                    {{ number_format($metrics['total_transactions'] ?? 0, 0, ',', '.') }} {{ __('transaksi tercakup') }}
-                </span>
-            </header>
-
-            <dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
-                    <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Pembiayaan') }}</dt>
-                    <dd class="text-xl font-semibold text-neutral-900 dark:text-white">Rp {{ number_format($metrics['total_financed'] ?? 0, 0, ',', '.') }}</dd>
-                </div>
-                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
-                    <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Pokok Tercatat') }}</dt>
-                    <dd class="text-xl font-semibold text-neutral-900 dark:text-white">Rp {{ number_format($metrics['total_principal'] ?? 0, 0, ',', '.') }}</dd>
-                </div>
-                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
-                    <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Margin Terjadwal') }}</dt>
-                    <dd class="text-xl font-semibold text-purple-600 dark:text-purple-300">Rp {{ number_format($metrics['total_margin'] ?? 0, 0, ',', '.') }}</dd>
-                </div>
-                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
-                    <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Administrasi') }}</dt>
-                    <dd class="text-xl font-semibold text-neutral-900 dark:text-white">Rp {{ number_format($metrics['total_administration'] ?? 0, 0, ',', '.') }}</dd>
-                </div>
-                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
-                    <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Saldo Pembiayaan Tersisa') }}</dt>
-                    <dd class="text-xl font-semibold text-amber-600 dark:text-amber-300">Rp {{ number_format($metrics['total_outstanding'] ?? 0, 0, ',', '.') }}</dd>
-                </div>
-                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
-                    <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Pembayaran') }}</dt>
-                    <dd class="text-xl font-semibold text-emerald-600 dark:text-emerald-300">Rp {{ number_format($metrics['total_paid'] ?? 0, 0, ',', '.') }}</dd>
-                </div>
-                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
-                    <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Denda Tercatat') }}</dt>
-                    <dd class="text-xl font-semibold text-rose-600 dark:text-rose-300">Rp {{ number_format($metrics['total_penalty'] ?? 0, 0, ',', '.') }}</dd>
-                </div>
-            </dl>
-
-            <div class="grid gap-4 lg:grid-cols-2">
-                <div class="rounded-lg border border-neutral-200 p-4 dark:border-neutral-700">
-                    <h3 class="text-sm font-semibold text-neutral-900 dark:text-white">{{ __('Distribusi Status Pembayaran') }}</h3>
-                    <div class="mt-4 grid gap-3">
-                        @php
-                            $statusColors = [
-                                'Aktif' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-200',
-                                'Menunggak' => 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-200',
-                                'Lunas' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200',
-                            ];
-                        @endphp
-                        @forelse($statusBuckets as $status => $count)
-                            <div class="flex items-center justify-between rounded-lg border border-dashed border-neutral-200 px-4 py-3 dark:border-neutral-700">
-                                <div class="flex flex-col">
-                                    <span class="text-sm font-medium text-neutral-900 dark:text-neutral-100">{{ __($status) }}</span>
-                                    <span class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Jumlah: :count transaksi', ['count' => number_format($count, 0, ',', '.')]) }}</span>
-                                </div>
-                                <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $statusColors[$status] ?? 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200' }}">{{ __('Status') }}</span>
-                            </div>
-                        @empty
-                            <p class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Belum ada data status cicilan pada filter ini.') }}</p>
-                        @endforelse
-                    </div>
-                </div>
-                <div class="rounded-lg border border-neutral-200 p-4 dark:border-neutral-700">
-                    <h3 class="text-sm font-semibold text-neutral-900 dark:text-white">{{ __('Indikator Risiko') }}</h3>
-                    <dl class="mt-4 space-y-3 text-sm text-neutral-600 dark:text-neutral-300">
-                        <div class="flex items-center justify-between">
-                            <dt>{{ __('Rasio Menunggak') }}</dt>
-                            <dd class="font-semibold text-rose-600 dark:text-rose-300">{{ number_format($metrics['late_ratio'] ?? 0, 2, ',', '.') }}%</dd>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <dt>{{ __('Rata-rata Penyelesaian') }}</dt>
-                            <dd class="font-semibold text-blue-600 dark:text-blue-300">{{ number_format($metrics['average_completion'] ?? 0, 2, ',', '.') }}%</dd>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <dt>{{ __('Total Transaksi diaudit') }}</dt>
-                            <dd class="font-semibold text-neutral-900 dark:text-neutral-100">{{ number_format($metrics['total_transactions'] ?? 0, 0, ',', '.') }}</dd>
-                        </div>
-                    </dl>
-                </div>
-            </div>
-        </section>
-
         <section class="flex flex-col gap-4">
+            <span></span>
             <header class="flex items-center justify-between">
-                <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Detail Transaksi Cicil Emas') }}</h2>
+                <!-- <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Detail Transaksi Cicil Emas') }}</h2> -->
                 <p class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Gunakan tabel berikut untuk keperluan audit dan rekonsiliasi pembayaran.') }}</p>
             </header>
 
@@ -223,5 +138,93 @@
                 />
             @endif
         </section>
+
+        <section class="grid gap-4 rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+            <header class="flex items-center justify-between gap-4">
+                <div>
+                    <span class="text-xs font-semibold uppercase tracking-wide text-fuchsia-500">{{ __('Ringkasan Audit') }}</span>
+                    <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Snapshot Portofolio & Risiko') }}</h2>
+                </div>
+                <span class="rounded-full bg-fuchsia-100 px-3 py-1 text-xs font-semibold text-fuchsia-700 dark:bg-fuchsia-900/40 dark:text-fuchsia-200">
+                    {{ number_format($metrics['total_transactions'] ?? 0, 0, ',', '.') }} {{ __('transaksi tercakup') }}
+                </span>
+            </header>
+
+            <dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
+                    <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Pembiayaan') }}</dt>
+                    <dd class="text-xl font-semibold text-neutral-900 dark:text-white">Rp {{ number_format($metrics['total_financed'] ?? 0, 0, ',', '.') }}</dd>
+                </div>
+                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
+                    <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Pokok Tercatat') }}</dt>
+                    <dd class="text-xl font-semibold text-neutral-900 dark:text-white">Rp {{ number_format($metrics['total_principal'] ?? 0, 0, ',', '.') }}</dd>
+                </div>
+                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
+                    <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Margin Terjadwal') }}</dt>
+                    <dd class="text-xl font-semibold text-purple-600 dark:text-purple-300">Rp {{ number_format($metrics['total_margin'] ?? 0, 0, ',', '.') }}</dd>
+                </div>
+                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
+                    <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Administrasi') }}</dt>
+                    <dd class="text-xl font-semibold text-neutral-900 dark:text-white">Rp {{ number_format($metrics['total_administration'] ?? 0, 0, ',', '.') }}</dd>
+                </div>
+                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
+                    <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Saldo Pembiayaan Tersisa') }}</dt>
+                    <dd class="text-xl font-semibold text-amber-600 dark:text-amber-300">Rp {{ number_format($metrics['total_outstanding'] ?? 0, 0, ',', '.') }}</dd>
+                </div>
+                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
+                    <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Pembayaran') }}</dt>
+                    <dd class="text-xl font-semibold text-emerald-600 dark:text-emerald-300">Rp {{ number_format($metrics['total_paid'] ?? 0, 0, ',', '.') }}</dd>
+                </div>
+                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
+                    <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Denda Tercatat') }}</dt>
+                    <dd class="text-xl font-semibold text-rose-600 dark:text-rose-300">Rp {{ number_format($metrics['total_penalty'] ?? 0, 0, ',', '.') }}</dd>
+                </div>
+            </dl>
+
+            <div class="grid gap-4 lg:grid-cols-2">
+                <div class="rounded-lg border border-neutral-200 p-4 dark:border-neutral-700">
+                    <h3 class="text-sm font-semibold text-neutral-900 dark:text-white">{{ __('Distribusi Status Pembayaran') }}</h3>
+                    <div class="mt-4 grid gap-3">
+                        @php
+                            $statusColors = [
+                                'Aktif' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-200',
+                                'Menunggak' => 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-200',
+                                'Lunas' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200',
+                            ];
+                        @endphp
+                        @forelse($statusBuckets as $status => $count)
+                            <div class="flex items-center justify-between rounded-lg border border-dashed border-neutral-200 px-4 py-3 dark:border-neutral-700">
+                                <div class="flex flex-col">
+                                    <span class="text-sm font-medium text-neutral-900 dark:text-neutral-100">{{ __($status) }}</span>
+                                    <span class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Jumlah: :count transaksi', ['count' => number_format($count, 0, ',', '.')]) }}</span>
+                                </div>
+                                <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $statusColors[$status] ?? 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200' }}">{{ __('Status') }}</span>
+                            </div>
+                        @empty
+                            <p class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Belum ada data status cicilan pada filter ini.') }}</p>
+                        @endforelse
+                    </div>
+                </div>
+                <div class="rounded-lg border border-neutral-200 p-4 dark:border-neutral-700">
+                    <h3 class="text-sm font-semibold text-neutral-900 dark:text-white">{{ __('Indikator Risiko') }}</h3>
+                    <dl class="mt-4 space-y-3 text-sm text-neutral-600 dark:text-neutral-300">
+                        <div class="flex items-center justify-between">
+                            <dt>{{ __('Rasio Menunggak') }}</dt>
+                            <dd class="font-semibold text-rose-600 dark:text-rose-300">{{ number_format($metrics['late_ratio'] ?? 0, 2, ',', '.') }}%</dd>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <dt>{{ __('Rata-rata Penyelesaian') }}</dt>
+                            <dd class="font-semibold text-blue-600 dark:text-blue-300">{{ number_format($metrics['average_completion'] ?? 0, 2, ',', '.') }}%</dd>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <dt>{{ __('Total Transaksi diaudit') }}</dt>
+                            <dd class="font-semibold text-neutral-900 dark:text-neutral-100">{{ number_format($metrics['total_transactions'] ?? 0, 0, ',', '.') }}</dd>
+                        </div>
+                    </dl>
+                </div>
+            </div>
+        </section>
+
+        
     </div>
 </x-layouts.app>
