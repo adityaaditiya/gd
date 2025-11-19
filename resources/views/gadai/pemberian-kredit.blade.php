@@ -249,18 +249,22 @@
                             </div>
 
                             <div class="flex flex-col gap-2">
-                                <label for="tarif_bunga_harian_input" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Tarif Bunga Harian (Desimal)') }}</label>
+                                <label for="tarif_bunga_harian_display" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Tarif Bunga Harian (%)') }}</label>
+                                @php
+                                    $oldTarifDecimal = old('tarif_bunga_harian');
+                                    $oldTarifDisplay = is_numeric($oldTarifDecimal)
+                                        ? rtrim(rtrim(number_format((float) $oldTarifDecimal * 100, 4, ',', '.'), '0'), ',') . '%'
+                                        : '—';
+                                @endphp
                                 <input
-                                    type="number"
-                                    step="0.0001"
-                                    min="0"
-                                    max="1"
-                                    id="tarif_bunga_harian_input"
-                                    value="{{ old('tarif_bunga_harian') }}"
-                                    placeholder="0.0000"
+                                    type="text"
+                                    id="tarif_bunga_harian_display"
+                                    value="{{ $oldTarifDisplay }}"
+                                    placeholder="0,000%"
                                     readonly
                                     class="block w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-neutral-300 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
                                 />
+                                <input type="hidden" id="tarif_bunga_harian_value" value="{{ old('tarif_bunga_harian') }}">
                                 <p
                                     class="text-xs text-neutral-500 dark:text-neutral-400"
                                     data-formula-helper
@@ -410,7 +414,8 @@
                     const nasabahSelect = document.getElementById('nasabah_id');
                     const nasabahSearchInput = document.getElementById('nasabah_search');
                     const typeSelect = document.getElementById('type');
-                    const tarifBungaInput = document.getElementById('tarif_bunga_harian_input');
+                    const tarifBungaHiddenInput = document.getElementById('tarif_bunga_harian_value');
+                    const tarifBungaDisplayInput = document.getElementById('tarif_bunga_harian_display');
                     const formulaHelper = root.querySelector('[data-formula-helper]');
 
                     if (!select) return;
@@ -457,6 +462,15 @@
 
                         const parsed = Number.parseFloat(value);
                         return Number.isNaN(parsed) ? 0 : parsed;
+                    };
+
+                    const formatPercent = (value) => {
+                        if (!Number.isFinite(value)) return '—';
+                        return new Intl.NumberFormat('id-ID', {
+                            style: 'percent',
+                            minimumFractionDigits: 3,
+                            maximumFractionDigits: 4,
+                        }).format(value);
                     };
 
                     const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -544,8 +558,11 @@
                         if (!masterFormulas.length) {
                             setFormulaHelper(emptyMessage, 'error');
                             applyCurrencyValue(biayaAdminInput, null);
-                            if (tarifBungaInput) {
-                                tarifBungaInput.value = '';
+                            if (tarifBungaHiddenInput) {
+                                tarifBungaHiddenInput.value = '';
+                            }
+                            if (tarifBungaDisplayInput) {
+                                tarifBungaDisplayInput.value = '—';
                             }
                             return null;
                         }
@@ -557,8 +574,11 @@
                         if (!selectedType) {
                             setFormulaHelper(typeMessage, 'muted');
                             applyCurrencyValue(biayaAdminInput, null);
-                            if (tarifBungaInput) {
-                                tarifBungaInput.value = '';
+                            if (tarifBungaHiddenInput) {
+                                tarifBungaHiddenInput.value = '';
+                            }
+                            if (tarifBungaDisplayInput) {
+                                tarifBungaDisplayInput.value = '—';
                             }
                             if (jatuhTempoInput && tanggalGadaiValue) {
                                 jatuhTempoInput.value = tanggalGadaiValue;
@@ -569,8 +589,11 @@
                         if (nominal <= 0) {
                             setFormulaHelper(amountMessage, 'muted');
                             applyCurrencyValue(biayaAdminInput, null);
-                            if (tarifBungaInput) {
-                                tarifBungaInput.value = '';
+                            if (tarifBungaHiddenInput) {
+                                tarifBungaHiddenInput.value = '';
+                            }
+                            if (tarifBungaDisplayInput) {
+                                tarifBungaDisplayInput.value = '—';
                             }
                             if (jatuhTempoInput && tanggalGadaiValue) {
                                 jatuhTempoInput.value = tanggalGadaiValue;
@@ -592,8 +615,11 @@
                             const message = notFoundTemplate.replace(':amount', formatCurrency(nominal));
                             setFormulaHelper(message, 'error');
                             applyCurrencyValue(biayaAdminInput, null);
-                            if (tarifBungaInput) {
-                                tarifBungaInput.value = '';
+                            if (tarifBungaHiddenInput) {
+                                tarifBungaHiddenInput.value = '';
+                            }
+                            if (tarifBungaDisplayInput) {
+                                tarifBungaDisplayInput.value = '—';
                             }
                             if (jatuhTempoInput && tanggalGadaiValue) {
                                 jatuhTempoInput.value = tanggalGadaiValue;
@@ -601,9 +627,16 @@
                             return null;
                         }
 
-                        if (tarifBungaInput) {
+                        if (tarifBungaHiddenInput || tarifBungaDisplayInput) {
                             const rate = Number(formula.tarif_bunga_harian ?? 0);
-                            tarifBungaInput.value = Number.isFinite(rate) ? rate.toString() : '';
+                            if (tarifBungaHiddenInput) {
+                                tarifBungaHiddenInput.value = Number.isFinite(rate) ? rate.toString() : '';
+                            }
+                            if (tarifBungaDisplayInput) {
+                                tarifBungaDisplayInput.value = Number.isFinite(rate)
+                                    ? formatPercent(rate)
+                                    : '—';
+                            }
                         }
 
                         applyCurrencyValue(biayaAdminInput, Number(formula.biaya_admin ?? 0));
@@ -692,7 +725,7 @@
 
                         const tanggalGadai = tanggalGadaiInput?.value ? new Date(tanggalGadaiInput.value) : null;
                         const jatuhTempo = jatuhTempoInput?.value ? new Date(jatuhTempoInput.value) : null;
-                        const ratePerDayRaw = tarifBungaInput ? parseDecimal(tarifBungaInput.value ?? '') : 0;
+                        const ratePerDayRaw = tarifBungaHiddenInput ? parseDecimal(tarifBungaHiddenInput.value ?? '') : 0;
                         const ratePerDay = ratePerDayRaw > 0 ? ratePerDayRaw : 0;
                         const tenor = calculateActualDays(tanggalGadai, jatuhTempo);
 
