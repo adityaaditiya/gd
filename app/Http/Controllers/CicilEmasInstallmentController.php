@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CicilEmasInstallment;
 use App\Models\CicilEmasTransaction;
+use App\Models\MutasiKas;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -32,7 +33,12 @@ class CicilEmasInstallmentController extends Controller
             || filled($filters['due_from'] ?? null)
             || filled($filters['due_until'] ?? null);
 
-        $query = CicilEmasInstallment::with(['transaction.nasabah'])
+        $query = CicilEmasInstallment::with([
+            'transaction.nasabah',
+            'transaction.installments' => function ($query) {
+                $query->select('id', 'cicil_emas_transaction_id', 'sequence', 'paid_at');
+            },
+        ])
             ->whereHas('transaction', function ($query) {
                 $query->where('status', '!=', CicilEmasTransaction::STATUS_CANCELLED);
             })
@@ -95,6 +101,22 @@ class CicilEmasInstallmentController extends Controller
     {
         $installment->loadMissing('transaction');
 
+        $previousUnpaidInstallment = CicilEmasInstallment::query()
+            ->where('cicil_emas_transaction_id', $installment->cicil_emas_transaction_id)
+            ->where('sequence', '<', $installment->sequence)
+            ->whereNull('paid_at')
+            ->orderBy('sequence')
+            ->first();
+
+        if ($previousUnpaidInstallment) {
+            return redirect()
+                ->route('cicil-emas.angsuran-rutin', $request->query())
+                ->with('error', __('Selesaikan pembayaran angsuran ke-:sequence sebelum mencatat angsuran ke-:current.', [
+                    'sequence' => $previousUnpaidInstallment->sequence,
+                    'current' => $installment->sequence,
+                ]));
+        }
+
         $validated = $request->validate([
             'payment_date' => ['required', 'date'],
             'paid_amount' => ['required', 'numeric', 'min:0'],
@@ -115,11 +137,55 @@ class CicilEmasInstallmentController extends Controller
             'penalty_amount' => $penaltyAmount,
         ]);
 
+        $this->recordCashLedgerEntry($installment, $paymentDate, $paidAmount, $penaltyAmount);
+
         return redirect()
             ->route('cicil-emas.angsuran-rutin', $request->query())
             ->with('status', __("Pembayaran angsuran ke-:sequence berhasil dicatat. Denda keterlambatan: Rp :penalty", [
                 'sequence' => $installment->sequence,
                 'penalty' => number_format($penaltyAmount, 2, ',', '.'),
             ]));
+}
+
+    private function recordCashLedgerEntry(
+        CicilEmasInstallment $installment,
+        Carbon $paymentDate,
+        float $paidAmount,
+        float $penaltyAmount
+    ): void {
+        $installment->loadMissing('transaction.nasabah');
+        $transaction = $installment->transaction;
+
+        if (! $transaction) {
+            return;
+        }
+
+        $totalCashIn = round($paidAmount + $penaltyAmount, 2);
+
+        if ($totalCashIn <= 0) {
+            return;
+        }
+
+        $reference = __('Angsuran Cicil Emas :nomor ke-:sequence', [
+            'nomor' => $transaction->nomor_cicilan ?? $transaction->id,
+            'sequence' => $installment->sequence,
+        ]);
+
+        MutasiKas::updateOrCreate(
+            [
+                'cicil_emas_transaction_id' => $transaction->id,
+                'referensi' => $reference,
+            ],
+            [
+                'tanggal' => $paymentDate->toDateString(),
+                'tipe' => 'masuk',
+                'jumlah' => number_format($totalCashIn, 2, '.', ''),
+                'sumber' => __('Angsuran Cicil Emas'),
+                'keterangan' => __('Pembayaran angsuran ke-:sequence untuk :nasabah', [
+                    'sequence' => $installment->sequence,
+                    'nasabah' => $transaction->nasabah?->nama ?? __('Nasabah tidak diketahui'),
+                ]),
+            ]
+        );
     }
 }
