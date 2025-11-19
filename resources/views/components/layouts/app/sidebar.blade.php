@@ -1076,44 +1076,48 @@
         {{ $slot }}
 
         <script>
-            const initializeAccordion = () => {
-                document.querySelectorAll('[data-accordion-toggle]').forEach((toggle) => {
-                    if (toggle.dataset.accordionInitialized === 'true') {
-                        return;
-                    }
+            window.appSidebar = window.appSidebar || {};
 
-                    toggle.dataset.accordionInitialized = 'true';
-
-                    const targetId = toggle.getAttribute('data-accordion-target');
-                    const target = document.getElementById(targetId);
-
-                    if (!target) {
-                        return;
-                    }
-
-                    const icon = toggle.querySelector('[data-accordion-icon]');
-                    const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
-
-                    target.style.maxHeight = isExpanded ? `${target.scrollHeight}px` : '0px';
-
-                    toggle.addEventListener('click', () => {
-                        const currentlyExpanded = toggle.getAttribute('aria-expanded') === 'true';
-
-                        if (currentlyExpanded) {
-                            target.style.maxHeight = '0px';
-                            toggle.setAttribute('aria-expanded', 'false');
-                            icon?.classList.remove('rotate-90');
-                        } else {
-                            target.style.maxHeight = `${target.scrollHeight}px`;
-                            toggle.setAttribute('aria-expanded', 'true');
-                            icon?.classList.add('rotate-90');
+            if (!window.appSidebar.initializeAccordion) {
+                window.appSidebar.initializeAccordion = () => {
+                    document.querySelectorAll('[data-accordion-toggle]').forEach((toggle) => {
+                        if (toggle.dataset.accordionInitialized === 'true') {
+                            return;
                         }
-                    });
-                });
-            };
 
-            document.addEventListener('DOMContentLoaded', initializeAccordion);
-            document.addEventListener('livewire:navigated', initializeAccordion);
+                        toggle.dataset.accordionInitialized = 'true';
+
+                        const targetId = toggle.getAttribute('data-accordion-target');
+                        const target = document.getElementById(targetId);
+
+                        if (!target) {
+                            return;
+                        }
+
+                        const icon = toggle.querySelector('[data-accordion-icon]');
+                        const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
+
+                        target.style.maxHeight = isExpanded ? `${target.scrollHeight}px` : '0px';
+
+                        toggle.addEventListener('click', () => {
+                            const currentlyExpanded = toggle.getAttribute('aria-expanded') === 'true';
+
+                            if (currentlyExpanded) {
+                                target.style.maxHeight = '0px';
+                                toggle.setAttribute('aria-expanded', 'false');
+                                icon?.classList.remove('rotate-90');
+                            } else {
+                                target.style.maxHeight = `${target.scrollHeight}px`;
+                                toggle.setAttribute('aria-expanded', 'true');
+                                icon?.classList.add('rotate-90');
+                            }
+                        });
+                    });
+                };
+
+                document.addEventListener('DOMContentLoaded', window.appSidebar.initializeAccordion);
+                document.addEventListener('livewire:navigated', window.appSidebar.initializeAccordion);
+            }
         </script>
 
         @fluxScripts
