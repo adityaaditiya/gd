@@ -193,6 +193,17 @@
                                     $penaltyAmount = $isPaid
                                         ? $installment->penalty_amount
                                         : round($installment->amount * ($penaltyRate / 100) * $daysLate, 2);
+                                    $pendingPreviousInstallment = null;
+
+                                    if ($transaction && $transaction->relationLoaded('installments')) {
+                                        $pendingPreviousInstallment = $transaction->installments
+                                            ->sortBy('sequence')
+                                            ->first(function ($related) use ($installment) {
+                                                return $related->sequence < $installment->sequence && blank($related->paid_at);
+                                            });
+                                    }
+
+                                    $canRecordPayment = ! $isPaid && $pendingPreviousInstallment === null;
                                 @endphp
                                 <tr>
                                     <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">
@@ -267,6 +278,15 @@
                                     <td class="px-4 py-3 align-top text-right text-neutral-700 dark:text-neutral-200">
                                         @if ($isPaid)
                                             <span class="text-xs text-neutral-400 dark:text-neutral-500">{{ __('Tidak ada tindakan') }}</span>
+                                        @elseif (! $canRecordPayment)
+                                            <div class="flex max-w-xs flex-col items-end gap-1 text-right">
+                                                <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-500/20 dark:text-amber-200">
+                                                    {{ __('Menunggu Angsuran Sebelumnya') }}
+                                                </span>
+                                                <span class="text-xs text-neutral-500 dark:text-neutral-400">
+                                                    {{ __('Selesaikan angsuran ke-:sequence terlebih dahulu sebelum mencatat pembayaran ini.', ['sequence' => $pendingPreviousInstallment?->sequence]) }}
+                                                </span>
+                                            </div>
                                         @else
                                             <form method="POST" action="{{ route('cicil-emas.angsuran-rutin.pay', array_merge(['installment' => $installment], request()->query())) }}" class="flex flex-col items-end gap-2 text-xs">
                                                 @csrf

@@ -32,7 +32,12 @@ class CicilEmasInstallmentController extends Controller
             || filled($filters['due_from'] ?? null)
             || filled($filters['due_until'] ?? null);
 
-        $query = CicilEmasInstallment::with(['transaction.nasabah'])
+        $query = CicilEmasInstallment::with([
+            'transaction.nasabah',
+            'transaction.installments' => function ($query) {
+                $query->select('id', 'cicil_emas_transaction_id', 'sequence', 'paid_at');
+            },
+        ])
             ->whereHas('transaction', function ($query) {
                 $query->where('status', '!=', CicilEmasTransaction::STATUS_CANCELLED);
             })
@@ -94,6 +99,22 @@ class CicilEmasInstallmentController extends Controller
     public function pay(Request $request, CicilEmasInstallment $installment): RedirectResponse
     {
         $installment->loadMissing('transaction');
+
+        $previousUnpaidInstallment = CicilEmasInstallment::query()
+            ->where('cicil_emas_transaction_id', $installment->cicil_emas_transaction_id)
+            ->where('sequence', '<', $installment->sequence)
+            ->whereNull('paid_at')
+            ->orderBy('sequence')
+            ->first();
+
+        if ($previousUnpaidInstallment) {
+            return redirect()
+                ->route('cicil-emas.angsuran-rutin', $request->query())
+                ->with('error', __('Selesaikan pembayaran angsuran ke-:sequence sebelum mencatat angsuran ke-:current.', [
+                    'sequence' => $previousUnpaidInstallment->sequence,
+                    'current' => $installment->sequence,
+                ]));
+        }
 
         $validated = $request->validate([
             'payment_date' => ['required', 'date'],
