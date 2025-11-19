@@ -14,6 +14,7 @@ class MasterPerhitunganGadaiController extends Controller
     public function index(): View
     {
         $perhitunganList = MasterPerhitunganGadai::query()
+            ->orderBy('type')
             ->orderBy('range_awal')
             ->get();
 
