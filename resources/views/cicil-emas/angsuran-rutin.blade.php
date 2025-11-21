@@ -277,7 +277,21 @@
                                     </td>
                                     <td class="px-4 py-3 align-top text-right text-neutral-700 dark:text-neutral-200">
                                         @if ($isPaid)
-                                            <span class="text-xs text-neutral-400 dark:text-neutral-500">{{ __('Tidak ada tindakan') }}</span>
+                                            <form
+                                                method="POST"
+                                                action="{{ route('cicil-emas.angsuran-rutin.cancel', array_merge(['installment' => $installment], request()->query())) }}"
+                                                class="flex flex-col items-end gap-2 text-xs"
+                                                onsubmit="return confirm('{{ __('Batalkan pembayaran angsuran ini?') }}')"
+                                            >
+                                                @csrf
+                                                <span class="text-neutral-500 dark:text-neutral-400">{{ __('Pembayaran tercatat :tanggal', ['tanggal' => $paidAt?->translatedFormat('d M Y')]) }}</span>
+                                                <button
+                                                    type="submit"
+                                                    class="inline-flex items-center justify-center gap-2 rounded-lg bg-rose-500 px-3 py-1.5 text-sm font-semibold text-white shadow hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500/40"
+                                                >
+                                                    {{ __('Batalkan Pembayaran') }}
+                                                </button>
+                                            </form>
                                         @elseif (! $canRecordPayment)
                                             <div class="flex max-w-xs flex-col items-end gap-1 text-right">
                                                 <!-- <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-500/20 dark:text-amber-200">
