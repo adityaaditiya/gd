@@ -6,6 +6,7 @@ use App\Models\CicilEmasTransaction;
 use App\Models\MutasiKas;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 
 class CicilEmasPelunasanController extends Controller
@@ -107,6 +108,48 @@ class CicilEmasPelunasanController extends Controller
         return redirect()
             ->route('cicil-emas.pelunasan-cicilan', ['search' => $transaction->nomor_cicilan])
             ->with('status', __('Pelunasan cicilan emas berhasil disimpan dengan status LUNAS.'));
+    }
+
+    public function cancel(Request $request, CicilEmasTransaction $transaction): RedirectResponse
+    {
+        if ($transaction->status !== CicilEmasTransaction::STATUS_SETTLED) {
+            return redirect()
+                ->route('cicil-emas.daftar-cicilan')
+                ->with('error', __('Pembatalan hanya tersedia untuk cicilan yang sudah dilunasi.'));
+        }
+
+        $settlementDate = $transaction->tanggal_pelunasan;
+        $reference = __('Pelunasan Cicil Emas :nomor', ['nomor' => $transaction->nomor_pelunasan ?: $transaction->nomor_cicilan]);
+
+        DB::transaction(function () use ($transaction, $settlementDate, $reference) {
+            $transaction->loadMissing('installments');
+
+            $transaction->installments
+                ->filter(function ($installment) use ($settlementDate) {
+                    return $settlementDate && $installment->paid_at && $installment->paid_at->equalTo($settlementDate);
+                })
+                ->each(function ($installment) {
+                    $installment->paid_at = null;
+                    $installment->paid_amount = null;
+                    $installment->save();
+                });
+
+            MutasiKas::query()
+                ->where('cicil_emas_transaction_id', $transaction->id)
+                ->where('referensi', $reference)
+                ->delete();
+
+            $transaction->nomor_pelunasan = null;
+            $transaction->tanggal_pelunasan = null;
+            $transaction->biaya_ongkos_kirim = null;
+            $transaction->pelunasan_dipercepat = null;
+            $transaction->status = CicilEmasTransaction::STATUS_ACTIVE;
+            $transaction->save();
+        });
+
+        return redirect()
+            ->route('cicil-emas.daftar-cicilan')
+            ->with('status', __('Pelunasan cicilan dibatalkan dan status dikembalikan menjadi aktif.'));
     }
 
     private function buildSettlementSummary(CicilEmasTransaction $transaction): array

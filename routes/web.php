@@ -121,6 +121,9 @@ Route::middleware(['auth'])->group(function () {
             Route::get('riwayat-cicilan', [CicilEmasMonitoringController::class, 'index'])->name('riwayat-cicilan');
             Route::get('pelunasan-cicilan', [CicilEmasPelunasanController::class, 'index'])->name('pelunasan-cicilan');
             Route::post('pelunasan-cicilan', [CicilEmasPelunasanController::class, 'store'])->name('pelunasan-cicilan.store');
+            Route::post('pelunasan-cicilan/{transaction}/batal', [CicilEmasPelunasanController::class, 'cancel'])
+                ->whereNumber('transaction')
+                ->name('pelunasan-cicilan.cancel');
         });
 
     Route::prefix('jual-emas')
