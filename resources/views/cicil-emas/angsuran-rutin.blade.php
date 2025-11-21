@@ -204,9 +204,9 @@
                                     }
 
                                     $canRecordPayment = ! $isPaid && $pendingPreviousInstallment === null;
-                                    @endphp
-                                    <tr>
-                                        <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">
+                                @endphp
+                                <tr>
+                                    <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">
                                         <div class="flex flex-col">
                                             <span class="font-semibold text-neutral-900 dark:text-white">{{ $dueDate?->translatedFormat('d M Y') }}</span>
                                             <span class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Angsuran ke-:ke', ['ke' => $installment->sequence]) }}</span>
@@ -302,57 +302,37 @@
                                                 </span>
                                             </div>
                                         @else
-                                            @php
-                                                $transactionInstallments = $transaction?->relationLoaded('installments')
-                                                    ? $transaction->installments
-                                                    : collect();
-                                                $isLastInstallment = $transactionInstallments->isNotEmpty()
-                                                    && (int) $transactionInstallments->max('sequence') === (int) $installment->sequence;
-                                            @endphp
-
-                                            @if ($isLastInstallment)
-                                                <div class="flex flex-col items-end gap-2 text-xs">
-                                                    <span class="text-neutral-500 dark:text-neutral-400">{{ __('Angsuran terakhir — lanjutkan ke proses pelunasan.') }}</span>
-                                                    <a
-                                                        href="{{ route('cicil-emas.pelunasan-cicilan', ['nomor_cicilan' => $transaction?->nomor_cicilan]) }}"
-                                                        class="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-500 px-3 py-1.5 text-sm font-semibold text-white shadow hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                                            <form method="POST" action="{{ route('cicil-emas.angsuran-rutin.pay', array_merge(['installment' => $installment], request()->query())) }}" class="flex flex-col items-end gap-2 text-xs">
+                                                @csrf
+                                                <label class="flex items-center gap-2">
+                                                    <span class="text-neutral-500 dark:text-neutral-400">{{ __('Tanggal Bayar') }}</span>
+                                                    <input
+                                                        type="date"
+                                                        name="payment_date"
+                                                        value="{{ $today->format('Y-m-d') }}"
+                                                        class="rounded-md border border-neutral-300 px-2 py-1 text-sm text-neutral-900 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100"
+                                                        required
                                                     >
-                                                        {{ __('Pelunasan Cicilan') }}
-                                                    </a>
-                                                </div>
-                                            @else
-                                                <form method="POST" action="{{ route('cicil-emas.angsuran-rutin.pay', array_merge(['installment' => $installment], request()->query())) }}" class="flex flex-col items-end gap-2 text-xs">
-                                                    @csrf
-                                                    <label class="flex items-center gap-2">
-                                                        <span class="text-neutral-500 dark:text-neutral-400">{{ __('Tanggal Bayar') }}</span>
-                                                        <input
-                                                            type="date"
-                                                            name="payment_date"
-                                                            value="{{ $today->format('Y-m-d') }}"
-                                                            class="rounded-md border border-neutral-300 px-2 py-1 text-sm text-neutral-900 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100"
-                                                            required
-                                                        >
-                                                    </label>
-                                                    <label class="flex items-center gap-2">
-                                                        <span class="text-neutral-500 dark:text-neutral-400">{{ __('Nominal Bayar') }}</span>
-                                                        <input
-                                                            type="number"
-                                                            step="1"
-                                                            min="0"
-                                                            name="paid_amount"
-                                                            value="{{ number_format((float) $installment->amount, 0, '.', '') }}"
-                                                            class="w-28 rounded-md border border-neutral-300 px-2 py-1 text-right text-sm text-neutral-900 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100"
-                                                            required
-                                                        >
-                                                    </label>
-                                                    <button
-                                                        type="submit"
-                                                        class="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-500 px-3 py-1.5 text-sm font-semibold text-white shadow hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                                                </label>
+                                                <label class="flex items-center gap-2">
+                                                    <span class="text-neutral-500 dark:text-neutral-400">{{ __('Nominal Bayar') }}</span>
+                                                    <input
+                                                        type="number"
+                                                        step="1"
+                                                        min="0"
+                                                        name="paid_amount"
+                                                        value="{{ number_format((float) $installment->amount, 0, '.', '') }}"
+                                                        class="w-28 rounded-md border border-neutral-300 px-2 py-1 text-right text-sm text-neutral-900 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100"
+                                                        required
                                                     >
-                                                        {{ __('Catat Pembayaran') }}
-                                                    </button>
-                                                </form>
-                                            @endif
+                                                </label>
+                                                <button
+                                                    type="submit"
+                                                    class="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-500 px-3 py-1.5 text-sm font-semibold text-white shadow hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                                                >
+                                                    {{ __('Catat Pembayaran') }}
+                                                </button>
+                                            </form>
                                         @endif
                                     </td>
                                 </tr>
