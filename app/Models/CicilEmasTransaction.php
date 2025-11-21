@@ -40,6 +40,10 @@ class CicilEmasTransaction extends Model
         'besaran_angsuran',
         'option_id',
         'option_label',
+        'nomor_pelunasan',
+        'tanggal_pelunasan',
+        'biaya_ongkos_kirim',
+        'pelunasan_dipercepat',
         'status',
         'cancelled_at',
         'cancelled_by',
@@ -59,6 +63,9 @@ class CicilEmasTransaction extends Model
         'tenor_bulan' => 'integer',
         'besaran_angsuran' => 'float',
         'cancelled_at' => 'datetime',
+        'tanggal_pelunasan' => 'datetime',
+        'biaya_ongkos_kirim' => 'float',
+        'pelunasan_dipercepat' => 'boolean',
     ];
 
     protected $attributes = [
