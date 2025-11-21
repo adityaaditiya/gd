@@ -145,7 +145,33 @@ class CicilEmasInstallmentController extends Controller
                 'sequence' => $installment->sequence,
                 'penalty' => number_format($penaltyAmount, 2, ',', '.'),
             ]));
-}
+    }
+
+    public function cancelPayment(Request $request, CicilEmasInstallment $installment): RedirectResponse
+    {
+        $installment->loadMissing('transaction.nasabah');
+
+        if (blank($installment->paid_at)) {
+            return redirect()
+                ->route('cicil-emas.angsuran-rutin', $request->query())
+                ->with('error', __('Pembayaran angsuran ini belum dicatat.'));
+        }
+
+        $installment->update([
+            'paid_at' => null,
+            'paid_amount' => null,
+            'penalty_rate' => null,
+            'penalty_amount' => null,
+        ]);
+
+        $this->deleteCashLedgerEntry($installment);
+
+        return redirect()
+            ->route('cicil-emas.angsuran-rutin', $request->query())
+            ->with('status', __('Pembayaran angsuran ke-:sequence telah dibatalkan.', [
+                'sequence' => $installment->sequence,
+            ]));
+    }
 
     private function recordCashLedgerEntry(
         CicilEmasInstallment $installment,
@@ -166,10 +192,7 @@ class CicilEmasInstallmentController extends Controller
             return;
         }
 
-        $reference = __('Angsuran Cicil Emas :nomor ke-:sequence', [
-            'nomor' => $transaction->nomor_cicilan ?? $transaction->id,
-            'sequence' => $installment->sequence,
-        ]);
+        $reference = $this->getLedgerReference($installment);
 
         MutasiKas::updateOrCreate(
             [
@@ -187,5 +210,36 @@ class CicilEmasInstallmentController extends Controller
                 ]),
             ]
         );
+    }
+
+    private function deleteCashLedgerEntry(CicilEmasInstallment $installment): void
+    {
+        $installment->loadMissing('transaction');
+        $transaction = $installment->transaction;
+
+        if (! $transaction) {
+            return;
+        }
+
+        $reference = $this->getLedgerReference($installment);
+
+        MutasiKas::where('cicil_emas_transaction_id', $transaction->id)
+            ->where('referensi', $reference)
+            ->delete();
+    }
+
+    private function getLedgerReference(CicilEmasInstallment $installment): string
+    {
+        $installment->loadMissing('transaction');
+        $transaction = $installment->transaction;
+
+        $nomor = $transaction?->nomor_cicilan
+            ?? $transaction?->id
+            ?? $installment->cicil_emas_transaction_id;
+
+        return __('Angsuran Cicil Emas :nomor ke-:sequence', [
+            'nomor' => $nomor,
+            'sequence' => $installment->sequence,
+        ]);
     }
 }

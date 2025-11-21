@@ -114,6 +114,9 @@ Route::middleware(['auth'])->group(function () {
             Route::post('angsuran-rutin/{installment}/bayar', [CicilEmasInstallmentController::class, 'pay'])
                 ->whereNumber('installment')
                 ->name('angsuran-rutin.pay');
+            Route::post('angsuran-rutin/{installment}/batal', [CicilEmasInstallmentController::class, 'cancelPayment'])
+                ->whereNumber('installment')
+                ->name('angsuran-rutin.cancel');
             Route::get('riwayat-cicilan', [CicilEmasMonitoringController::class, 'index'])->name('riwayat-cicilan');
             Route::view('pelunasan-cicilan', 'cicil-emas.pelunasan-cicilan')->name('pelunasan-cicilan');
         });
