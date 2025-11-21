@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CicilEmasTransaction;
+use App\Models\MutasiKas;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -75,6 +76,7 @@ class CicilEmasPelunasanController extends Controller
 
         DB::transaction(function () use ($transaction, $settlementDate, $summary, $validated) {
             $nomorPelunasan = $this->generateSettlementNumber($settlementDate, true);
+            $cashInAmount = round($summary['remainingAmount'] + (float) ($validated['biaya_ongkos_kirim'] ?? 0), 2);
 
             foreach ($transaction->installments as $installment) {
                 $remaining = max(0, (float) $installment->amount - (float) ($installment->paid_amount ?? 0));
@@ -92,6 +94,14 @@ class CicilEmasPelunasanController extends Controller
             $transaction->pelunasan_dipercepat = $summary['isAccelerated'];
             $transaction->status = CicilEmasTransaction::STATUS_SETTLED;
             $transaction->save();
+
+            $this->recordCashLedgerEntry(
+                $transaction,
+                $settlementDate,
+                $cashInAmount,
+                $nomorPelunasan,
+                $summary['isAccelerated']
+            );
         });
 
         return redirect()
@@ -163,5 +173,41 @@ class CicilEmasPelunasanController extends Controller
         }
 
         return $base.str_pad((string) $sequence, 3, '0', STR_PAD_LEFT);
+    }
+
+    private function recordCashLedgerEntry(
+        CicilEmasTransaction $transaction,
+        Carbon $settlementDate,
+        float $cashInAmount,
+        string $nomorPelunasan,
+        bool $isAccelerated
+    ): void {
+        $transaction->loadMissing('nasabah');
+
+        if ($cashInAmount <= 0) {
+            return;
+        }
+
+        $reference = __('Pelunasan Cicil Emas :nomor', ['nomor' => $nomorPelunasan ?: $transaction->nomor_cicilan]);
+
+        MutasiKas::updateOrCreate(
+            [
+                'cicil_emas_transaction_id' => $transaction->id,
+                'referensi' => $reference,
+            ],
+            [
+                'tanggal' => $settlementDate->toDateString(),
+                'tipe' => 'masuk',
+                'jumlah' => number_format($cashInAmount, 2, '.', ''),
+                'sumber' => __('Pelunasan Cicil Emas'),
+                'keterangan' => $isAccelerated
+                    ? __('Pelunasan dipercepat untuk :nasabah', [
+                        'nasabah' => $transaction->nasabah?->nama ?? __('Nasabah tidak diketahui'),
+                    ])
+                    : __('Pelunasan akhir kontrak untuk :nasabah', [
+                        'nasabah' => $transaction->nasabah?->nama ?? __('Nasabah tidak diketahui'),
+                    ]),
+            ]
+        );
     }
 }
