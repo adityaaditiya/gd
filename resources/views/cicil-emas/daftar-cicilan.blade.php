@@ -51,7 +51,7 @@
                                 <th scope="col" class="px-4 py-3 text-center">{{ __('Jatuh Tempo Terdekat') }}</th>
                                 <th scope="col" class="px-4 py-3 text-center">{{ __('Nomor Cicilan') }}</th>
                                 <th scope="col" class="px-4 py-3 text-left">{{ __('Nasabah') }}</th>
-                                <th scope="col" class="px-4 py-3 text-left">{{ __('Paket Emas') }}</th>
+                                <th scope="col" class="px-4 py-3 text-left">{{ __('Detail Barang') }}</th>
                                 <th scope="col" class="px-4 py-3 text-right">{{ __('Harga') }}</th>
                                 <th scope="col" class="px-4 py-3 text-right">{{ __('Uang Muka') }}</th>
                                 <th scope="col" class="px-4 py-3 text-right">{{ __('Margin') }}</th>
@@ -165,13 +165,13 @@
                                                     $item = $items->first();
                                                 @endphp
                                                 <span class="font-semibold text-neutral-900 dark:text-white">{{ $item->nama_barang ?? $transaction->pabrikan }}</span>
-                                                <span class="text-xs text-neutral-500 dark:text-neutral-400">{{ number_format((float) ($item->berat ?? $transaction->berat_gram), 3, ',', '.') }} gr • {{ $item->kode_baki ?? $item->kode_intern ?? $transaction->kadar }}</span>
+                                                <span class="text-xs text-neutral-500 dark:text-neutral-400">{{ number_format((float) ($item->berat ?? $transaction->berat_gram), 3, ',', '.') }} gr • {{ $item->kode_barcode ?? $item->kode_intern ?? $transaction->kadar }} • {{ $item->kode_intern ?? $item->kode_intern ?? '—' }}</span>
                                             @elseif ($items->count() > 1)
                                                 <span class="font-semibold text-neutral-900 dark:text-white">{{ __(':count barang', ['count' => $items->count()]) }}</span>
-                                                <span class="text-xs text-neutral-500 dark:text-neutral-400">{{ number_format((float) $transaction->berat_gram, 3, ',', '.') }} gr • {{ $transaction->kadar }}</span>
+                                                <span class="text-xs text-neutral-500 dark:text-neutral-400">{{ number_format((float) $transaction->berat_gram, 3, ',', '.') }} gr </span>
                                                 <ul class="mt-1 list-disc space-y-1 ps-4 text-[11px] text-neutral-500 dark:text-neutral-400">
                                                     @foreach ($items->take(3) as $item)
-                                                        <li>{{ $item->nama_barang }} • {{ number_format((float) ($item->berat ?? 0), 3, ',', '.') }} gr • {{ $item->kode_baki ?? $item->kode_intern ?? '—' }}</li>
+                                                        <li>{{ $item->nama_barang }} • {{ number_format((float) ($item->berat ?? 0), 3, ',', '.') }} gr • {{ $item->kode_barcode ?? $item->kode_intern ?? '—' }} • {{ $item->kode_intern ?? $item->kode_intern ?? '—' }}</li>
                                                     @endforeach
                                                     @if ($items->count() > 3)
                                                         <li>+ {{ $items->count() - 3 }} {{ __('barang lainnya') }}</li>

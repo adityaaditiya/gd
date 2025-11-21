@@ -280,9 +280,9 @@
                                             <span class="text-xs text-neutral-400 dark:text-neutral-500">{{ __('Tidak ada tindakan') }}</span>
                                         @elseif (! $canRecordPayment)
                                             <div class="flex max-w-xs flex-col items-end gap-1 text-right">
-                                                <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-500/20 dark:text-amber-200">
+                                                <!-- <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-500/20 dark:text-amber-200">
                                                     {{ __('Menunggu Angsuran Sebelumnya') }}
-                                                </span>
+                                                </span> -->
                                                 <span class="text-xs text-neutral-500 dark:text-neutral-400">
                                                     {{ __('Selesaikan angsuran ke-:sequence terlebih dahulu sebelum mencatat pembayaran ini.', ['sequence' => $pendingPreviousInstallment?->sequence]) }}
                                                 </span>
