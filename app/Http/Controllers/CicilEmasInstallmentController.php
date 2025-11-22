@@ -160,8 +160,8 @@ class CicilEmasInstallmentController extends Controller
         $installment->update([
             'paid_at' => null,
             'paid_amount' => null,
-            'penalty_rate' => null,
-            'penalty_amount' => null,
+            'penalty_rate' => 0,
+            'penalty_amount' => 0,
         ]);
 
         $this->deleteCashLedgerEntry($installment);

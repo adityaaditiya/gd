@@ -59,10 +59,10 @@
                                 <th scope="col" class="px-4 py-3 text-right">{{ __('Angsuran / Bln') }}</th>
                                 <th scope="col" class="px-4 py-3 text-center">{{ __('Tenor') }}</th>
                                 <th scope="col" class="px-4 py-3 text-center">{{ __('Status') }}</th>
-                                <th scope="col" class="px-4 py-3 text-left">{{ __('Pembatalan') }}</th>
+                                <th scope="col" class="px-4 py-3 text-center">{{ __('Aksi') }}</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-neutral-200 bg-white text-sm dark:divide-neutral-700 dark:bg-neutral-900">
+                        <tbody class="divide-y divide-neutral-200 bg-white text-sm dark:divide-neutral-700 dark:bg-neutral-900" data-cicil-emas-table>
                             @foreach ($transactions as $transaction)
                                 @php
                                     $isHighlighted = (string) $highlightId === (string) $transaction->id;
@@ -107,8 +107,6 @@
                                             'class' => 'bg-sky-100 text-sky-700 dark:bg-sky-500/10 dark:text-sky-300',
                                         ];
                                     }
-
-                                    $formTextareaValue = $transactionErrorId === (string) $transaction->id ? old('alasan_batal') : '';
                                 @endphp
                                 <tr @class([
                                     'bg-emerald-50/60 dark:bg-emerald-500/10' => $isHighlighted,
@@ -225,44 +223,80 @@
                                             </div>
                                         @endif
                                     </td>
-                                    <td class="px-4 py-3 align-top text-neutral-700 dark:text-neutral-200">
-                                        @if ($transaction->isCancelable())
-                                            <form method="POST" action="{{ route('cicil-emas.transaksi.cancel', $transaction) }}" class="flex flex-col gap-2">
-                                                @csrf
-                                                <!-- <label for="alasan-batal-{{ $transaction->id }}" class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
-                                                    {{ __('Alasan Pembatalan') }}
-                                                </label> -->
-                                                <textarea
-                                                    id="alasan-batal-{{ $transaction->id }}"
-                                                    name="alasan_batal"
-                                                    rows="2"
-                                                    required
-                                                    placeholder="{{ __('Alasan Pembatalan') }}"
-                                                    class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-700 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
-                                                >{{ $formTextareaValue }}</textarea>
-                                                @if ($transactionErrorId === (string) $transaction->id)
-                                                    @error('alasan_batal')
-                                                        <p class="text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
-                                                    @enderror
-                                                @endif
+                                    <td class="px-4 py-3 align-top text-center text-neutral-700 dark:text-neutral-200">
+                                        <div class="relative flex justify-center" data-more-container>
+                                            <button
+                                                type="button"
+                                                class="inline-flex items-center rounded-full border border-neutral-200 bg-white p-2 text-neutral-500 transition hover:border-neutral-300 hover:text-neutral-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:border-neutral-500 dark:hover:text-white"
+                                                data-more-toggle
+                                                aria-haspopup="true"
+                                                aria-expanded="false"
+                                            >
+                                                <span class="sr-only">{{ __('Menu aksi cicilan') }}</span>
+                                                <svg class="size-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h.008M12 12h.008M19 12h.008" />
+                                                </svg>
+                                            </button>
+                                            <div
+                                                class="absolute right-0 top-full z-10 mt-2 hidden w-56 rounded-lg border border-neutral-200 bg-white py-1 text-sm shadow-lg dark:border-neutral-600 dark:bg-neutral-900"
+                                                data-more-menu
+                                                role="menu"
+                                            >
                                                 <button
-                                                    type="submit"
-                                                    class="inline-flex items-center justify-center gap-2 rounded-lg bg-red-500 px-3 py-2 text-sm font-semibold text-white shadow hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500/40"
-                                                    onclick="return confirm('{{ __('Batalkan transaksi ini? Pembayaran yang sudah masuk perlu direkonsiliasi manual.') }}');"
+                                                    type="button"
+                                                    class="flex w-full items-center gap-2 px-4 py-2 text-left text-neutral-700 transition hover:bg-neutral-50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:text-neutral-200 dark:hover:bg-neutral-700/60"
+                                                    data-action="cancel-settlement"
+                                                    data-form="cancel-settlement-{{ $transaction->id }}"
+                                                    data-disabled="{{ $isSettled ? 'false' : 'true' }}"
+                                                    {{ $isSettled ? '' : 'disabled' }}
+                                                    role="menuitem"
                                                 >
-                                                    {{ __('Batalkan Transaksi') }}
+                                                    <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                                    </svg>
+                                                    <span>{{ __('Batal Pelunasan') }}</span>
                                                 </button>
-                                            </form>
-                                        @else
-                                            <div class="flex flex-col gap-1 text-xs text-neutral-500 dark:text-neutral-400">
-                                                @if ($isCancelled && $transaction->cancellation_reason)
-                                                    <span>{{ __('Alasan: :reason', ['reason' => $transaction->cancellation_reason]) }}</span>
-                                                @endif
-                                                @if ($totalPaidAmount > 0)
-                                                    <span>{{ __('Total angsuran tercatat :amount', ['amount' => number_format($totalPaidAmount, 0, ',', '.')]) }}</span>
-                                                @endif
+                                                <button
+                                                    type="button"
+                                                    class="flex w-full items-center gap-2 px-4 py-2 text-left text-neutral-700 transition hover:bg-neutral-50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:text-neutral-200 dark:hover:bg-neutral-700/60"
+                                                    data-action="cancel-transaction"
+                                                    data-form="cancel-transaction-{{ $transaction->id }}"
+                                                    data-prompt="{{ __('Masukkan alasan pembatalan transaksi cicilan ini:') }}"
+                                                    data-validation="{{ __('Alasan pembatalan wajib diisi.') }}"
+                                                    data-default-reason="{{ $transactionErrorId === (string) $transaction->id ? old('alasan_batal') : '' }}"
+                                                    {{ $transaction->isCancelable() ? '' : 'disabled' }}
+                                                    role="menuitem"
+                                                >
+                                                    <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                                    </svg>
+                                                    <span>{{ __('Batal Transaksi Cicilan') }}</span>
+                                                </button>
                                             </div>
+                                        </div>
+
+                                        @if ($transactionErrorId === (string) $transaction->id)
+                                            @error('alasan_batal')
+                                                <p class="mt-2 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                                            @enderror
                                         @endif
+
+                                        @if ($isCancelled && $transaction->cancellation_reason)
+                                            <p class="mt-2 text-xs text-neutral-500 dark:text-neutral-400">{{ __('Alasan: :reason', ['reason' => $transaction->cancellation_reason]) }}</p>
+                                        @elseif ($totalPaidAmount > 0)
+                                            <p class="mt-2 text-xs text-neutral-500 dark:text-neutral-400">{{ __('Total angsuran tercatat :amount', ['amount' => number_format($totalPaidAmount, 0, ',', '.')]) }}</p>
+                                        @endif
+
+                                        @if ($isSettled)
+                                            <form id="cancel-settlement-{{ $transaction->id }}" method="POST" action="{{ route('cicil-emas.pelunasan-cicilan.cancel', $transaction) }}" class="hidden">
+                                                @csrf
+                                            </form>
+                                        @endif
+
+                                        <form id="cancel-transaction-{{ $transaction->id }}" method="POST" action="{{ route('cicil-emas.transaksi.cancel', $transaction) }}" class="hidden">
+                                            @csrf
+                                            <input type="hidden" name="alasan_batal" value="">
+                                        </form>
                                     </td>
                                 </tr>
                             @endforeach
@@ -365,5 +399,118 @@
             @endif
         </section>
     </div>
+
+    <script>
+        (() => {
+            const table = document.querySelector('[data-cicil-emas-table]');
+            let activeDropdown = null;
+
+            const closeDropdown = () => {
+                if (!activeDropdown) return;
+                const { menu, toggle } = activeDropdown;
+                menu.classList.add('hidden');
+                if (toggle) {
+                    toggle.setAttribute('aria-expanded', 'false');
+                }
+                activeDropdown = null;
+            };
+
+            if (table) {
+                table.addEventListener('click', (event) => {
+                    const toggle = event.target.closest('[data-more-toggle]');
+                    if (toggle) {
+                        event.preventDefault();
+                        const container = toggle.closest('[data-more-container]');
+                        const menu = container?.querySelector('[data-more-menu]');
+
+                        if (!menu) return;
+
+                        if (activeDropdown?.menu === menu) {
+                            closeDropdown();
+                            return;
+                        }
+
+                        closeDropdown();
+                        menu.classList.remove('hidden');
+                        toggle.setAttribute('aria-expanded', 'true');
+                        activeDropdown = { menu, toggle };
+                        return;
+                    }
+
+                    const cancelSettlement = event.target.closest('[data-action="cancel-settlement"]');
+                    if (cancelSettlement) {
+                        event.preventDefault();
+                        if (cancelSettlement.disabled || cancelSettlement.dataset.disabled === 'true') {
+                            return;
+                        }
+
+                        const formId = cancelSettlement.dataset.form;
+                        const form = formId ? document.getElementById(formId) : null;
+
+                        if (!form) return;
+
+                        const confirmed = window.confirm('{{ __('Batalkan pelunasan dan kembalikan cicilan menjadi aktif?') }}');
+
+                        if (confirmed) {
+                            form.submit();
+                            closeDropdown();
+                        }
+
+                        return;
+                    }
+
+                    const cancelTransaction = event.target.closest('[data-action="cancel-transaction"]');
+                    if (cancelTransaction) {
+                        event.preventDefault();
+                        if (cancelTransaction.disabled) {
+                            return;
+                        }
+
+                        const promptText = cancelTransaction.dataset.prompt || '';
+                        const validationText = cancelTransaction.dataset.validation || '';
+                        const defaultReason = cancelTransaction.dataset.defaultReason || '';
+                        const formId = cancelTransaction.dataset.form;
+                        const form = formId ? document.getElementById(formId) : null;
+
+                        if (!form) return;
+
+                        const reason = window.prompt(promptText, defaultReason);
+                        if (reason === null) {
+                            return;
+                        }
+
+                        const trimmed = reason.trim();
+                        if (!trimmed) {
+                            if (validationText) {
+                                alert(validationText);
+                            }
+                            return;
+                        }
+
+                        const input = form.querySelector('input[name="alasan_batal"]');
+                        if (input) {
+                            input.value = trimmed;
+                        }
+
+                        form.submit();
+                        closeDropdown();
+                        return;
+                    }
+
+                    if (event.target.closest('[data-more-menu]')) {
+                        return;
+                    }
+
+                    closeDropdown();
+                });
+            }
+
+            document.addEventListener('click', (event) => {
+                if (!activeDropdown) return;
+                if (table && table.contains(event.target)) return;
+                closeDropdown();
+            });
+        })();
+    </script>
 
 </x-layouts.app>
