@@ -59,6 +59,12 @@ class CicilEmasPelunasanController extends Controller
                 ->withInput();
         }
 
+        if ($transaction->status === CicilEmasTransaction::STATUS_COMPLETED) {
+            return back()
+                ->with('error', __('Transaksi cicilan telah diselesaikan dan tidak dapat dilunasi.'))
+                ->withInput();
+        }
+
         if ($transaction->status === CicilEmasTransaction::STATUS_SETTLED) {
             return back()
                 ->with('error', __('Transaksi cicilan sudah berstatus lunas.'))

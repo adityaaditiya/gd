@@ -40,7 +40,10 @@ class CicilEmasInstallmentController extends Controller
             },
         ])
             ->whereHas('transaction', function ($query) {
-                $query->where('status', '!=', CicilEmasTransaction::STATUS_CANCELLED);
+                $query->whereNotIn('status', [
+                    CicilEmasTransaction::STATUS_CANCELLED,
+                    CicilEmasTransaction::STATUS_COMPLETED,
+                ]);
             })
             ->orderBy('due_date')
             ->orderBy('sequence');

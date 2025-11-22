@@ -8,6 +8,7 @@ use App\Http\Controllers\BarangController;
 use App\Http\Controllers\BarangJaminanController;
 use App\Http\Controllers\CicilEmasInstallmentController;
 use App\Http\Controllers\CicilEmasPelunasanController;
+use App\Http\Controllers\CicilEmasPenyelesaianController;
 use App\Http\Controllers\CicilEmasMonitoringController;
 use App\Http\Controllers\CicilEmasTransaksiController;
 use App\Http\Controllers\LaporanPelunasanGadaiController;
@@ -124,6 +125,8 @@ Route::middleware(['auth'])->group(function () {
             Route::post('pelunasan-cicilan/{transaction}/batal', [CicilEmasPelunasanController::class, 'cancel'])
                 ->whereNumber('transaction')
                 ->name('pelunasan-cicilan.cancel');
+            Route::get('penyelesaian-cicilan', [CicilEmasPenyelesaianController::class, 'index'])->name('penyelesaian-cicilan');
+            Route::post('penyelesaian-cicilan', [CicilEmasPenyelesaianController::class, 'store'])->name('penyelesaian-cicilan.store');
         });
 
     Route::prefix('jual-emas')

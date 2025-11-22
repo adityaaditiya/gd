@@ -87,6 +87,7 @@
                                     $status = $transaction->status;
                                     $isCancelled = $status === \App\Models\CicilEmasTransaction::STATUS_CANCELLED;
                                     $isSettled = $status === \App\Models\CicilEmasTransaction::STATUS_SETTLED;
+                                    $isCompleted = $status === \App\Models\CicilEmasTransaction::STATUS_COMPLETED;
                                     $totalPaidAmount = $transaction->relationLoaded('installments')
                                         ? $transaction->installments->sum(fn ($installment) => (float) ($installment->paid_amount ?? 0))
                                         : 0;
@@ -105,6 +106,11 @@
                                         $statusBadge = [
                                             'label' => __('Lunas'),
                                             'class' => 'bg-sky-100 text-sky-700 dark:bg-sky-500/10 dark:text-sky-300',
+                                        ];
+                                    } elseif ($isCompleted) {
+                                        $statusBadge = [
+                                            'label' => __('Selesai'),
+                                            'class' => 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300',
                                         ];
                                     }
                                 @endphp
