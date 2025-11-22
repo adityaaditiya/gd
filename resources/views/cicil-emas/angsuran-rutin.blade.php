@@ -187,6 +187,10 @@
                                     $dueDate = optional($installment->due_date);
                                     $paidAt = optional($installment->paid_at);
                                     $penaltyRate = $installment->penalty_rate ?: $lateFeePercentagePerDay;
+                                    $lastSequence = $transaction?->relationLoaded('installments')
+                                        ? $transaction->installments->max('sequence')
+                                        : null;
+                                    $isLastInstallment = $lastSequence !== null && (int) $installment->sequence === (int) $lastSequence;
                                     $daysLate = $isPaid
                                         ? max(0, $installment->due_date->diffInDays($installment->paid_at, false))
                                         : ($installment->due_date->isPast() ? $installment->due_date->diffInDays($today) : 0);
@@ -302,37 +306,46 @@
                                                 </span>
                                             </div>
                                         @else
-                                            <form method="POST" action="{{ route('cicil-emas.angsuran-rutin.pay', array_merge(['installment' => $installment], request()->query())) }}" class="flex flex-col items-end gap-2 text-xs">
-                                                @csrf
-                                                <label class="flex items-center gap-2">
-                                                    <span class="text-neutral-500 dark:text-neutral-400">{{ __('Tanggal Bayar') }}</span>
-                                                    <input
-                                                        type="date"
-                                                        name="payment_date"
-                                                        value="{{ $today->format('Y-m-d') }}"
-                                                        class="rounded-md border border-neutral-300 px-2 py-1 text-sm text-neutral-900 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100"
-                                                        required
-                                                    >
-                                                </label>
-                                                <label class="flex items-center gap-2">
-                                                    <span class="text-neutral-500 dark:text-neutral-400">{{ __('Nominal Bayar') }}</span>
-                                                    <input
-                                                        type="number"
-                                                        step="1"
-                                                        min="0"
-                                                        name="paid_amount"
-                                                        value="{{ number_format((float) $installment->amount, 0, '.', '') }}"
-                                                        class="w-28 rounded-md border border-neutral-300 px-2 py-1 text-right text-sm text-neutral-900 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100"
-                                                        required
-                                                    >
-                                                </label>
-                                                <button
-                                                    type="submit"
+                                            @if ($isLastInstallment)
+                                                <a
+                                                    href="{{ route('cicil-emas.pelunasan-cicilan', ['search' => $transaction?->nomor_cicilan]) }}"
                                                     class="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-500 px-3 py-1.5 text-sm font-semibold text-white shadow hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
                                                 >
-                                                    {{ __('Catat Pembayaran') }}
-                                                </button>
-                                            </form>
+                                                    {{ __('Pelunasan Cicilan') }}
+                                                </a>
+                                            @else
+                                                <form method="POST" action="{{ route('cicil-emas.angsuran-rutin.pay', array_merge(['installment' => $installment], request()->query())) }}" class="flex flex-col items-end gap-2 text-xs">
+                                                    @csrf
+                                                    <label class="flex items-center gap-2">
+                                                        <span class="text-neutral-500 dark:text-neutral-400">{{ __('Tanggal Bayar') }}</span>
+                                                        <input
+                                                            type="date"
+                                                            name="payment_date"
+                                                            value="{{ $today->format('Y-m-d') }}"
+                                                            class="rounded-md border border-neutral-300 px-2 py-1 text-sm text-neutral-900 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100"
+                                                            required
+                                                        >
+                                                    </label>
+                                                    <label class="flex items-center gap-2">
+                                                        <span class="text-neutral-500 dark:text-neutral-400">{{ __('Nominal Bayar') }}</span>
+                                                        <input
+                                                            type="number"
+                                                            step="1"
+                                                            min="0"
+                                                            name="paid_amount"
+                                                            value="{{ number_format((float) $installment->amount, 0, '.', '') }}"
+                                                            class="w-28 rounded-md border border-neutral-300 px-2 py-1 text-right text-sm text-neutral-900 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100"
+                                                            required
+                                                        >
+                                                    </label>
+                                                    <button
+                                                        type="submit"
+                                                        class="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-500 px-3 py-1.5 text-sm font-semibold text-white shadow hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                                                    >
+                                                        {{ __('Catat Pembayaran') }}
+                                                    </button>
+                                                </form>
+                                            @endif
                                         @endif
                                     </td>
                                 </tr>
