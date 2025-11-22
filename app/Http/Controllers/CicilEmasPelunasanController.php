@@ -142,7 +142,7 @@ class CicilEmasPelunasanController extends Controller
             $transaction->nomor_pelunasan = null;
             $transaction->tanggal_pelunasan = null;
             $transaction->biaya_ongkos_kirim = null;
-            $transaction->pelunasan_dipercepat = null;
+            $transaction->pelunasan_dipercepat = false;
             $transaction->status = CicilEmasTransaction::STATUS_ACTIVE;
             $transaction->save();
         });
