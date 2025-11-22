@@ -44,6 +44,7 @@
                     'cicil-emas.angsuran-rutin',
                     'cicil-emas.riwayat-cicilan',
                     'cicil-emas.pelunasan-cicilan',
+                    'cicil-emas.penyelesaian-cicilan',
                 ];
                 $isCicilEmasActive = request()->routeIs(...$cicilEmasRoutes);
                 $jualEmasRoutes = ['jual-emas.transaksi-penjualan', 'jual-emas.lihat-penjualan', 'jual-emas.batal-penjualan'];
@@ -282,6 +283,17 @@
                             ])
                         >
                             {{ __('Pelunasan Cicilan') }}
+                        </a>
+                        <a
+                            href="{{ route('cicil-emas.penyelesaian-cicilan') }}"
+                            wire:navigate
+                            @class([
+                                'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('cicil-emas.penyelesaian-cicilan'),
+                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('cicil-emas.penyelesaian-cicilan'),
+                            ])
+                        >
+                            {{ __('Penyelesaian Cicilan') }}
                         </a>
                     </div>
                 </div>
