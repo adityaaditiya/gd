@@ -105,5 +105,34 @@ class CicilEmasPenyelesaianController extends Controller
             ->route('cicil-emas.penyelesaian-cicilan')
             ->with('status', __('Penyelesaian cicilan berhasil dicatat dan status ditandai SELESAI.'));
     }
+
+    public function cancel(Request $request, CicilEmasTransaction $transaction): RedirectResponse
+    {
+        if ($transaction->status !== CicilEmasTransaction::STATUS_COMPLETED) {
+            return redirect()
+                ->route('cicil-emas.daftar-cicilan')
+                ->with('error', __('Pembatalan hanya tersedia untuk cicilan yang telah diselesaikan.'));
+        }
+
+        DB::transaction(function () use ($transaction) {
+            $transaction->penyelesaian_market_price = null;
+            $transaction->penyelesaian_purchase_price = null;
+            $transaction->penyelesaian_penalty_amount = null;
+            $transaction->penyelesaian_down_payment = null;
+            $transaction->penyelesaian_pokok_bersih = null;
+            $transaction->penyelesaian_total_margin = null;
+            $transaction->penyelesaian_total_harga_jual = null;
+            $transaction->penyelesaian_surplus_defisit = null;
+            $transaction->penyelesaian_kewajiban_pengembalian = null;
+            $transaction->penyelesaian_keterangan = null;
+            $transaction->penyelesaian_completed_at = null;
+            $transaction->status = CicilEmasTransaction::STATUS_ACTIVE;
+            $transaction->save();
+        });
+
+        return redirect()
+            ->route('cicil-emas.daftar-cicilan')
+            ->with('status', __('Penyelesaian cicilan dibatalkan dan status dikembalikan menjadi aktif.'));
+    }
 }
 

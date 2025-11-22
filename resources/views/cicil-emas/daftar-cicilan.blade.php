@@ -265,6 +265,20 @@
                                                 <button
                                                     type="button"
                                                     class="flex w-full items-center gap-2 px-4 py-2 text-left text-neutral-700 transition hover:bg-neutral-50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:text-neutral-200 dark:hover:bg-neutral-700/60"
+                                                    data-action="cancel-completion"
+                                                    data-form="cancel-completion-{{ $transaction->id }}"
+                                                    data-disabled="{{ $isCompleted ? 'false' : 'true' }}"
+                                                    {{ $isCompleted ? '' : 'disabled' }}
+                                                    role="menuitem"
+                                                >
+                                                    <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992m-4.992 5.302h4.992M2.985 7.42c0-1.886 1.536-3.42 3.43-3.42h.672c.353 0 .695.124.968.351l1.569 1.31a.61.61 0 0 0 .783 0l1.57-1.31a1.27 1.27 0 0 1 .967-.351h.673c1.894 0 3.43 1.534 3.43 3.42v9.16c0 1.886-1.536 3.42-3.43 3.42H6.415c-1.894 0-3.43-1.534-3.43-3.42z" />
+                                                    </svg>
+                                                    <span>{{ __('Batal Penyelesaian Cicilan') }}</span>
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    class="flex w-full items-center gap-2 px-4 py-2 text-left text-neutral-700 transition hover:bg-neutral-50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:text-neutral-200 dark:hover:bg-neutral-700/60"
                                                     data-action="cancel-transaction"
                                                     data-form="cancel-transaction-{{ $transaction->id }}"
                                                     data-prompt="{{ __('Masukkan alasan pembatalan transaksi cicilan ini:') }}"
@@ -295,6 +309,12 @@
 
                                         @if ($isSettled)
                                             <form id="cancel-settlement-{{ $transaction->id }}" method="POST" action="{{ route('cicil-emas.pelunasan-cicilan.cancel', $transaction) }}" class="hidden">
+                                                @csrf
+                                            </form>
+                                        @endif
+
+                                        @if ($isCompleted)
+                                            <form id="cancel-completion-{{ $transaction->id }}" method="POST" action="{{ route('cicil-emas.penyelesaian-cicilan.cancel', $transaction) }}" class="hidden">
                                                 @csrf
                                             </form>
                                         @endif
@@ -456,6 +476,28 @@
                         if (!form) return;
 
                         const confirmed = window.confirm('{{ __('Batalkan pelunasan dan kembalikan cicilan menjadi aktif?') }}');
+
+                        if (confirmed) {
+                            form.submit();
+                            closeDropdown();
+                        }
+
+                        return;
+                    }
+
+                    const cancelCompletion = event.target.closest('[data-action="cancel-completion"]');
+                    if (cancelCompletion) {
+                        event.preventDefault();
+                        if (cancelCompletion.disabled || cancelCompletion.dataset.disabled === 'true') {
+                            return;
+                        }
+
+                        const formId = cancelCompletion.dataset.form;
+                        const form = formId ? document.getElementById(formId) : null;
+
+                        if (!form) return;
+
+                        const confirmed = window.confirm('{{ __('Batalkan penyelesaian cicilan dan kembalikan menjadi aktif?') }}');
 
                         if (confirmed) {
                             form.submit();

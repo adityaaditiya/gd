@@ -127,6 +127,7 @@ Route::middleware(['auth'])->group(function () {
                 ->name('pelunasan-cicilan.cancel');
             Route::get('penyelesaian-cicilan', [CicilEmasPenyelesaianController::class, 'index'])->name('penyelesaian-cicilan');
             Route::post('penyelesaian-cicilan', [CicilEmasPenyelesaianController::class, 'store'])->name('penyelesaian-cicilan.store');
+            Route::post('penyelesaian-cicilan/{transaction}/cancel', [CicilEmasPenyelesaianController::class, 'cancel'])->name('penyelesaian-cicilan.cancel');
         });
 
     Route::prefix('jual-emas')
