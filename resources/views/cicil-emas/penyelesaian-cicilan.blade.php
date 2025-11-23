@@ -53,6 +53,7 @@
                                     <th scope="col" class="px-4 py-3 text-left">{{ __('Nasabah') }}</th>
                                     <th scope="col" class="px-4 py-3 text-center">{{ __('Tunggakan Terlama') }}</th>
                                     <th scope="col" class="px-4 py-3 text-right">{{ __('Akumulasi Denda') }}</th>
+                                    <th scope="col" class="px-4 py-3 text-right">{{ __('Total Kewajiban Bersih') }}</th>
                                     <th scope="col" class="px-4 py-3 text-center">{{ __('Aksi') }}</th>
                                 </tr>
                             </thead>
@@ -82,8 +83,14 @@
 
                                             return round((float) $installment->amount * ($penaltyRate / 100) * $daysLate, 2);
                                         });
+                                        $sisaUtang = $transaction->installments->sum(function ($installment) {
+                                            $paidAmount = (float) ($installment->paid_amount ?? 0);
+
+                                            return max(0, (float) $installment->amount - $paidAmount);
+                                        });
                                         $pokokPembiayaanBersih = max(0, (float) $transaction->harga_emas - (float) $transaction->estimasi_uang_muka);
                                         $totalHargaJual = $pokokPembiayaanBersih + (float) $transaction->margin_amount;
+                                        $totalKewajibanBersih = $sisaUtang + $totalPenalty;
                                     @endphp
                                     <tr>
                                         <td class="px-4 py-3 align-top text-neutral-800 dark:text-neutral-100">
@@ -112,13 +119,16 @@
                                         <td class="px-4 py-3 align-top text-right text-neutral-800 dark:text-neutral-100">
                                             {{ number_format($totalPenalty, 0, ',', '.') }}
                                         </td>
+                                        <td class="px-4 py-3 align-top text-right text-neutral-800 dark:text-neutral-100">
+                                            {{ number_format($totalKewajibanBersih, 0, ',', '.') }}
+                                        </td>
                                         <td class="px-4 py-3 align-top text-center text-neutral-800 dark:text-neutral-100">
                                             <details class="group inline-block w-full">
                                                 <summary class="inline-flex cursor-pointer items-center justify-center gap-1 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 shadow-sm transition hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-amber-400 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700">
                                                     {{ __('Selesaikan Cicilan') }}
                                                 </summary>
                                                 <div class="mt-3 rounded-lg border border-neutral-200 bg-neutral-50 p-4 text-left shadow-sm dark:border-neutral-700 dark:bg-neutral-800">
-                                                    <form method="POST" action="{{ route('cicil-emas.penyelesaian-cicilan.store') }}" class="grid gap-3 md:grid-cols-2">
+                                                    <form method="POST" action="{{ route('cicil-emas.penyelesaian-cicilan.store') }}" class="grid gap-3 md:grid-cols-2" data-penyelesaian-form data-sisa-utang="{{ $sisaUtang }}">
                                                         @csrf
                                                         <input type="hidden" name="transaction_id" value="{{ $transaction->id }}">
 
@@ -139,7 +149,7 @@
 
                                                         <div class="flex flex-col gap-1">
                                                             <label for="penilaian_harga_pasar_emas_{{ $transaction->id }}" class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Penilaian Harga Pasar Emas') }}</label>
-                                                            <input id="penilaian_harga_pasar_emas_{{ $transaction->id }}" name="penilaian_harga_pasar_emas" type="number" step="0.01" required class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-700 focus:border-amber-400 focus:outline-none focus:ring-amber-400 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100" placeholder="{{ __('Masukkan nilai pasar') }}">
+                                                            <input id="penilaian_harga_pasar_emas_{{ $transaction->id }}" name="penilaian_harga_pasar_emas" type="number" step="0.01" required class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-700 focus:border-amber-400 focus:outline-none focus:ring-amber-400 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100" placeholder="{{ __('Masukkan nilai pasar') }}" data-market-price>
                                                         </div>
 
                                                         <div class="flex flex-col gap-1">
@@ -149,7 +159,7 @@
 
                                                         <div class="flex flex-col gap-1">
                                                             <label for="nominal_denda_{{ $transaction->id }}" class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Nominal Denda (Penalty Amount)') }}</label>
-                                                            <input id="nominal_denda_{{ $transaction->id }}" name="nominal_denda" type="number" step="0.01" required value="{{ $totalPenalty }}" class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-700 focus:border-amber-400 focus:outline-none focus:ring-amber-400 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100">
+                                                            <input id="nominal_denda_{{ $transaction->id }}" name="nominal_denda" type="number" step="0.01" required value="{{ $totalPenalty }}" class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-700 focus:border-amber-400 focus:outline-none focus:ring-amber-400 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100" data-penalty-input>
                                                         </div>
 
                                                         <div class="flex flex-col gap-1">
@@ -170,6 +180,23 @@
                                                         <div class="flex flex-col gap-1">
                                                             <label class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Harga Jual (THJ)') }}</label>
                                                             <input type="text" readonly value="{{ number_format($totalHargaJual, 0, ',', '.') }}" class="w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-700 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100">
+                                                        </div>
+
+                                                        <div class="flex flex-col gap-1">
+                                                            <label class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Sisa Utang (belum termasuk denda)') }}</label>
+                                                            <input type="text" readonly value="{{ number_format($sisaUtang, 0, ',', '.') }}" class="w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-700 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100">
+                                                        </div>
+
+                                                        <div class="flex flex-col gap-1">
+                                                            <label class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Kewajiban Bersih') }}</label>
+                                                            <input type="text" readonly value="{{ number_format($totalKewajibanBersih, 0, ',', '.') }}" class="w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-700 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100" data-total-kewajiban>
+                                                            <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Otomatis dihitung: Sisa Utang + Nominal Denda.') }}</p>
+                                                        </div>
+
+                                                        <div class="flex flex-col gap-1">
+                                                            <label class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Proses Netting (Pelunasan)') }}</label>
+                                                            <input type="text" readonly value="-" class="w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-700 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100" data-netting-result>
+                                                            <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Bandingkan penilaian harga emas pasar dengan kewajiban bersih untuk mengetahui surplus/defisit.') }}</p>
                                                         </div>
 
                                                         <div class="flex flex-col gap-1">
@@ -204,5 +231,44 @@
             @endif
         </section>
     </div>
+
+    @push('scripts')
+        <script>
+            (() => {
+                const formatNumber = (value) =>
+                    new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
+
+                document.querySelectorAll('[data-penyelesaian-form]').forEach((form) => {
+                    const outstanding = parseFloat(form.dataset.sisaUtang ?? '0') || 0;
+                    const marketInput = form.querySelector('[data-market-price]');
+                    const penaltyInput = form.querySelector('[data-penalty-input]');
+                    const totalField = form.querySelector('[data-total-kewajiban]');
+                    const nettingField = form.querySelector('[data-netting-result]');
+
+                    const updateCalculations = () => {
+                        const penalty = parseFloat(penaltyInput?.value ?? '0') || 0;
+                        const total = outstanding + penalty;
+
+                        if (totalField) {
+                            totalField.value = formatNumber(total);
+                        }
+
+                        if (nettingField) {
+                            const marketPrice = parseFloat(marketInput?.value ?? '0') || 0;
+                            const difference = marketPrice - total;
+                            const status = difference >= 0 ? 'Surplus' : 'Defisit';
+
+                            nettingField.value = `${formatNumber(difference)} (${status})`;
+                        }
+                    };
+
+                    marketInput?.addEventListener('input', updateCalculations);
+                    penaltyInput?.addEventListener('input', updateCalculations);
+
+                    updateCalculations();
+                });
+            })();
+        </script>
+    @endpush
 </x-layouts.app>
 
