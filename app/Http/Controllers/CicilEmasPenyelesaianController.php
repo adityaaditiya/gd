@@ -39,6 +39,8 @@ class CicilEmasPenyelesaianController extends Controller
         return view('cicil-emas.penyelesaian-cicilan', [
             'transactions' => $transactions,
             'cutoffDate' => $cutoffDate,
+            'lateFeePercentagePerDay' => (float) config('cicil_emas.late_fee_percentage_per_day', 0.5),
+            'today' => Carbon::now()->startOfDay(),
         ]);
     }
 
