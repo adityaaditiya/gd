@@ -1,6 +1,7 @@
 <x-layouts.app :title="__('Penyelesaian Cicilan')">
     @php
         /** @var \Illuminate\Support\Collection<int, \App\Models\CicilEmasTransaction> $transactions */
+        $todayDate = $today ?? now();
     @endphp
 
     <div class="flex flex-col gap-6">
@@ -67,7 +68,20 @@
                                             ->sortBy('due_date')
                                             ->first();
 
-                                        $totalPenalty = $transaction->installments->sum(fn ($installment) => (float) ($installment->penalty_amount ?? 0));
+                                        $totalPenalty = $transaction->installments->sum(function ($installment) use ($todayDate, $lateFeePercentagePerDay) {
+                                            $penaltyRate = $installment->penalty_rate ?: $lateFeePercentagePerDay;
+                                            $isPaid = filled($installment->paid_at);
+
+                                            $daysLate = $isPaid
+                                                ? max(0, $installment->due_date?->diffInDays($installment->paid_at, false) ?? 0)
+                                                : ($installment->due_date?->isPast() ? $installment->due_date->diffInDays($todayDate) : 0);
+
+                                            if ($isPaid) {
+                                                return (float) ($installment->penalty_amount ?? 0);
+                                            }
+
+                                            return round((float) $installment->amount * ($penaltyRate / 100) * $daysLate, 2);
+                                        });
                                         $pokokPembiayaanBersih = max(0, (float) $transaction->harga_emas - (float) $transaction->estimasi_uang_muka);
                                         $totalHargaJual = $pokokPembiayaanBersih + (float) $transaction->margin_amount;
                                     @endphp
