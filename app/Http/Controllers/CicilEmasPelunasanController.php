@@ -73,17 +73,13 @@ class CicilEmasPelunasanController extends Controller
 
         $summary = $this->buildSettlementSummary($transaction);
 
-        if ($summary['remainingAmount'] <= 0) {
-            return back()
-                ->with('error', __('Seluruh angsuran sudah terbayar. Tidak ada tagihan tersisa untuk dilunasi.'))
-                ->withInput();
-        }
-
         $settlementDate = Carbon::now();
+        $settlementBalance = max(0, (float) $summary['remainingAmount']);
+        $shippingFee = (float) ($validated['biaya_ongkos_kirim'] ?? 0);
 
-        DB::transaction(function () use ($transaction, $settlementDate, $summary, $validated) {
+        DB::transaction(function () use ($transaction, $settlementDate, $summary, $settlementBalance, $shippingFee) {
             $nomorPelunasan = $this->generateSettlementNumber($settlementDate, true);
-            $cashInAmount = round($summary['remainingAmount'] + (float) ($validated['biaya_ongkos_kirim'] ?? 0), 2);
+            $cashInAmount = round($settlementBalance + $shippingFee, 2);
 
             foreach ($transaction->installments as $installment) {
                 $remaining = max(0, (float) $installment->amount - (float) ($installment->paid_amount ?? 0));
