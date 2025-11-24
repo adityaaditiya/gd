@@ -2,7 +2,7 @@
     <div class="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <p class="text-sm font-semibold uppercase tracking-wide text-neutral-500">{{ __('Master') }}</p>
+                <!-- <p class="text-sm font-semibold uppercase tracking-wide text-neutral-500">{{ __('Master') }}</p> -->
                 <h1 class="text-2xl font-bold text-neutral-900 dark:text-white">{{ __('Master Perhitungan Gadai') }}</h1>
             </div>
         </div>
@@ -23,7 +23,7 @@
         >
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Tambah Rumus Baru') }}</h2>
+                    <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Parameter Perhitungan Gadai') }}</h2>
                     <p class="mt-1 text-sm text-neutral-500">{{ __('Konfigurasikan parameter perhitungan pemberian kredit di bawah ini.') }}</p>
                 </div>
                 <button
@@ -130,8 +130,8 @@
                             @error('tarif_bunga_harian')
                                 <p class="text-sm text-rose-600">{{ $message }}</p>
                             @enderror
-                            <p class="text-xs text-neutral-500">{{ __('Gunakan format desimal, contoh: 0.015 untuk 1.5% harian.') }}</p>
-                            <p class="text-xs text-neutral-500">{{ __('Panduan: untuk bunga total 2,5% dalam 30 hari gunakan ±0.00083 per hari.') }}</p>
+                            <p class="text-xs text-neutral-500">{{ __('Kolom input hanya aktif jika pilih skema Bunga Harian.') }}</p>
+                            <p class="text-xs text-neutral-500">{{ __('Panduan: Gunakan format desimal, contoh: 0.015 untuk 1.5% harian. untuk bunga total 2,5% dalam 30 hari gunakan ±0.00083 per hari.') }}</p>
                         </div>
                         <div class="space-y-1" x-show="skemaBunga === 'periodik'" x-cloak>
                             <label for="tarif_bunga_per_periode" class="block text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Tarif Bunga per Periode (%)') }}</label>
@@ -154,22 +154,7 @@
                     </div>
 
                     <div class="grid gap-4 sm:grid-cols-2">
-                        <div class="space-y-1">
-                            <label for="tenor_hari" class="block text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Tenor (Hari)') }}</label>
-                            <input
-                                id="tenor_hari"
-                                name="tenor_hari"
-                                type="number"
-                                min="1"
-                                value="{{ old('tenor_hari') }}"
-                                class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
-                                required
-                            >
-                            @error('tenor_hari')
-                                <p class="text-sm text-rose-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-
+                        
                         <div class="space-y-1" x-show="skemaBunga === 'periodik'" x-cloak>
                             <label for="periode_hari" class="block text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Periode (Hari)') }}</label>
                             <input
@@ -185,6 +170,22 @@
                                 <p class="text-sm text-rose-600">{{ $message }}</p>
                             @enderror
                             <p class="text-xs text-neutral-500">{{ __('Durasi satu periode bunga, contoh 15 hari untuk skema KCA 15 hari.') }}</p>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label for="tenor_hari" class="block text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Tenor (Hari)') }}</label>
+                            <input
+                                id="tenor_hari"
+                                name="tenor_hari"
+                                type="number"
+                                min="1"
+                                value="{{ old('tenor_hari') }}"
+                                class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+                                required
+                            >
+                            @error('tenor_hari')
+                                <p class="text-sm text-rose-600">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <div class="space-y-1">
@@ -230,20 +231,20 @@
         </div>
 
         <div class="rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
-            <div class="flex items-center justify-between border-b border-neutral-200 px-6 py-4 dark:border-neutral-700">
+            <!-- <div class="flex items-center justify-between border-b border-neutral-200 px-6 py-4 dark:border-neutral-700">
                 <div>
                     <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Data Master Perhitungan Gadai') }}</h2>
                     <p class="text-sm text-neutral-500">{{ __('Kelola seluruh range dan tarif dari satu tempat.') }}</p>
                 </div>
                 <span class="text-sm font-medium text-neutral-500">{{ $perhitunganList->count() }} {{ \Illuminate\Support\Str::plural(__('Data'), $perhitunganList->count()) }}</span>
-            </div>
+            </div> -->
 
             <div class="overflow-x-auto">
                 <table
                     class="min-w-full divide-y divide-neutral-200 text-sm dark:divide-neutral-700"
                     data-master-table
                 >
-                    <thead class="bg-neutral-50 dark:bg-neutral-800/50">
+                    <thead class="bg-neutral-50 dark:bg-neutral-700">
                         <tr>
                             @php
                                 $sortableColumns = [
@@ -277,7 +278,7 @@
                                 </th>
                             @endforeach
 
-                            <th scope="col" class="px-4 py-3 text-left font-semibold text-neutral-700 dark:text-neutral-200">
+                            <th scope="col" class="px-4 py-3 text-justify font-semibold text-neutral-700 dark:text-neutral-200">
                                 <span>{{ __('Aksi') }}</span>
                             </th>
                         </tr>
@@ -449,20 +450,7 @@
                                                 </div>
 
                                                 <div class="grid gap-4 sm:grid-cols-2">
-                                                    <div class="space-y-1">
-                                                        <label class="block text-xs font-medium text-neutral-600 dark:text-neutral-200">{{ __('Tenor (Hari)') }}</label>
-                                                        <input
-                                                            name="tenor_hari"
-                                                            type="number"
-                                                            min="1"
-                                                            value="{{ $value('tenor_hari') }}"
-                                                            class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-neutral-600 dark:bg-neutral-900"
-                                                            required
-                                                        >
-                                                        @error('tenor_hari', 'updateMasterPerhitungan_' . $perhitungan->id)
-                                                            <p class="text-xs text-rose-500">{{ $message }}</p>
-                                                        @enderror
-                                                    </div>
+
                                                     <div class="space-y-1" x-show="skemaBunga === 'periodik'" x-cloak>
                                                         <label class="block text-xs font-medium text-neutral-600 dark:text-neutral-200">{{ __('Periode (Hari)') }}</label>
                                                         <input
@@ -477,6 +465,22 @@
                                                             <p class="text-xs text-rose-500">{{ $message }}</p>
                                                         @enderror
                                                     </div>
+
+                                                    <div class="space-y-1">
+                                                        <label class="block text-xs font-medium text-neutral-600 dark:text-neutral-200">{{ __('Tenor (Hari)') }}</label>
+                                                        <input
+                                                            name="tenor_hari"
+                                                            type="number"
+                                                            min="1"
+                                                            value="{{ $value('tenor_hari') }}"
+                                                            class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-neutral-600 dark:bg-neutral-900"
+                                                            required
+                                                        >
+                                                        @error('tenor_hari', 'updateMasterPerhitungan_' . $perhitungan->id)
+                                                            <p class="text-xs text-rose-500">{{ $message }}</p>
+                                                        @enderror
+                                                    </div>
+                                                    
                                                 </div>
 
                                                 <div class="grid gap-4 sm:grid-cols-2">

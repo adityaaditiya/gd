@@ -44,7 +44,7 @@
                 </p>
             </header>
 
-            <form method="GET" class="grid gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-4 text-sm dark:border-neutral-700 dark:bg-neutral-800/60 md:grid-cols-5">
+            <form method="GET" class="grid gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-4 text-sm dark:border-neutral-700 dark:bg-neutral-900 md:grid-cols-5">
                 <div class="md:col-span-2">
                     <label class="flex flex-col gap-1">
                         <span class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Cari Nomor Cicilan / Nasabah / Paket') }}</span>
@@ -143,7 +143,7 @@
                     @endif
                 </div>
             @else
-                <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-2 text-xs font-medium text-neutral-600 dark:border-neutral-700 dark:bg-neutral-800/60 dark:text-neutral-300">
+                <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-2 text-xs font-medium text-neutral-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300">
                     <div class="flex flex-col gap-1 text-left md:flex-row md:items-center md:gap-3">
                         <span>
                             {{ __('Menampilkan :from-:to dari :total angsuran', [

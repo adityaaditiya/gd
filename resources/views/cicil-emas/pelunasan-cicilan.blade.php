@@ -28,14 +28,14 @@
 
         <section class="flex flex-col gap-4 rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
             <header class="flex flex-col gap-1">
-                <span class="text-xs font-semibold uppercase tracking-wide text-sky-500">{{ __('Menu Pelunasan Cicilan') }}</span>
+                <!-- <span class="text-xs font-semibold uppercase tracking-wide text-sky-500">{{ __('Menu Pelunasan Cicilan') }}</span> -->
                 <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Cari Nomor Cicilan Emas') }}</h2>
                 <p class="text-sm text-neutral-600 dark:text-neutral-300">
                     {{ __('Gunakan pencarian berdasarkan nomor cicilan emas untuk menyiapkan pelunasan normal (akhir kontrak) atau pelunasan dipercepat.') }}
                 </p>
             </header>
 
-            <form method="GET" class="grid gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-4 text-sm dark:border-neutral-700 dark:bg-neutral-800/60 md:grid-cols-6">
+            <form method="GET" class="grid gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-4 text-sm dark:border-neutral-700 dark:bg-neutral-900 md:grid-cols-6">
                 <div class="md:col-span-4">
                     <label class="flex flex-col gap-1">
                         <span class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Nomor Cicilan Emas') }}</span>
@@ -69,7 +69,7 @@
             </form>
 
             @if ($search !== '' && ! $transaction)
-                <div class="flex flex-col gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100">
+                <div class="flex flex-col gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-500/40 dark:bg-neutral-900 dark:text-amber-100">
                     <p class="font-semibold">{{ __('Nomor cicilan tidak ditemukan') }}</p>
                     <p>{{ __('Periksa kembali nomor cicilan emas atau gunakan menu Angsuran Rutin sebagai referensi pencarian.') }}</p>
                 </div>
@@ -77,7 +77,7 @@
 
             @if ($transaction)
                 <div class="grid gap-4 md:grid-cols-3">
-                    <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
+                    <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-900">
                         <div class="flex items-center justify-between">
                             <span class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Nomor Cicilan') }}</span>
                             <span class="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-700 dark:bg-sky-500/20 dark:text-sky-200">{{ $transaction->status === \App\Models\CicilEmasTransaction::STATUS_SETTLED ? __('Lunas') : __('Aktif') }}</span>
@@ -85,7 +85,7 @@
                         <p class="font-mono text-lg font-semibold text-neutral-900 dark:text-white">{{ $transaction->nomor_cicilan ?? '—' }}</p>
                         <p class="text-sm text-neutral-600 dark:text-neutral-300">{{ __('Tenor :bulan bulan • Angsuran ke-:ke', ['bulan' => $transaction->tenor_bulan, 'ke' => $summary['lastSequence'] ?? '—']) }}</p>
                     </div>
-                    <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
+                    <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-900">
                         <span class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Data Nasabah') }}</span>
                         <p class="text-base font-semibold text-neutral-900 dark:text-white">{{ $transaction->nasabah?->nama ?? __('Tidak diketahui') }}</p>
                         <p class="text-sm text-neutral-600 dark:text-neutral-300">{{ $transaction->nasabah?->telepon ?? __('Kontak tidak tersedia') }}</p>
@@ -93,16 +93,16 @@
                             <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Kode Member: :kode', ['kode' => $transaction->nasabah->kode_member]) }}</p>
                         @endif
                     </div>
-                    <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
+                    <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-900">
                         <span class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Ringkasan Pembayaran') }}</span>
-                        <div class="mt-2 flex items-center gap-2">
+                        <!-- <div class="mt-2 flex items-center gap-2">
                             <span class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Sisa: Rp :nominal', ['nominal' => number_format($summary['remainingAmount'], 0, ',', '.')]) }}</span>
                             @if ($summary['isAccelerated'])
                                 <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-500/20 dark:text-amber-100">{{ __('Pelunasan Dipercepat') }}</span>
                             @else
                                 <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100">{{ __('Pelunasan Normal') }}</span>
                             @endif
-                        </div>
+                        </div> -->
                         <p class="text-xs text-neutral-500 dark:text-neutral-400">
                             {{ __('Terbayar :paid dari :total angsuran', ['paid' => $summary['paidInstallments'], 'total' => $summary['totalInstallments']]) }}
                         </p>
@@ -116,7 +116,7 @@
                     @csrf
                     <input type="hidden" name="transaction_id" value="{{ $transaction->id }}">
 
-                    <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
+                    <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-900">
                         <h3 class="text-base font-semibold text-neutral-900 dark:text-white">{{ __('Detail Pelunasan Normal (Akhir Kontrak)') }}</h3>
                         <div class="mt-3 grid gap-3">
                             <label class="flex flex-col gap-1">
@@ -124,7 +124,7 @@
                                 <input
                                     type="text"
                                     value="{{ old('nomor_pelunasan', $previewNumber) }}"
-                                    class="rounded-md border border-neutral-300 bg-neutral-100 px-3 py-2 font-mono text-sm text-neutral-900 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/30 dark:border-neutral-600 dark:bg-neutral-900/60 dark:text-neutral-100"
+                                    class="rounded-md border border-neutral-300 bg-neutral-100 px-3 py-2 font-mono text-sm text-neutral-900 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/30 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100"
                                     readonly
                                 >
                                 <span class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Format: PE03 + Tanggal (yymmdd) + urutan harian. Contoh: :nomor', ['nomor' => 'PE03'.now()->format('ymd').'001']) }}</span>
@@ -132,14 +132,14 @@
                             <label class="flex flex-col gap-1">
                                 <span class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Biaya Ongkos Kirim (opsional)') }}</span>
                                 <div class="relative">
-                                    <span class="absolute left-3 top-2 text-sm text-neutral-500">Rp</span>
+                                    <!-- <span class="absolute left-3 top-2 text-sm text-neutral-500">Rp</span> -->
                                     <input
                                         type="number"
                                         name="biaya_ongkos_kirim"
                                         min="0"
                                         step="0.01"
                                         value="{{ old('biaya_ongkos_kirim') }}"
-                                        class="w-full rounded-md border border-neutral-300 bg-white px-10 py-2 text-sm text-neutral-900 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/30 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100"
+                                        class="w-full rounded-md border border-neutral-300 bg-white px-2 py-2 text-sm text-neutral-900 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/30 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100"
                                         placeholder="0.00"
                                     >
                                 </div>
@@ -148,15 +148,15 @@
                         </div>
                     </div>
 
-                    <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
+                    <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-900">
                         <h3 class="text-base font-semibold text-neutral-900 dark:text-white">{{ __('Rangkuman Tagihan') }}</h3>
                         <dl class="mt-3 space-y-2 text-sm text-neutral-700 dark:text-neutral-200">
                             <div class="flex items-center justify-between">
-                                <dt>{{ __('Total Jadwal') }}</dt>
+                                <dt>{{ __('Total Tagihan') }}</dt>
                                 <dd class="font-semibold">Rp {{ number_format($summary['totalScheduled'], 0, ',', '.') }}</dd>
                             </div>
                             <div class="flex items-center justify-between">
-                                <dt>{{ __('Total Terbayar') }}</dt>
+                                <dt>{{ __('Total Tagihan Terbayar') }}</dt>
                                 <dd class="font-semibold text-emerald-600 dark:text-emerald-300">Rp {{ number_format($summary['totalPaid'], 0, ',', '.') }}</dd>
                             </div>
                             <div class="flex items-center justify-between">

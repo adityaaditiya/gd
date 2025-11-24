@@ -45,7 +45,7 @@
                         </select>
                     </div>
                 </div>
-
+<span></span>
                 <div class="flex gap-3">
                     <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-blue-600 shadow hover:bg-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 dark:focus:ring-offset-neutral-900">
                         {{ __('Terapkan') }}
@@ -58,7 +58,7 @@
                 </div>
             </div>
 
-            @if(($hasQuery ?? false) && ($insights instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator) && $insights->total())
+            <!-- @if(($hasQuery ?? false) && ($insights instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator) && $insights->total())
                 <p class="text-sm text-neutral-600 dark:text-neutral-300">
                     {{ __('Menampilkan :from–:to dari :total hasil', [
                         'from' => number_format($insights->firstItem(), 0, ',', '.'),
@@ -70,11 +70,10 @@
                 <p class="text-sm text-neutral-600 dark:text-neutral-300">
                     {{ __('Menampilkan :count hasil', ['count' => number_format($insights->count(), 0, ',', '.')]) }}
                 </p>
-            @endif
+            @endif -->
         </form>
 
         <section class="grid gap-4 rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
-
             @if(! ($hasQuery ?? false))
                 <div class="rounded-xl border border-dashed border-neutral-300 bg-white p-10 text-center shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
                     <h3 class="text-lg font-semibold text-neutral-800 dark:text-white">{{ __('Cari riwayat cicilan nasabah') }}</h3>
@@ -206,7 +205,7 @@
                             <h4 class="text-sm font-semibold text-neutral-900 dark:text-white">{{ __('Riwayat Pembayaran') }}</h4>
                             <div class="overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-700">
                                 <table class="min-w-full divide-y divide-neutral-200 text-sm dark:divide-neutral-700">
-                                    <thead class="bg-neutral-50 dark:bg-neutral-800/70">
+                                    <thead class="bg-neutral-50 dark:bg-neutral-800">
                                         <tr>
                                             <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Termin') }}</th>
                                             <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Jatuh Tempo') }}</th>
@@ -297,23 +296,23 @@
             </header>
 
             <dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
+                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-900">
                     <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Pokok Tercatat') }}</dt>
-                    <dd class="text-xl font-semibold text-neutral-900 dark:text-black">Rp {{ number_format($portfolio['total_principal'] ?? 0, 0, ',', '.') }}</dd>
+                    <dd class="text-xl font-semibold text-neutral-900 dark:text-neutral-200">Rp {{ number_format($portfolio['total_principal'] ?? 0, 0, ',', '.') }}</dd>
                 </div>
-                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
+                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-900">
                     <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Saldo Pokok Tersisa') }}</dt>
                     <dd class="text-xl font-semibold text-amber-600 dark:text-amber-300">Rp {{ number_format($portfolio['total_outstanding'] ?? 0, 0, ',', '.') }}</dd>
                 </div>
-                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
+                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-900">
                     <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Pembayaran Tercatat') }}</dt>
                     <dd class="text-xl font-semibold text-emerald-600 dark:text-emerald-300">Rp {{ number_format($portfolio['total_paid'] ?? 0, 0, ',', '.') }}</dd>
                 </div>
-                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
+                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-900">
                     <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Administrasi Tercatat') }}</dt>
-                    <dd class="text-xl font-semibold text-neutral-900 dark:text-black">Rp {{ number_format($portfolio['total_administration'] ?? 0, 0, ',', '.') }}</dd>
+                    <dd class="text-xl font-semibold text-neutral-900 dark:text-neutral-400">Rp {{ number_format($portfolio['total_administration'] ?? 0, 0, ',', '.') }}</dd>
                 </div>
-                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
+                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-900">
                     <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Rata-rata Penyelesaian') }}</dt>
                     <dd class="text-xl font-semibold text-blue-600 dark:text-blue-300">{{ number_format($portfolio['average_completion'] ?? 0, 2, ',', '.') }}%</dd>
                 </div>

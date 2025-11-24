@@ -153,7 +153,7 @@
                                                         </div>
 
                                                         <div class="flex flex-col gap-1">
-                                                            <label for="harga_beli_emas_{{ $transaction->id }}" class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Harga Beli Emas (Perusahaan)') }}</label>
+                                                            <label for="harga_beli_emas_{{ $transaction->id }}" class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Harga Beli Nasabah') }}</label>
                                                             <input id="harga_beli_emas_{{ $transaction->id }}" name="harga_beli_emas" type="number" step="0.01" required value="{{ $transaction->harga_emas }}" class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-700 focus:border-amber-400 focus:outline-none focus:ring-amber-400 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100">
                                                         </div>
 
@@ -178,7 +178,7 @@
                                                         </div>
 
                                                         <div class="flex flex-col gap-1">
-                                                            <label class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Harga Jual (THJ)') }}</label>
+                                                            <label class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Harga Jual Nasabah (THJ)') }}</label>
                                                             <input type="text" readonly value="{{ number_format($totalHargaJual, 0, ',', '.') }}" class="w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-700 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100">
                                                         </div>
 
@@ -199,17 +199,14 @@
                                                             <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Bandingkan penilaian harga emas pasar dengan kewajiban bersih untuk mengetahui surplus/defisit.') }}</p>
                                                         </div>
 
-                                                        <div class="flex flex-col gap-1">
-                                                            <label class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Perhitungan Surplus/Defisit (otomatis)') }}</label>
-                                                            <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Surplus = Penilaian Pasar - THJ. Nilai positif menandakan surplus, negatif menandakan defisit.') }}</p>
-                                                        </div>
+                                                       
 
                                                         <div class="flex flex-col gap-1 md:col-span-2">
                                                             <label for="keterangan_{{ $transaction->id }}" class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Keterangan') }}</label>
                                                             <textarea id="keterangan_{{ $transaction->id }}" name="keterangan" rows="2" class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-700 focus:border-amber-400 focus:outline-none focus:ring-amber-400 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100" placeholder="{{ __('Catat penjelasan surplus/defisit atau kewajiban pengembalian surplus') }}"></textarea>
                                                         </div>
 
-                                                        <div class="md:col-span-2 flex items-center justify-between rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-500/10 dark:text-amber-200">
+                                                        <div class="md:col-span-2 flex items-center justify-between rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-500/10 dark:text-black">
                                                             <div class="flex flex-col">
                                                                 <span class="font-semibold">{{ __('Status Transaksi akan menjadi SELESAI') }}</span>
                                                                 <span>{{ __('Pencatatan kewajiban pengembalian surplus dilakukan otomatis berdasarkan perhitungan surplus/defisit.') }}</span>

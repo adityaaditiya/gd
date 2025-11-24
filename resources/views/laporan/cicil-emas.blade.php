@@ -50,7 +50,7 @@
             @else
                 <div class="overflow-hidden rounded-xl border border-neutral-200 shadow-sm dark:border-neutral-700">
                     <table class="min-w-full divide-y divide-neutral-200 text-sm dark:divide-neutral-700">
-                        <thead class="bg-neutral-50 dark:bg-neutral-800/70">
+                        <thead class="bg-neutral-50 dark:bg-neutral-800">
                             <tr>
                                 <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Tanggal Transaksi') }}</th>
                                 <th class="px-4 py-3 text-left font-semibold text-neutral-600 dark:text-neutral-300">{{ __('Nasabah') }}</th>
@@ -151,31 +151,31 @@
             </header>
 
             <dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
+                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-900">
                     <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Pembiayaan') }}</dt>
-                    <dd class="text-xl font-semibold text-neutral-900 dark:text-white">Rp {{ number_format($metrics['total_financed'] ?? 0, 0, ',', '.') }}</dd>
+                    <dd class="text-xl font-semibold text-neutral-900 dark:text-neutral-200">Rp {{ number_format($metrics['total_financed'] ?? 0, 0, ',', '.') }}</dd>
                 </div>
-                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
+                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-900">
                     <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Pokok Tercatat') }}</dt>
-                    <dd class="text-xl font-semibold text-neutral-900 dark:text-white">Rp {{ number_format($metrics['total_principal'] ?? 0, 0, ',', '.') }}</dd>
+                    <dd class="text-xl font-semibold text-amber-900 dark:text-amber-600">Rp {{ number_format($metrics['total_principal'] ?? 0, 0, ',', '.') }}</dd>
                 </div>
-                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
+                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-900">
                     <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Margin Terjadwal') }}</dt>
                     <dd class="text-xl font-semibold text-purple-600 dark:text-purple-300">Rp {{ number_format($metrics['total_margin'] ?? 0, 0, ',', '.') }}</dd>
                 </div>
-                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
+                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-900">
                     <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Administrasi') }}</dt>
-                    <dd class="text-xl font-semibold text-neutral-900 dark:text-white">Rp {{ number_format($metrics['total_administration'] ?? 0, 0, ',', '.') }}</dd>
+                    <dd class="text-xl font-semibold text-rose-700 dark:text-rose-400">Rp {{ number_format($metrics['total_administration'] ?? 0, 0, ',', '.') }}</dd>
                 </div>
-                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
+                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-900">
                     <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Saldo Pembiayaan Tersisa') }}</dt>
                     <dd class="text-xl font-semibold text-amber-600 dark:text-amber-300">Rp {{ number_format($metrics['total_outstanding'] ?? 0, 0, ',', '.') }}</dd>
                 </div>
-                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
+                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-900">
                     <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Pembayaran') }}</dt>
                     <dd class="text-xl font-semibold text-emerald-600 dark:text-emerald-300">Rp {{ number_format($metrics['total_paid'] ?? 0, 0, ',', '.') }}</dd>
                 </div>
-                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
+                <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-900">
                     <dt class="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Denda Tercatat') }}</dt>
                     <dd class="text-xl font-semibold text-rose-600 dark:text-rose-300">Rp {{ number_format($metrics['total_penalty'] ?? 0, 0, ',', '.') }}</dd>
                 </div>
