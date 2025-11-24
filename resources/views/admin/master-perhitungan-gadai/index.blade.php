@@ -37,7 +37,12 @@
             </div>
 
             <div x-show="showCreateForm" x-cloak class="mt-6 border-t border-neutral-200 pt-6 dark:border-neutral-700">
-                <form method="POST" action="{{ route('admin.master-perhitungan-gadai.store') }}" class="space-y-5">
+                <form
+                    method="POST"
+                    action="{{ route('admin.master-perhitungan-gadai.store') }}"
+                    class="space-y-5"
+                    x-data="{ skemaBunga: '{{ old('skema_bunga', 'harian') }}' }"
+                >
                     @csrf
 
                     <div class="space-y-1">
@@ -51,6 +56,23 @@
                             required
                         >
                         @error('type')
+                            <p class="text-sm text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="space-y-1">
+                        <label for="skema_bunga" class="block text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Skema Bunga') }}</label>
+                        <select
+                            id="skema_bunga"
+                            name="skema_bunga"
+                            x-model="skemaBunga"
+                            class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+                            required
+                        >
+                            <option value="harian">{{ __('Bunga Harian') }}</option>
+                            <option value="periodik">{{ __('Bunga Periodik') }}</option>
+                        </select>
+                        @error('skema_bunga')
                             <p class="text-sm text-rose-600">{{ $message }}</p>
                         @enderror
                     </div>
@@ -101,8 +123,9 @@
                                 min="0"
                                 max="1"
                                 value="{{ old('tarif_bunga_harian') }}"
+                                x-bind:required="skemaBunga === 'harian'"
+                                x-bind:disabled="skemaBunga === 'periodik'"
                                 class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
-                                required
                             >
                             @error('tarif_bunga_harian')
                                 <p class="text-sm text-rose-600">{{ $message }}</p>
@@ -110,6 +133,27 @@
                             <p class="text-xs text-neutral-500">{{ __('Gunakan format desimal, contoh: 0.015 untuk 1.5% harian.') }}</p>
                             <p class="text-xs text-neutral-500">{{ __('Panduan: untuk bunga total 2,5% dalam 30 hari gunakan ±0.00083 per hari.') }}</p>
                         </div>
+                        <div class="space-y-1" x-show="skemaBunga === 'periodik'" x-cloak>
+                            <label for="tarif_bunga_per_periode" class="block text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Tarif Bunga per Periode (%)') }}</label>
+                            <input
+                                id="tarif_bunga_per_periode"
+                                name="tarif_bunga_per_periode"
+                                type="number"
+                                step="0.00001"
+                                min="0"
+                                max="1"
+                                value="{{ old('tarif_bunga_per_periode') }}"
+                                x-bind:required="skemaBunga === 'periodik'"
+                                class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+                            >
+                            @error('tarif_bunga_per_periode')
+                                <p class="text-sm text-rose-600">{{ $message }}</p>
+                            @enderror
+                            <p class="text-xs text-neutral-500">{{ __('Gunakan format desimal, contoh: 0.045 untuk 4.5% per periode (misal 15 hari).') }}</p>
+                        </div>
+                    </div>
+
+                    <div class="grid gap-4 sm:grid-cols-2">
                         <div class="space-y-1">
                             <label for="tenor_hari" class="block text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Tenor (Hari)') }}</label>
                             <input
@@ -125,9 +169,24 @@
                                 <p class="text-sm text-rose-600">{{ $message }}</p>
                             @enderror
                         </div>
-                    </div>
 
-                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div class="space-y-1" x-show="skemaBunga === 'periodik'" x-cloak>
+                            <label for="periode_hari" class="block text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Periode (Hari)') }}</label>
+                            <input
+                                id="periode_hari"
+                                name="periode_hari"
+                                type="number"
+                                min="1"
+                                value="{{ old('periode_hari') }}"
+                                x-bind:required="skemaBunga === 'periodik'"
+                                class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+                            >
+                            @error('periode_hari')
+                                <p class="text-sm text-rose-600">{{ $message }}</p>
+                            @enderror
+                            <p class="text-xs text-neutral-500">{{ __('Durasi satu periode bunga, contoh 15 hari untuk skema KCA 15 hari.') }}</p>
+                        </div>
+
                         <div class="space-y-1">
                             <label for="jatuh_tempo_awal" class="block text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Jatuh Tempo Awal (Hari)') }}</label>
                             <input
@@ -191,7 +250,10 @@
                                     ['key' => 'type', 'label' => __('Type')],
                                     ['key' => 'range_awal', 'label' => __('Range Awal')],
                                     ['key' => 'range_akhir', 'label' => __('Range Akhir')],
+                                    ['key' => 'skema_bunga', 'label' => __('Skema Bunga')],
                                     ['key' => 'tarif_bunga_harian', 'label' => __('Tarif Bunga Harian')],
+                                    ['key' => 'tarif_bunga_per_periode', 'label' => __('Tarif Bunga per Periode')],
+                                    ['key' => 'periode_hari', 'label' => __('Periode (Hari)')],
                                     ['key' => 'tenor_hari', 'label' => __('Tenor (Hari)')],
                                     ['key' => 'jatuh_tempo_awal', 'label' => __('Jatuh Tempo Awal (Hari)')],
                                     ['key' => 'biaya_admin', 'label' => __('Biaya Admin')],
@@ -233,6 +295,9 @@
                                 data-range-awal="{{ $perhitungan->range_awal }}"
                                 data-range-akhir="{{ $perhitungan->range_akhir }}"
                                 data-tarif-bunga-harian="{{ $perhitungan->tarif_bunga_harian }}"
+                                data-skema-bunga="{{ $perhitungan->skema_bunga }}"
+                                data-tarif-bunga-per-periode="{{ $perhitungan->tarif_bunga_per_periode }}"
+                                data-periode-hari="{{ $perhitungan->periode_hari }}"
                                 data-tenor-hari="{{ $perhitungan->tenor_hari }}"
                                 data-jatuh-tempo-awal="{{ $perhitungan->jatuh_tempo_awal }}"
                                 data-biaya-admin="{{ $perhitungan->biaya_admin }}"
@@ -240,12 +305,19 @@
                                 <td class="px-4 py-4 font-semibold">{{ $perhitungan->type }}</td>
                                 <td class="px-4 py-4">Rp {{ number_format($perhitungan->range_awal, 0, ',', '.') }}</td>
                                 <td class="px-4 py-4">Rp {{ number_format($perhitungan->range_akhir, 0, ',', '.') }}</td>
-                                <td class="px-4 py-4">{{ rtrim(rtrim(number_format($perhitungan->tarif_bunga_harian * 100, 4, '.', ''), '0'), '.') }}%</td>
+                                <td class="px-4 py-4 capitalize">{{ $perhitungan->skema_bunga ?? 'harian' }}</td>
+                                <td class="px-4 py-4">
+                                    {{ $perhitungan->tarif_bunga_harian !== null ? rtrim(rtrim(number_format($perhitungan->tarif_bunga_harian * 100, 4, '.', ''), '0'), '.') . '%' : '—' }}
+                                </td>
+                                <td class="px-4 py-4">
+                                    {{ $perhitungan->tarif_bunga_per_periode !== null ? rtrim(rtrim(number_format($perhitungan->tarif_bunga_per_periode * 100, 4, '.', ''), '0'), '.') . '%' : '—' }}
+                                </td>
+                                <td class="px-4 py-4">{{ $perhitungan->periode_hari ?? '—' }}</td>
                                 <td class="px-4 py-4">{{ $perhitungan->tenor_hari }} {{ __('hari') }}</td>
                                 <td class="px-4 py-4">{{ $perhitungan->jatuh_tempo_awal }} {{ __('hari') }}</td>
                                 <td class="px-4 py-4">Rp {{ number_format($perhitungan->biaya_admin, 0, ',', '.') }}</td>
                                 <td class="px-4 py-4">
-                                    <div x-data="{ isEditing: {{ $isEditing ? 'true' : 'false' }} }" class="space-y-4">
+                                    <div x-data="{ isEditing: {{ $isEditing ? 'true' : 'false' }}, skemaBunga: '{{ $value('skema_bunga') ?? 'harian' }}' }" class="space-y-4">
                                         <div class="flex flex-wrap items-center gap-2">
                                             <button
                                                 type="button"
@@ -291,18 +363,17 @@
                                                         @enderror
                                                     </div>
                                                     <div class="space-y-1">
-                                                        <label class="block text-xs font-medium text-neutral-600 dark:text-neutral-200">{{ __('Tarif Bunga Harian') }}</label>
-                                                        <input
-                                                            name="tarif_bunga_harian"
-                                                            type="number"
-                                                            step="0.0001"
-                                                            min="0"
-                                                            max="1"
-                                                            value="{{ $value('tarif_bunga_harian') }}"
-                                                            class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-neutral-600 dark:bg-neutral-900"
+                                                        <label class="block text-xs font-medium text-neutral-600 dark:text-neutral-200">{{ __('Skema Bunga') }}</label>
+                                                        <select
+                                                            name="skema_bunga"
+                                                            x-model="skemaBunga"
+                                                            class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-neutral-600 dark:bg-neutral-900"
                                                             required
                                                         >
-                                                        @error('tarif_bunga_harian', 'updateMasterPerhitungan_' . $perhitungan->id)
+                                                            <option value="harian">{{ __('Bunga Harian') }}</option>
+                                                            <option value="periodik">{{ __('Bunga Periodik') }}</option>
+                                                        </select>
+                                                        @error('skema_bunga', 'updateMasterPerhitungan_' . $perhitungan->id)
                                                             <p class="text-xs text-rose-500">{{ $message }}</p>
                                                         @enderror
                                                     </div>
@@ -343,6 +414,42 @@
 
                                                 <div class="grid gap-4 sm:grid-cols-2">
                                                     <div class="space-y-1">
+                                                        <label class="block text-xs font-medium text-neutral-600 dark:text-neutral-200">{{ __('Tarif Bunga Harian') }}</label>
+                                                        <input
+                                                            name="tarif_bunga_harian"
+                                                            type="number"
+                                                            step="0.0001"
+                                                            min="0"
+                                                            max="1"
+                                                            value="{{ $value('tarif_bunga_harian') }}"
+                                                            x-bind:required="skemaBunga === 'harian'"
+                                                            x-bind:disabled="skemaBunga === 'periodik'"
+                                                            class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-neutral-600 dark:bg-neutral-900"
+                                                        >
+                                                        @error('tarif_bunga_harian', 'updateMasterPerhitungan_' . $perhitungan->id)
+                                                            <p class="text-xs text-rose-500">{{ $message }}</p>
+                                                        @enderror
+                                                    </div>
+                                                    <div class="space-y-1" x-show="skemaBunga === 'periodik'" x-cloak>
+                                                        <label class="block text-xs font-medium text-neutral-600 dark:text-neutral-200">{{ __('Tarif Bunga per Periode') }}</label>
+                                                        <input
+                                                            name="tarif_bunga_per_periode"
+                                                            type="number"
+                                                            step="0.0001"
+                                                            min="0"
+                                                            max="1"
+                                                            value="{{ $value('tarif_bunga_per_periode') }}"
+                                                            x-bind:required="skemaBunga === 'periodik'"
+                                                            class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-neutral-600 dark:bg-neutral-900"
+                                                        >
+                                                        @error('tarif_bunga_per_periode', 'updateMasterPerhitungan_' . $perhitungan->id)
+                                                            <p class="text-xs text-rose-500">{{ $message }}</p>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+
+                                                <div class="grid gap-4 sm:grid-cols-2">
+                                                    <div class="space-y-1">
                                                         <label class="block text-xs font-medium text-neutral-600 dark:text-neutral-200">{{ __('Tenor (Hari)') }}</label>
                                                         <input
                                                             name="tenor_hari"
@@ -356,6 +463,23 @@
                                                             <p class="text-xs text-rose-500">{{ $message }}</p>
                                                         @enderror
                                                     </div>
+                                                    <div class="space-y-1" x-show="skemaBunga === 'periodik'" x-cloak>
+                                                        <label class="block text-xs font-medium text-neutral-600 dark:text-neutral-200">{{ __('Periode (Hari)') }}</label>
+                                                        <input
+                                                            name="periode_hari"
+                                                            type="number"
+                                                            min="1"
+                                                            value="{{ $value('periode_hari') }}"
+                                                            x-bind:required="skemaBunga === 'periodik'"
+                                                            class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-neutral-600 dark:bg-neutral-900"
+                                                        >
+                                                        @error('periode_hari', 'updateMasterPerhitungan_' . $perhitungan->id)
+                                                            <p class="text-xs text-rose-500">{{ $message }}</p>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+
+                                                <div class="grid gap-4 sm:grid-cols-2">
                                                     <div class="space-y-1">
                                                         <label class="block text-xs font-medium text-neutral-600 dark:text-neutral-200">{{ __('Jatuh Tempo Awal (Hari)') }}</label>
                                                         <input
@@ -370,22 +494,21 @@
                                                             <p class="text-xs text-rose-500">{{ $message }}</p>
                                                         @enderror
                                                     </div>
-                                                </div>
-
-                                                <div class="space-y-1">
-                                                    <label class="block text-xs font-medium text-neutral-600 dark:text-neutral-200">{{ __('Biaya Admin') }}</label>
-                                                    <input
-                                                        name="biaya_admin"
-                                                        type="number"
-                                                        step="0.01"
-                                                        min="0"
-                                                        value="{{ $value('biaya_admin') }}"
-                                                        class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-neutral-600 dark:bg-neutral-900"
-                                                        required
-                                                    >
-                                                    @error('biaya_admin', 'updateMasterPerhitungan_' . $perhitungan->id)
-                                                        <p class="text-xs text-rose-500">{{ $message }}</p>
-                                                    @enderror
+                                                    <div class="space-y-1">
+                                                        <label class="block text-xs font-medium text-neutral-600 dark:text-neutral-200">{{ __('Biaya Admin') }}</label>
+                                                        <input
+                                                            name="biaya_admin"
+                                                            type="number"
+                                                            step="0.01"
+                                                            min="0"
+                                                            value="{{ $value('biaya_admin') }}"
+                                                            class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-neutral-600 dark:bg-neutral-900"
+                                                            required
+                                                        >
+                                                        @error('biaya_admin', 'updateMasterPerhitungan_' . $perhitungan->id)
+                                                            <p class="text-xs text-rose-500">{{ $message }}</p>
+                                                        @enderror
+                                                    </div>
                                                 </div>
 
                                                 <div class="flex flex-col gap-2 border-t border-neutral-200 pt-4 text-xs text-neutral-500 dark:border-neutral-700 dark:text-neutral-300 sm:flex-row sm:items-center sm:justify-between">
@@ -413,7 +536,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-300">
+                                <td colspan="11" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-300">
                                     {{ __('Belum ada data perhitungan gadai. Tambahkan rumus baru untuk memulai.') }}
                                 </td>
                             </tr>
@@ -476,6 +599,8 @@
                     'range_awal',
                     'range_akhir',
                     'tarif_bunga_harian',
+                    'tarif_bunga_per_periode',
+                    'periode_hari',
                     'tenor_hari',
                     'jatuh_tempo_awal',
                     'biaya_admin',

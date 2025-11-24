@@ -120,6 +120,9 @@ class TransaksiGadaiController extends Controller
                     'range_awal' => (float) $row->range_awal,
                     'range_akhir' => (float) $row->range_akhir,
                     'tarif_bunga_harian' => (float) $row->tarif_bunga_harian,
+                    'skema_bunga' => $row->skema_bunga,
+                    'tarif_bunga_per_periode' => (float) $row->tarif_bunga_per_periode,
+                    'periode_hari' => $row->periode_hari ? (int) $row->periode_hari : null,
                     'tenor_hari' => (int) $row->tenor_hari,
                     'jatuh_tempo_awal' => (int) $row->jatuh_tempo_awal,
                     'biaya_admin' => (float) $row->biaya_admin,
@@ -224,7 +227,7 @@ class TransaksiGadaiController extends Controller
         $data['jatuh_tempo_awal'] = $jatuhTempo->toDateString();
 
         $tenorHari = max(1, $tanggalGadai->diffInDays($jatuhTempo) + 1);
-        $tarifBungaHarian = max(0, (float) $masterFormula->tarif_bunga_harian);
+        $tarifBungaHarian = $this->resolveDailyRate($masterFormula);
         $totalBunga = $this->formatDecimal($uangPinjaman * $tarifBungaHarian * $tenorHari);
         $hariBerjalan = $this->calculateActualDays($tanggalGadai, Carbon::today());
         $bungaTerutangRiil = $this->formatDecimal(
@@ -915,6 +918,20 @@ class TransaksiGadaiController extends Controller
         $selesai = $tanggalPelunasan->copy()->startOfDay();
 
         return max(1, $mulai->diffInDays($selesai) + 1);
+    }
+
+    private function resolveDailyRate(MasterPerhitunganGadai $formula): float
+    {
+        $skema = $formula->skema_bunga ?? 'harian';
+
+        if ($skema === 'periodik') {
+            $periode = max(1, (int) ($formula->periode_hari ?? 0));
+            $tarifPerPeriode = max(0, (float) ($formula->tarif_bunga_per_periode ?? 0));
+
+            return $tarifPerPeriode / $periode;
+        }
+
+        return max(0, (float) ($formula->tarif_bunga_harian ?? 0));
     }
 
     private function calculateSewaModal(float $pokokPinjaman, float $tarifBunga, int $actualDays): float
