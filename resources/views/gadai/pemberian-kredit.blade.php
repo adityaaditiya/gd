@@ -249,7 +249,18 @@
                             </div>
 
                             <div class="flex flex-col gap-2">
-                                <label for="tarif_bunga_harian_display" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Tarif Bunga Harian (%)') }}</label>
+                                <label for="skema_bunga_display" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Skema Bunga') }}</label>
+                                <input
+                                    type="text"
+                                    id="skema_bunga_display"
+                                    value="{{ old('skema_bunga_display', '—') }}"
+                                    readonly
+                                    class="block w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-neutral-300 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
+                                />
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                                <label for="tarif_bunga_harian_display" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Tarif Efektif per Hari (%)') }}</label>
                                 @php
                                     $oldTarifDecimal = old('tarif_bunga_harian');
                                     $oldTarifDisplay = is_numeric($oldTarifDecimal)
@@ -265,6 +276,28 @@
                                     class="block w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-neutral-300 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
                                 />
                                 <input type="hidden" id="tarif_bunga_harian_value" value="{{ old('tarif_bunga_harian') }}">
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                                <label for="tarif_bunga_per_periode_display" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Tarif Bunga per Periode (%)') }}</label>
+                                <input
+                                    type="text"
+                                    id="tarif_bunga_per_periode_display"
+                                    value="{{ __('—') }}"
+                                    readonly
+                                    class="block w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-neutral-300 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
+                                />
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                                <label for="periode_hari_display" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Periode Bunga (Hari)') }}</label>
+                                <input
+                                    type="text"
+                                    id="periode_hari_display"
+                                    value="{{ __('—') }}"
+                                    readonly
+                                    class="block w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-neutral-300 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
+                                />
                                 <p
                                     class="text-xs text-neutral-500 dark:text-neutral-400"
                                     data-formula-helper
@@ -416,6 +449,9 @@
                     const typeSelect = document.getElementById('type');
                     const tarifBungaHiddenInput = document.getElementById('tarif_bunga_harian_value');
                     const tarifBungaDisplayInput = document.getElementById('tarif_bunga_harian_display');
+                    const tarifBungaPerPeriodeDisplay = document.getElementById('tarif_bunga_per_periode_display');
+                    const periodeHariDisplay = document.getElementById('periode_hari_display');
+                    const skemaBungaDisplay = document.getElementById('skema_bunga_display');
                     const formulaHelper = root.querySelector('[data-formula-helper]');
 
                     if (!select) return;
@@ -471,6 +507,34 @@
                             minimumFractionDigits: 3,
                             maximumFractionDigits: 4,
                         }).format(value);
+                    };
+
+                    const applySchemeDisplays = ({ schemeLabel, effectiveRate, perPeriodRate, periodeDays }) => {
+                        if (skemaBungaDisplay) {
+                            skemaBungaDisplay.value = schemeLabel ?? '—';
+                        }
+
+                        if (tarifBungaHiddenInput) {
+                            tarifBungaHiddenInput.value = Number.isFinite(effectiveRate) ? effectiveRate.toString() : '';
+                        }
+
+                        if (tarifBungaDisplayInput) {
+                            tarifBungaDisplayInput.value = Number.isFinite(effectiveRate)
+                                ? formatPercent(effectiveRate)
+                                : '—';
+                        }
+
+                        if (tarifBungaPerPeriodeDisplay) {
+                            tarifBungaPerPeriodeDisplay.value = Number.isFinite(perPeriodRate)
+                                ? formatPercent(perPeriodRate)
+                                : '—';
+                        }
+
+                        if (periodeHariDisplay) {
+                            periodeHariDisplay.value = Number.isFinite(periodeDays) && periodeDays > 0
+                                ? `${periodeDays} hari`
+                                : '—';
+                        }
                     };
 
                     const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -615,29 +679,32 @@
                             const message = notFoundTemplate.replace(':amount', formatCurrency(nominal));
                             setFormulaHelper(message, 'error');
                             applyCurrencyValue(biayaAdminInput, null);
-                            if (tarifBungaHiddenInput) {
-                                tarifBungaHiddenInput.value = '';
-                            }
-                            if (tarifBungaDisplayInput) {
-                                tarifBungaDisplayInput.value = '—';
-                            }
+                            applySchemeDisplays({
+                                schemeLabel: '—',
+                                effectiveRate: Number.NaN,
+                                perPeriodRate: Number.NaN,
+                                periodeDays: Number.NaN,
+                            });
                             if (jatuhTempoInput && tanggalGadaiValue) {
                                 jatuhTempoInput.value = tanggalGadaiValue;
                             }
                             return null;
                         }
 
-                        if (tarifBungaHiddenInput || tarifBungaDisplayInput) {
-                            const rate = Number(formula.tarif_bunga_harian ?? 0);
-                            if (tarifBungaHiddenInput) {
-                                tarifBungaHiddenInput.value = Number.isFinite(rate) ? rate.toString() : '';
-                            }
-                            if (tarifBungaDisplayInput) {
-                                tarifBungaDisplayInput.value = Number.isFinite(rate)
-                                    ? formatPercent(rate)
-                                    : '—';
-                            }
-                        }
+                        const scheme = String(formula.skema_bunga ?? 'harian').toLowerCase();
+                        const periode = Number(formula.periode_hari ?? 0);
+                        const ratePerPeriod = Number(formula.tarif_bunga_per_periode ?? 0);
+                        const isPeriodik = scheme === 'periodik';
+                        const ratePerDay = isPeriodik && periode > 0
+                            ? ratePerPeriod / periode
+                            : Number(formula.tarif_bunga_harian ?? 0);
+
+                        applySchemeDisplays({
+                            schemeLabel: isPeriodik ? `Periodik${periode > 0 ? ` (${periode} hari)` : ''}` : 'Harian',
+                            effectiveRate: ratePerDay,
+                            perPeriodRate: isPeriodik ? ratePerPeriod : Number.NaN,
+                            periodeDays: isPeriodik ? periode : Number.NaN,
+                        });
 
                         applyCurrencyValue(biayaAdminInput, Number(formula.biaya_admin ?? 0));
 
