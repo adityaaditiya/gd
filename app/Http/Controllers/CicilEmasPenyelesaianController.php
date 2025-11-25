@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CicilEmasTransaction;
+use App\Models\MutasiKas;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -84,11 +85,19 @@ class CicilEmasPenyelesaianController extends Controller
 
         $pokokPembiayaanBersih = max(0, (float) $validated['harga_beli_emas'] - (float) $validated['uang_muka']);
         $totalHargaJual = $pokokPembiayaanBersih + (float) $transaction->margin_amount;
-        $surplusDefisit = (float) $validated['penilaian_harga_pasar_emas'] - $totalHargaJual;
+        $sisaUtang = $transaction->installments->sum(function ($installment) {
+            $paidAmount = (float) ($installment->paid_amount ?? 0);
+
+            return max(0, (float) $installment->amount - $paidAmount);
+        });
+        $totalKewajibanBersih = $sisaUtang + (float) $validated['nominal_denda'];
+        $surplusDefisit = (float) $validated['penilaian_harga_pasar_emas'] - $totalKewajibanBersih;
         $kewajibanPengembalianSurplus = $surplusDefisit > 0 ? $surplusDefisit : 0.0;
 
-        DB::transaction(function () use ($transaction, $validated, $pokokPembiayaanBersih, $totalHargaJual, $surplusDefisit, $kewajibanPengembalianSurplus) {
-            $transaction->penyelesaian_completed_at = Carbon::now();
+        $completedAt = Carbon::now();
+
+        DB::transaction(function () use ($transaction, $validated, $pokokPembiayaanBersih, $totalHargaJual, $surplusDefisit, $kewajibanPengembalianSurplus, $completedAt) {
+            $transaction->penyelesaian_completed_at = $completedAt;
             $transaction->penyelesaian_market_price = $validated['penilaian_harga_pasar_emas'];
             $transaction->penyelesaian_purchase_price = $validated['harga_beli_emas'];
             $transaction->penyelesaian_penalty_amount = $validated['nominal_denda'];
@@ -101,6 +110,13 @@ class CicilEmasPenyelesaianController extends Controller
             $transaction->penyelesaian_keterangan = $validated['keterangan'] ?? null;
             $transaction->status = CicilEmasTransaction::STATUS_COMPLETED;
             $transaction->save();
+
+            $this->recordCashLedgerEntries(
+                $transaction,
+                $completedAt,
+                (float) $validated['penilaian_harga_pasar_emas'],
+                (float) $kewajibanPengembalianSurplus
+            );
         });
 
         return redirect()
@@ -130,11 +146,91 @@ class CicilEmasPenyelesaianController extends Controller
             $transaction->penyelesaian_completed_at = null;
             $transaction->status = CicilEmasTransaction::STATUS_ACTIVE;
             $transaction->save();
+
+            $this->deleteCashLedgerEntries($transaction);
         });
 
         return redirect()
             ->route('cicil-emas.daftar-cicilan')
             ->with('status', __('Penyelesaian cicilan dibatalkan dan status dikembalikan menjadi aktif.'));
+    }
+
+    private function recordCashLedgerEntries(
+        CicilEmasTransaction $transaction,
+        Carbon $completedAt,
+        float $marketPrice,
+        float $refundObligation
+    ): void {
+        $transaction->loadMissing('nasabah');
+
+        $marketPrice = round(max(0, $marketPrice), 2);
+        $refundObligation = round(max(0, $refundObligation), 2);
+
+        $baseReference = __('Penyelesaian Cicil Emas :nomor', [
+            'nomor' => $transaction->nomor_cicilan ?? $transaction->id,
+        ]);
+
+        if ($marketPrice > 0) {
+            MutasiKas::updateOrCreate(
+                [
+                    'cicil_emas_transaction_id' => $transaction->id,
+                    'referensi' => $baseReference,
+                ],
+                [
+                    'tanggal' => $completedAt->toDateString(),
+                    'tipe' => 'masuk',
+                    'jumlah' => number_format($marketPrice, 2, '.', ''),
+                    'sumber' => __('Penyelesaian Cicil Emas'),
+                    'keterangan' => __('Pencairan aset untuk penyelesaian cicilan :nasabah', [
+                        'nasabah' => $transaction->nasabah?->nama ?? __('Nasabah tidak diketahui'),
+                    ]),
+                ]
+            );
+        }
+
+        if ($refundObligation > 0) {
+            $refundReference = __('Pengembalian Dana ke Nasabah (Netting Pelunasan) :nomor', [
+                'nomor' => $transaction->nomor_cicilan ?? $transaction->id,
+            ]);
+
+            MutasiKas::updateOrCreate(
+                [
+                    'cicil_emas_transaction_id' => $transaction->id,
+                    'referensi' => $refundReference,
+                ],
+                [
+                    'tanggal' => $completedAt->toDateString(),
+                    'tipe' => 'keluar',
+                    'jumlah' => number_format($refundObligation, 2, '.', ''),
+                    'sumber' => __('Penyelesaian Cicil Emas'),
+                    'keterangan' => __('Pengembalian surplus hasil proses netting kepada :nasabah', [
+                        'nasabah' => $transaction->nasabah?->nama ?? __('Nasabah tidak diketahui'),
+                    ]),
+                ]
+            );
+        }
+    }
+
+    private function deleteCashLedgerEntries(CicilEmasTransaction $transaction): void
+    {
+        $transaction->loadMissing('nasabah');
+
+        $references = [
+            __('Penyelesaian Cicil Emas :nomor', [
+                'nomor' => $transaction->nomor_cicilan ?? $transaction->id,
+            ]),
+            __('Pengembalian Dana ke Nasabah (Netting Pelunasan) :nomor', [
+                'nomor' => $transaction->nomor_cicilan ?? $transaction->id,
+            ]),
+            __('Pengembalian Surplus Penyelesaian Cicil Emas :nomor', [
+                'nomor' => $transaction->nomor_cicilan ?? $transaction->id,
+            ]),
+        ];
+
+        MutasiKas::query()
+            ->where('cicil_emas_transaction_id', $transaction->id)
+            ->whereIn('referensi', $references)
+            ->delete();
     }
 }
 
