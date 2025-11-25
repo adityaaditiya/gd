@@ -10,7 +10,7 @@
         <div class="flex flex-col gap-2">
             <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white">{{ __('Pelunasan Cicilan') }}</h1>
             <p class="text-neutral-600 dark:text-neutral-300">
-                {{ __('Kelola proses penyelesaian cicilan emas, mulai dari validasi pelunasan hingga penyerahan emas fisik.') }}
+                {{ __('Kelola proses penyelesaian cicilan emas.') }}
             </p>
         </div>
 
@@ -27,13 +27,13 @@
         @endif
 
         <section class="flex flex-col gap-4 rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
-            <header class="flex flex-col gap-1">
-                <!-- <span class="text-xs font-semibold uppercase tracking-wide text-sky-500">{{ __('Menu Pelunasan Cicilan') }}</span> -->
+            <!-- <header class="flex flex-col gap-1">
+                <span class="text-xs font-semibold uppercase tracking-wide text-sky-500">{{ __('Menu Pelunasan Cicilan') }}</span>
                 <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Cari Nomor Cicilan Emas') }}</h2>
                 <p class="text-sm text-neutral-600 dark:text-neutral-300">
                     {{ __('Gunakan pencarian berdasarkan nomor cicilan emas untuk menyiapkan pelunasan normal (akhir kontrak) atau pelunasan dipercepat.') }}
                 </p>
-            </header>
+            </header> -->
 
             <form method="GET" class="grid gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-4 text-sm dark:border-neutral-700 dark:bg-neutral-900 md:grid-cols-6">
                 <div class="md:col-span-4">

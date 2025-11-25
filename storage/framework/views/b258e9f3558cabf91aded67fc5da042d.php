@@ -1,5 +1,14 @@
-<x-layouts.app :title="__('Transaksi Emas')">
-    @php
+<?php if (isset($component)) { $__componentOriginal5863877a5171c196453bfa0bd807e410 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal5863877a5171c196453bfa0bd807e410 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.layouts.app','data' => ['title' => __('Transaksi Emas')]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('layouts.app'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['title' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(__('Transaksi Emas'))]); ?>
+    <?php
         $packagesCollection = collect($packages ?? []);
         $selectedPackageIds = collect(old('package_ids', []))
             ->map(function ($value) {
@@ -84,138 +93,144 @@
             'default_percentage' => $marginDefaultPercentage,
             'tenor_overrides' => $marginOverridesCollection->all(),
         ];
-    @endphp
+    ?>
     <div class="space-y-8">
         <div class="flex flex-col gap-2">
-            <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white">{{ __('Transaksi Cicil Emas') }}</h1>
+            <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white"><?php echo e(__('Transaksi Cicil Emas')); ?></h1>
             <p class="text-sm text-neutral-600 dark:text-neutral-300">
-                {{ __('Transaksi Cicilan Emas dengan memilih nasabah, barang emas, serta menentukan uang muka dan jangka waktu untuk menghasilkan estimasi pembayaran angsuran cicilan emas.') }}
+                <?php echo e(__('Transaksi Cicilan Emas dengan memilih nasabah, barang emas, serta menentukan uang muka dan jangka waktu untuk menghasilkan estimasi pembayaran angsuran cicilan emas.')); ?>
+
             </p>
         </div>
 
-        @if (session('status'))
+        <?php if(session('status')): ?>
             <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-6 text-emerald-700 shadow-sm dark:border-emerald-500/60 dark:bg-emerald-500/10 dark:text-emerald-300">
-                <p class="text-base font-semibold text-emerald-900 dark:text-emerald-200">{{ session('status') }}</p>
+                <p class="text-base font-semibold text-emerald-900 dark:text-emerald-200"><?php echo e(session('status')); ?></p>
 
-                @if ($summary = session('transaction_summary'))
+                <?php if($summary = session('transaction_summary')): ?>
                     <dl class="mt-4 grid gap-4 text-sm text-neutral-700 dark:text-neutral-200 md:grid-cols-2">
                         <div class="space-y-1">
-                            <dt class="font-semibold text-neutral-900 dark:text-white">{{ __('Nasabah') }}</dt>
-                            <dd>{{ $summary['nasabah'] ?? __('Tidak diketahui') }}</dd>
-                            @if (!empty($summary['kode_member']))
-                                <dd class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Kode Member:') }} {{ $summary['kode_member'] }}</dd>
-                            @endif
+                            <dt class="font-semibold text-neutral-900 dark:text-white"><?php echo e(__('Nasabah')); ?></dt>
+                            <dd><?php echo e($summary['nasabah'] ?? __('Tidak diketahui')); ?></dd>
+                            <?php if(!empty($summary['kode_member'])): ?>
+                                <dd class="text-xs text-neutral-500 dark:text-neutral-400"><?php echo e(__('Kode Member:')); ?> <?php echo e($summary['kode_member']); ?></dd>
+                            <?php endif; ?>
                         </div>
                         <div class="space-y-1">
-                            <dt class="font-semibold text-neutral-900 dark:text-white">{{ __('Paket Emas') }}</dt>
-                            @if (!empty($summary['packages']) && is_array($summary['packages']))
+                            <dt class="font-semibold text-neutral-900 dark:text-white"><?php echo e(__('Paket Emas')); ?></dt>
+                            <?php if(!empty($summary['packages']) && is_array($summary['packages'])): ?>
                                 <dd class="space-y-1">
                                     <ul class="list-disc space-y-1 ps-4 text-xs text-neutral-600 dark:text-neutral-300">
-                                        @foreach ($summary['packages'] as $package)
+                                        <?php $__currentLoopData = $summary['packages']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $package): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                             <li>
-                                                {{ $package['nama_barang'] ?? __('Barang') }} •
-                                                {{ number_format((float) ($package['berat'] ?? 0), 3, ',', '.') }} gr •
-                                                {{ $package['kode'] ?? '—' }} •
-                                                {{ $package['barcode'] ?? '—' }} •
-                                                Rp {{ number_format((float) ($package['harga'] ?? 0), 0, ',', '.') }}
+                                                <?php echo e($package['nama_barang'] ?? __('Barang')); ?> •
+                                                <?php echo e(number_format((float) ($package['berat'] ?? 0), 3, ',', '.')); ?> gr •
+                                                <?php echo e($package['kode'] ?? '—'); ?> •
+                                                <?php echo e($package['barcode'] ?? '—'); ?> •
+                                                Rp <?php echo e(number_format((float) ($package['harga'] ?? 0), 0, ',', '.')); ?>
+
                                             </li>
-                                        @endforeach
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                     </ul>
                                 </dd>
-                            @else
-                                <dd>{{ $summary['paket'] ?? '—' }}</dd>
-                            @endif
+                            <?php else: ?>
+                                <dd><?php echo e($summary['paket'] ?? '—'); ?></dd>
+                            <?php endif; ?>
                         </div>
                         <div class="space-y-1">
-                            <dt class="font-semibold text-neutral-900 dark:text-white">{{ __('Jangka Waktu') }}</dt>
-                            <dd>{{ $summary['jangka_waktu'] ?? '—' }}</dd>
+                            <dt class="font-semibold text-neutral-900 dark:text-white"><?php echo e(__('Jangka Waktu')); ?></dt>
+                            <dd><?php echo e($summary['jangka_waktu'] ?? '—'); ?></dd>
                         </div>
                         <div class="space-y-1">
-                            <dt class="font-semibold text-neutral-900 dark:text-white">{{ __('Estimasi DP') }}</dt>
-                            @if (isset($summary['dp']))
+                            <dt class="font-semibold text-neutral-900 dark:text-white"><?php echo e(__('Estimasi DP')); ?></dt>
+                            <?php if(isset($summary['dp'])): ?>
                                 <dd class="space-y-1">
-                                    <span>{{ number_format($summary['dp'], 2, ',', '.') }}</span>
-                                    @if (isset($summary['dp_percentage']))
+                                    <span><?php echo e(number_format($summary['dp'], 2, ',', '.')); ?></span>
+                                    <?php if(isset($summary['dp_percentage'])): ?>
                                         <span class="block text-xs text-neutral-500 dark:text-neutral-400">
-                                            {{ __('Sekitar :persen% dari harga', ['persen' => number_format($summary['dp_percentage'], 2, ',', '.')]) }}
+                                            <?php echo e(__('Sekitar :persen% dari harga', ['persen' => number_format($summary['dp_percentage'], 2, ',', '.')])); ?>
+
                                         </span>
-                                    @endif
+                                    <?php endif; ?>
                                 </dd>
-                            @else
+                            <?php else: ?>
                                 <dd>—</dd>
-                            @endif
+                            <?php endif; ?>
                         </div>
                         <div class="space-y-1">
-                            <dt class="font-semibold text-neutral-900 dark:text-white">{{ __('Margin Pembiayaan') }}</dt>
-                            @if (isset($summary['margin_amount']))
+                            <dt class="font-semibold text-neutral-900 dark:text-white"><?php echo e(__('Margin Pembiayaan')); ?></dt>
+                            <?php if(isset($summary['margin_amount'])): ?>
                                 <dd class="space-y-1">
-                                    <span>{{ number_format($summary['margin_amount'], 2, ',', '.') }}</span>
+                                    <span><?php echo e(number_format($summary['margin_amount'], 2, ',', '.')); ?></span>
                                     <span class="block text-xs text-neutral-500 dark:text-neutral-400">
-                                        {{ __('Tarif margin :persen%', ['persen' => number_format($summary['margin_percentage'] ?? 0, 2, ',', '.')]) }}
+                                        <?php echo e(__('Tarif margin :persen%', ['persen' => number_format($summary['margin_percentage'] ?? 0, 2, ',', '.')])); ?>
+
                                     </span>
                                 </dd>
-                            @else
+                            <?php else: ?>
                                 <dd>—</dd>
-                            @endif
+                            <?php endif; ?>
                         </div>
                         <div class="space-y-1">
-                            <dt class="font-semibold text-neutral-900 dark:text-white">{{ __('Biaya Administrasi') }}</dt>
-                            @if (isset($summary['administrasi']))
-                                <dd>{{ number_format($summary['administrasi'], 0, ',', '.') }}</dd>
-                            @else
+                            <dt class="font-semibold text-neutral-900 dark:text-white"><?php echo e(__('Biaya Administrasi')); ?></dt>
+                            <?php if(isset($summary['administrasi'])): ?>
+                                <dd><?php echo e(number_format($summary['administrasi'], 0, ',', '.')); ?></dd>
+                            <?php else: ?>
                                 <dd>—</dd>
-                            @endif
+                            <?php endif; ?>
                         </div>
                         <div class="space-y-1">
-                            <dt class="font-semibold text-neutral-900 dark:text-white">{{ __('Total Pembiayaan') }}</dt>
-                            @if (isset($summary['total_pembiayaan']))
+                            <dt class="font-semibold text-neutral-900 dark:text-white"><?php echo e(__('Total Pembiayaan')); ?></dt>
+                            <?php if(isset($summary['total_pembiayaan'])): ?>
                                 <dd class="space-y-1">
-                                    <span>{{ number_format($summary['total_pembiayaan'], 2, ',', '.') }}</span>
-                                    @if (isset($summary['pokok_pembiayaan']))
+                                    <span><?php echo e(number_format($summary['total_pembiayaan'], 2, ',', '.')); ?></span>
+                                    <?php if(isset($summary['pokok_pembiayaan'])): ?>
                                         <span class="block text-xs text-neutral-500 dark:text-neutral-400">
-                                            {{ __('Pokok :pokok', ['pokok' => number_format($summary['pokok_pembiayaan'], 2, ',', '.')]) }}
+                                            <?php echo e(__('Pokok :pokok', ['pokok' => number_format($summary['pokok_pembiayaan'], 2, ',', '.')])); ?>
+
                                         </span>
-                                    @endif
+                                    <?php endif; ?>
                                 </dd>
-                            @else
+                            <?php else: ?>
                                 <dd>—</dd>
-                            @endif
+                            <?php endif; ?>
                         </div>
                         <div class="space-y-1">
-                            <dt class="font-semibold text-neutral-900 dark:text-white">{{ __('Angsuran Bulanan') }}</dt>
-                            <dd>{{ isset($summary['angsuran']) ? number_format($summary['angsuran'], 2, ',', '.') : '—' }}</dd>
+                            <dt class="font-semibold text-neutral-900 dark:text-white"><?php echo e(__('Angsuran Bulanan')); ?></dt>
+                            <dd><?php echo e(isset($summary['angsuran']) ? number_format($summary['angsuran'], 2, ',', '.') : '—'); ?></dd>
                             <dd class="text-xs text-neutral-500 dark:text-neutral-400">
-                                {{ __('Tenor: :bulan bulan', ['bulan' => $summary['tenor'] ?? '—']) }}
+                                <?php echo e(__('Tenor: :bulan bulan', ['bulan' => $summary['tenor'] ?? '—'])); ?>
+
                             </dd>
                         </div>
                     </dl>
-                @endif
+                <?php endif; ?>
             </div>
-        @endif
+        <?php endif; ?>
 
         <!-- <div class="grid gap-6 xl:grid-cols-3">
             <div class="space-y-4">
                 <section class="flex flex-col gap-3 rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
                     <header class="flex flex-col gap-1">
-                        <span class="text-xs font-semibold uppercase tracking-wide text-indigo-500">{{ __('Langkah 1') }}</span>
-                        <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Simulasi & Pemilihan Paket') }}</h2>
+                        <span class="text-xs font-semibold uppercase tracking-wide text-indigo-500"><?php echo e(__('Langkah 1')); ?></span>
+                        <h2 class="text-lg font-semibold text-neutral-900 dark:text-white"><?php echo e(__('Simulasi & Pemilihan Paket')); ?></h2>
                     </header>
                     <ul class="list-disc space-y-2 ps-5 text-sm text-neutral-700 dark:text-neutral-200">
-                        <li>{{ __('Pilih nasabah yang telah lulus verifikasi sebagai pemohon cicilan.') }}</li>
-                        <li>{{ __('Tentukan barang emas berdasarkan data master (kode, berat, dan grup) yang tersedia.') }}</li>
-                        <li>{{ __('Sesuaikan uang muka dan jangka waktu cicilan untuk melihat estimasi angsuran yang dihitung otomatis.') }}</li>
+                        <li><?php echo e(__('Pilih nasabah yang telah lulus verifikasi sebagai pemohon cicilan.')); ?></li>
+                        <li><?php echo e(__('Tentukan barang emas berdasarkan data master (kode, berat, dan grup) yang tersedia.')); ?></li>
+                        <li><?php echo e(__('Sesuaikan uang muka dan jangka waktu cicilan untuk melihat estimasi angsuran yang dihitung otomatis.')); ?></li>
                     </ul>
                 </section>
 
                 <section class="flex flex-col gap-3 rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
                     <header class="flex flex-col gap-1">
-                        <span class="text-xs font-semibold uppercase tracking-wide text-amber-500">{{ __('Langkah 2') }}</span>
-                        <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Pembayaran Uang Muka') }}</h2>
+                        <span class="text-xs font-semibold uppercase tracking-wide text-amber-500"><?php echo e(__('Langkah 2')); ?></span>
+                        <h2 class="text-lg font-semibold text-neutral-900 dark:text-white"><?php echo e(__('Pembayaran Uang Muka')); ?></h2>
                     </header>
                     <ul class="list-disc space-y-2 ps-5 text-sm text-neutral-700 dark:text-neutral-200">
-                        <li>{{ __('Validasi metode pembayaran DP (transfer atau tunai) dan simpan bukti transaksi.') }}</li>
-                        <li>{{ __('Harga emas terkunci setelah DP diterima sehingga jadwal angsuran dapat digenerasikan.') }}</li>
-                        <li>{{ __('Data simulasi akan menjadi acuan untuk penjadwalan angsuran berikutnya.') }}</li>
+                        <li><?php echo e(__('Validasi metode pembayaran DP (transfer atau tunai) dan simpan bukti transaksi.')); ?></li>
+                        <li><?php echo e(__('Harga emas terkunci setelah DP diterima sehingga jadwal angsuran dapat digenerasikan.')); ?></li>
+                        <li><?php echo e(__('Data simulasi akan menjadi acuan untuk penjadwalan angsuran berikutnya.')); ?></li>
                     </ul>
                 </section>
             </div> -->
@@ -224,24 +239,25 @@
                 <div class="rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
                     <form
                         method="POST"
-                        action="{{ route('cicil-emas.transaksi-emas.store') }}"
+                        action="<?php echo e(route('cicil-emas.transaksi-emas.store')); ?>"
                         class="space-y-6 p-6"
                         id="cicil-emas-form"
                     >
-                        @csrf
+                        <?php echo csrf_field(); ?>
 
                         <div class="grid gap-6 md:grid-cols-2">
                             <div class="md:col-span-2" data-customer-selector>
                                 <div class="mb-2 flex items-center justify-between gap-2">
                                     <label for="nasabah_id" class="block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
-                                        {{ __('Nasabah') }}
+                                        <?php echo e(__('Nasabah')); ?>
+
                                     </label>
-                                    <label for="nasabah_search" class="sr-only">{{ __('Cari Nasabah') }}</label>
+                                    <label for="nasabah_search" class="sr-only"><?php echo e(__('Cari Nasabah')); ?></label>
                                     <input
                                         type="search"
                                         id="nasabah_search"
                                         data-customer-search
-                                        placeholder="{{ __('Cari nasabah…') }}"
+                                        placeholder="<?php echo e(__('Cari nasabah…')); ?>"
                                         class="block w-48 rounded-lg border border-neutral-300 bg-white px-2 py-1 text-xs text-neutral-700 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-200 dark:focus:border-indigo-400 dark:focus:ring-indigo-900/40"
                                     />
                                 </div>
@@ -252,42 +268,52 @@
                                     class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white"
                                     required
                                 >
-                                    <option value="">{{ __('Pilih nasabah') }}</option>
-                                    @foreach ($nasabahs as $nasabah)
-                                        @php
+                                    <option value=""><?php echo e(__('Pilih nasabah')); ?></option>
+                                    <?php $__currentLoopData = $nasabahs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $nasabah): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <?php
                                             $searchTokens = strtolower(trim(($nasabah->nama ?? '').' '.($nasabah->kode_member ?? '')));
-                                        @endphp
-                                        <option value="{{ $nasabah->id }}" data-search="{{ $searchTokens }}" @selected(old('nasabah_id') == $nasabah->id)>
-                                            {{ $nasabah->nama }}
-                                            @if ($nasabah->kode_member)
-                                                ({{ $nasabah->kode_member }})
-                                            @endif
+                                        ?>
+                                        <option value="<?php echo e($nasabah->id); ?>" data-search="<?php echo e($searchTokens); ?>" <?php if(old('nasabah_id') == $nasabah->id): echo 'selected'; endif; ?>>
+                                            <?php echo e($nasabah->nama); ?>
+
+                                            <?php if($nasabah->kode_member): ?>
+                                                (<?php echo e($nasabah->kode_member); ?>)
+                                            <?php endif; ?>
                                         </option>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </select>
                                 <p class="mt-2 text-xs text-neutral-500 dark:text-neutral-400" data-customer-meta>
-                                    {{ __('Gunakan kotak pencarian untuk memfilter daftar nasabah.') }}
+                                    <?php echo e(__('Gunakan kotak pencarian untuk memfilter daftar nasabah.')); ?>
+
                                 </p>
-                                @error('nasabah_id')
-                                    <p class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
-                                @enderror
+                                <?php $__errorArgs = ['nasabah_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                    <p class="mt-2 text-sm text-rose-600 dark:text-rose-400"><?php echo e($message); ?></p>
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                             </div>
 
                             <div>
                                 <!-- <label class="mb-2 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
-                                    {{ __('Data Barang') }}
+                                    <?php echo e(__('Data Barang')); ?>
+
                                 </label> -->
                                 <div class="space-y-4" data-package-selector>
                                     <div class="grid gap-4 lg:grid-cols-2">
                                         <div class="flex flex-col gap-2">
                                             <div class="flex items-center justify-between gap-2">
-                                                <label for="package_ids" class="text-sm font-semibold text-neutral-800 dark:text-neutral-200">{{ __('Data Barang') }}</label>
-                                                <label for="package_search" class="sr-only">{{ __('Cari Barang Emas') }}</label>
+                                                <label for="package_ids" class="text-sm font-semibold text-neutral-800 dark:text-neutral-200"><?php echo e(__('Data Barang')); ?></label>
+                                                <label for="package_search" class="sr-only"><?php echo e(__('Cari Barang Emas')); ?></label>
                                                 <input
                                                     type="search"
                                                     id="package_search"
                                                     data-package-search
-                                                    placeholder="{{ __('Cari barang…') }}"
+                                                    placeholder="<?php echo e(__('Cari barang…')); ?>"
                                                     class="block w-48 rounded-lg border border-neutral-300 bg-white px-2 py-1 text-xs text-neutral-700 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-200 dark:focus:border-indigo-400 dark:focus:ring-indigo-900/40"
                                                 />
                                             </div>
@@ -299,8 +325,8 @@
                                                 data-package-select
                                                 class="block w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
                                             >
-                                                @foreach ($packagesCollection as $package)
-                                                    @php
+                                                <?php $__currentLoopData = $packagesCollection; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $package): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                    <?php
                                                         $searchTokens = strtolower(
                                                             trim(
                                                                 ($package['nama_barang'] ?? '').' '.
@@ -310,75 +336,93 @@
                                                                 ($package['kode_barcode'] ?? '')
                                                             ),
                                                         );
-                                                    @endphp
+                                                    ?>
                                                     <option
-                                                        value="{{ $package['id'] }}"
-                                                        data-name="{{ $package['nama_barang'] ?? __('Barang') }}"
-                                                        data-baki="{{ $package['kode_baki'] ?? '' }}"
-                                                        data-intern="{{ $package['kode_intern'] ?? '' }}"
-                                                        data-jenis="{{ $package['kode_jenis'] ?? '' }}"
-                                                        data-barcode="{{ $package['kode_barcode'] ?? '' }}"
-                                                        data-weight="{{ (float) ($package['berat'] ?? 0) }}"
-                                                        data-price="{{ (float) ($package['harga'] ?? 0) }}"
-                                                        data-search="{{ $searchTokens }}"
-                                                        {{ $selectedPackageKeys->contains((string) ($package['id'] ?? '')) ? 'selected' : '' }}
+                                                        value="<?php echo e($package['id']); ?>"
+                                                        data-name="<?php echo e($package['nama_barang'] ?? __('Barang')); ?>"
+                                                        data-baki="<?php echo e($package['kode_baki'] ?? ''); ?>"
+                                                        data-intern="<?php echo e($package['kode_intern'] ?? ''); ?>"
+                                                        data-jenis="<?php echo e($package['kode_jenis'] ?? ''); ?>"
+                                                        data-barcode="<?php echo e($package['kode_barcode'] ?? ''); ?>"
+                                                        data-weight="<?php echo e((float) ($package['berat'] ?? 0)); ?>"
+                                                        data-price="<?php echo e((float) ($package['harga'] ?? 0)); ?>"
+                                                        data-search="<?php echo e($searchTokens); ?>"
+                                                        <?php echo e($selectedPackageKeys->contains((string) ($package['id'] ?? '')) ? 'selected' : ''); ?>
+
                                                     >
-                                                        {{ $package['nama_barang'] ?? __('Barang') }} — {{ $package['kode_intern'] ?? '—' }} • {{ $package['kode_barcode'] ?? '—' }} ({{ number_format((float) ($package['berat'] ?? 0), 3, ',', '.') }} gr • Rp {{ number_format((float) ($package['harga'] ?? 0), 0, ',', '.') }})
+                                                        <?php echo e($package['nama_barang'] ?? __('Barang')); ?> — <?php echo e($package['kode_intern'] ?? '—'); ?> • <?php echo e($package['kode_barcode'] ?? '—'); ?> (<?php echo e(number_format((float) ($package['berat'] ?? 0), 3, ',', '.')); ?> gr • Rp <?php echo e(number_format((float) ($package['harga'] ?? 0), 0, ',', '.')); ?>)
                                                     </option>
-                                                @endforeach
+                                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                             </select>
-                                            <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Gunakan Ctrl/Cmd + klik untuk memilih lebih dari satu barang.') }}</p>
+                                            <p class="text-xs text-neutral-500 dark:text-neutral-400"><?php echo e(__('Gunakan Ctrl/Cmd + klik untuk memilih lebih dari satu barang.')); ?></p>
                                         </div>
                                         <div class="rounded-lg border border-dashed border-indigo-300 bg-indigo-50/70 p-4 text-sm text-indigo-900 dark:border-indigo-500 dark:bg-indigo-500/10 dark:text-indigo-200">
-                                            <p class="font-semibold">{{ __('Ringkasan Barang Terpilih') }}</p>
+                                            <p class="font-semibold"><?php echo e(__('Ringkasan Barang Terpilih')); ?></p>
                                             <dl class="mt-2 space-y-2 text-xs">
                                                 <div class="flex justify-between gap-2">
-                                                    <dt class="text-neutral-600 dark:text-neutral-300">{{ __('Jumlah Barang') }}</dt>
-                                                    <dd class="font-semibold text-neutral-900 dark:text-white" data-package-summary-count>{{ $selectedSummaryCountText }}</dd>
+                                                    <dt class="text-neutral-600 dark:text-neutral-300"><?php echo e(__('Jumlah Barang')); ?></dt>
+                                                    <dd class="font-semibold text-neutral-900 dark:text-white" data-package-summary-count><?php echo e($selectedSummaryCountText); ?></dd>
                                                 </div>
                                                 <div class="flex justify-between gap-2">
-                                                    <dt class="text-neutral-600 dark:text-neutral-300">{{ __('Total Berat') }}</dt>
-                                                    <dd class="font-semibold text-neutral-900 dark:text-white" data-package-summary-weight>{{ $selectedSummaryWeightText }}</dd>
+                                                    <dt class="text-neutral-600 dark:text-neutral-300"><?php echo e(__('Total Berat')); ?></dt>
+                                                    <dd class="font-semibold text-neutral-900 dark:text-white" data-package-summary-weight><?php echo e($selectedSummaryWeightText); ?></dd>
                                                 </div>
                                                 <div class="flex justify-between gap-2">
-                                                    <dt class="text-neutral-600 dark:text-neutral-300">{{ __('Total Harga') }}</dt>
-                                                    <dd class="font-semibold text-neutral-900 dark:text-white" data-package-summary-price>{{ $selectedSummaryPriceText }}</dd>
+                                                    <dt class="text-neutral-600 dark:text-neutral-300"><?php echo e(__('Total Harga')); ?></dt>
+                                                    <dd class="font-semibold text-neutral-900 dark:text-white" data-package-summary-price><?php echo e($selectedSummaryPriceText); ?></dd>
                                                 </div>
                                             </dl>
                                             <div class="mt-3 rounded-lg bg-white/60 p-3 text-xs text-neutral-700 shadow-sm dark:bg-neutral-900/40 dark:text-neutral-200">
-                                                <p class="font-semibold">{{ __('Daftar Barang') }}</p>
+                                                <p class="font-semibold"><?php echo e(__('Daftar Barang')); ?></p>
                                                 <ul class="mt-2 space-y-1" data-package-summary-list>
-                                                    @forelse ($selectedSummaryLines as $line)
-                                                        <li>{{ $line }}</li>
-                                                    @empty
-                                                        <li class="italic text-neutral-500 dark:text-neutral-400" data-package-empty>{{ __('Belum ada barang dipilih.') }}</li>
-                                                    @endforelse
+                                                    <?php $__empty_1 = true; $__currentLoopData = $selectedSummaryLines; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $line): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                                        <li><?php echo e($line); ?></li>
+                                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                                        <li class="italic text-neutral-500 dark:text-neutral-400" data-package-empty><?php echo e(__('Belum ada barang dipilih.')); ?></li>
+                                                    <?php endif; ?>
                                                 </ul>
                                             </div>
-                                            <p class="mt-3 text-xs text-neutral-500 dark:text-neutral-400">{{ __('Total harga akan menjadi dasar perhitungan uang muka dan angsuran cicilan.') }}</p>
+                                            <p class="mt-3 text-xs text-neutral-500 dark:text-neutral-400"><?php echo e(__('Total harga akan menjadi dasar perhitungan uang muka dan angsuran cicilan.')); ?></p>
                                         </div>
                                     </div>
-                                    <p class="text-xs text-neutral-500 dark:text-neutral-400" data-package-meta>{{ $selectedMetaText }}</p>
+                                    <p class="text-xs text-neutral-500 dark:text-neutral-400" data-package-meta><?php echo e($selectedMetaText); ?></p>
                                 </div>
-                                @error('package_ids')
-                                    <p class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
-                                @enderror
-                                @error('package_ids.*')
-                                    <p class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
-                                @enderror
-                                @if ($packagesCollection->isEmpty())
+                                <?php $__errorArgs = ['package_ids'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                    <p class="mt-2 text-sm text-rose-600 dark:text-rose-400"><?php echo e($message); ?></p>
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                                <?php $__errorArgs = ['package_ids.*'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                    <p class="mt-2 text-sm text-rose-600 dark:text-rose-400"><?php echo e($message); ?></p>
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                                <?php if($packagesCollection->isEmpty()): ?>
                                     <p class="mt-3 text-xs text-neutral-500 dark:text-neutral-400">
-                                        {{ __('Belum ada data barang yang dapat dipilih?') }}
-                                        <a href="{{ route('barang.data-barang') }}" class="font-semibold underline underline-offset-2">
-                                            {{ __('Buka Data Barang') }}
+                                        <?php echo e(__('Belum ada data barang yang dapat dipilih?')); ?>
+
+                                        <a href="<?php echo e(route('barang.data-barang')); ?>" class="font-semibold underline underline-offset-2">
+                                            <?php echo e(__('Buka Data Barang')); ?>
+
                                         </a>
                                     </p>
-                                @endif
+                                <?php endif; ?>
                             </div>
 
                             <div class="md:col-span-2">
                                 <label for="uang_muka_display" class="mb-2 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
-                                    {{ __('Uang Muka') }}
+                                    <?php echo e(__('Uang Muka')); ?>
+
                                 </label>
                                 <div class="mb-3 inline-flex rounded-lg border border-neutral-300 bg-neutral-100 p-1 text-xs font-semibold text-neutral-600 shadow-sm dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-300" data-down-payment-mode-group>
                                     <button
@@ -386,93 +430,129 @@
                                         data-down-payment-mode-button="nominal"
                                         class="flex-1 rounded-md px-8 py-2 transition whitespace-nowrap" 
                                     >
-                                        {{ __('Nominal (Rp)') }}
+                                        <?php echo e(__('Nominal (Rp)')); ?>
+
                                     </button>
                                     <button
                                         type="button"
                                         data-down-payment-mode-button="percentage"
                                         class="flex-1 rounded-md px-8 py-2 transition whitespace-nowrap"
                                     >
-                                        {{ __('Persentase (%)') }}
+                                        <?php echo e(__('Persentase (%)')); ?>
+
                                     </button>
                                 </div>
                                 <div class="flex overflow-hidden rounded-lg border border-neutral-300 bg-white shadow-sm dark:border-neutral-600 dark:bg-neutral-800">
                                     <span class="flex items-center justify-center bg-neutral-100 px-3 text-xs font-semibold uppercase tracking-wide text-neutral-600 dark:bg-neutral-700 dark:text-neutral-200" data-down-payment-label>
-                                        {{ $downPaymentMode === 'percentage' ? __('Persen') : __('Rupiah') }}
+                                        <?php echo e($downPaymentMode === 'percentage' ? __('Persen') : __('Rupiah')); ?>
+
                                     </span>
                                     <input
                                         id="uang_muka_display"
                                         type="text"
                                         inputmode="decimal"
                                         data-down-payment-input
-                                        value="{{ $downPaymentMode === 'percentage'
+                                        value="<?php echo e($downPaymentMode === 'percentage'
                                             ? number_format((float) $defaultDownPaymentPercentageValue, 2, ',', '.')
-                                            : number_format((float) $defaultDownPaymentValue, 0, ',', '.') }}"
+                                            : number_format((float) $defaultDownPaymentValue, 0, ',', '.')); ?>"
                                         class="w-full border-0 bg-transparent px-3 py-2 text-sm font-semibold text-neutral-900 focus:outline-none focus:ring-0 dark:text-white"
                                         autocomplete="off"
                                     />
                                 </div>
-                                <input type="hidden" name="down_payment_mode" data-down-payment-mode value="{{ $downPaymentMode }}">
-                                <input type="hidden" name="down_payment_percentage" data-down-payment-percentage value="{{ number_format((float) $defaultDownPaymentPercentageValue, 2, '.', '') }}">
-                                <input type="hidden" name="estimasi_uang_muka" data-down-payment-hidden value="{{ number_format((float) $defaultDownPaymentValue, 2, '.', '') }}">
-                                @error('down_payment_mode')
-                                    <p class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
-                                @enderror
-                                @error('down_payment_percentage')
-                                    <p class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
-                                @enderror
-                                @error('estimasi_uang_muka')
-                                    <p class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
-                                @enderror
+                                <input type="hidden" name="down_payment_mode" data-down-payment-mode value="<?php echo e($downPaymentMode); ?>">
+                                <input type="hidden" name="down_payment_percentage" data-down-payment-percentage value="<?php echo e(number_format((float) $defaultDownPaymentPercentageValue, 2, '.', '')); ?>">
+                                <input type="hidden" name="estimasi_uang_muka" data-down-payment-hidden value="<?php echo e(number_format((float) $defaultDownPaymentValue, 2, '.', '')); ?>">
+                                <?php $__errorArgs = ['down_payment_mode'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                    <p class="mt-2 text-sm text-rose-600 dark:text-rose-400"><?php echo e($message); ?></p>
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                                <?php $__errorArgs = ['down_payment_percentage'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                    <p class="mt-2 text-sm text-rose-600 dark:text-rose-400"><?php echo e($message); ?></p>
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                                <?php $__errorArgs = ['estimasi_uang_muka'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                    <p class="mt-2 text-sm text-rose-600 dark:text-rose-400"><?php echo e($message); ?></p>
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                                 <p class="mt-2 text-xs text-neutral-500 dark:text-neutral-400" data-down-payment-display>
-                                    {{ $downPaymentMode === 'percentage'
+                                    <?php echo e($downPaymentMode === 'percentage'
                                         ? __('Masukkan persentase uang muka (0-100%) untuk melihat estimasi cicilan.')
-                                        : __('Masukkan uang muka untuk menghitung besaran cicilan.') }}
+                                        : __('Masukkan uang muka untuk menghitung besaran cicilan.')); ?>
+
                                 </p>
                             </div>
 
                             <div class="md:col-span-2">
                                 <span class="mb-2 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
-                                    {{ __('Jangka Waktu') }}
+                                    <?php echo e(__('Jangka Waktu')); ?>
+
                                 </span>
                                 <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3" data-tenor-list>
-                                    @forelse ($tenorCollection as $tenorOption)
-                                        @php
+                                    <?php $__empty_1 = true; $__currentLoopData = $tenorCollection; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $tenorOption): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                        <?php
                                             $isSelectedTenor = (string) $tenorOption === (string) ($selectedTenor ?? '');
-                                        @endphp
+                                        ?>
                                         <label class="relative flex cursor-pointer flex-col gap-1 rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm shadow-sm transition focus-within:ring-2 focus-within:ring-indigo-500/20 dark:border-neutral-600 dark:bg-neutral-800" data-tenor-card>
                                             <input
                                                 type="radio"
                                                 name="tenor_option_display"
-                                                value="{{ $tenorOption }}"
+                                                value="<?php echo e($tenorOption); ?>"
                                                 class="sr-only"
                                                 data-tenor-option
-                                                @checked($isSelectedTenor)
+                                                <?php if($isSelectedTenor): echo 'checked'; endif; ?>
                                             />
-                                            <span class="text-sm font-semibold text-neutral-900 dark:text-white" data-tenor-label>{{ $tenorOption }} {{ __('Bulan') }}</span>
-                                            <span class="text-xs text-neutral-500 dark:text-neutral-400" data-tenor-caption>{{ __('Pilih untuk menghitung angsuran.') }}</span>
+                                            <span class="text-sm font-semibold text-neutral-900 dark:text-white" data-tenor-label><?php echo e($tenorOption); ?> <?php echo e(__('Bulan')); ?></span>
+                                            <span class="text-xs text-neutral-500 dark:text-neutral-400" data-tenor-caption><?php echo e(__('Pilih untuk menghitung angsuran.')); ?></span>
                                         </label>
-                                    @empty
-                                        <p class="col-span-full text-xs text-amber-600 dark:text-amber-400">{{ __('Belum ada opsi tenor yang dapat dipilih.') }}</p>
-                                    @endforelse
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                        <p class="col-span-full text-xs text-amber-600 dark:text-amber-400"><?php echo e(__('Belum ada opsi tenor yang dapat dipilih.')); ?></p>
+                                    <?php endif; ?>
                                 </div>
-                                <input type="hidden" name="tenor_bulan" data-tenor-input value="{{ $selectedTenor ?? ($tenorCollection->first() ?? '') }}">
-                                @error('tenor_bulan')
-                                    <p class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
-                                @enderror
+                                <input type="hidden" name="tenor_bulan" data-tenor-input value="<?php echo e($selectedTenor ?? ($tenorCollection->first() ?? '')); ?>">
+                                <?php $__errorArgs = ['tenor_bulan'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                    <p class="mt-2 text-sm text-rose-600 dark:text-rose-400"><?php echo e($message); ?></p>
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                                 <p class="mt-2 text-xs text-neutral-500 dark:text-neutral-400" data-tenor-meta>
-                                    {{ __('Pilih jangka waktu cicilan untuk melihat estimasi angsuran per bulan.') }}
+                                    <?php echo e(__('Pilih jangka waktu cicilan untuk melihat estimasi angsuran per bulan.')); ?>
+
                                 </p>
                             </div>
 
                             <div class="md:col-span-1">
                                 <label for="administrasi" class="mb-2 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
-                                    {{ __('Biaya Administrasi') }}
-                                    <span class="font-normal text-xs text-neutral-500 dark:text-neutral-400">({{ __('opsional') }})</span>
+                                    <?php echo e(__('Biaya Administrasi')); ?>
+
+                                    <span class="font-normal text-xs text-neutral-500 dark:text-neutral-400">(<?php echo e(__('opsional')); ?>)</span>
                                 </label>
                                 <div class="flex overflow-hidden rounded-lg border border-neutral-300 bg-white shadow-sm dark:border-neutral-600 dark:bg-neutral-800">
                                     <span class="flex items-center justify-center bg-neutral-100 px-3 text-xs font-semibold uppercase tracking-wide text-neutral-600 dark:bg-neutral-700 dark:text-neutral-200">
-                                        {{ __('Rp') }}
+                                        <?php echo e(__('Rp')); ?>
+
                                     </span>
                                     <input
                                         id="administrasi"
@@ -480,51 +560,70 @@
                                         type="number"
                                         min="0"
                                         step="1"
-                                        value="{{ old('administrasi', '0') }}"
+                                        value="<?php echo e(old('administrasi', '0')); ?>"
                                         class="w-full border-0 bg-transparent px-3 py-2 text-sm font-semibold text-neutral-900 focus:outline-none focus:ring-0 dark:text-white"
                                         data-administration-input
                                     >
                                 </div>
-                                @error('administrasi')
-                                    <p class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
-                                @enderror
+                                <?php $__errorArgs = ['administrasi'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                    <p class="mt-2 text-sm text-rose-600 dark:text-rose-400"><?php echo e($message); ?></p>
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                                 <!-- <p class="mt-2 text-xs text-neutral-500 dark:text-neutral-400" data-administration-display>
-                                    {{ __('Jika diisi, biaya administrasi akan ditambahkan ke total pembiayaan cicilan.') }}
+                                    <?php echo e(__('Jika diisi, biaya administrasi akan ditambahkan ke total pembiayaan cicilan.')); ?>
+
                                 </p> -->
                             </div>
 
                             <div class="md:col-span-1">
                                 <label for="besaran_angsuran_display" class="mb-2 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
-                                    {{ __('Estimasi Angsuran Bulanan') }}
+                                    <?php echo e(__('Estimasi Angsuran Bulanan')); ?>
+
                                 </label>
                                 <input
                                     type="text"
                                     id="besaran_angsuran_display"
                                     data-installment-output
-                                    value="{{ old('besaran_angsuran') ? number_format((float) old('besaran_angsuran'), 0, ',', '.') : '' }}"
+                                    value="<?php echo e(old('besaran_angsuran') ? number_format((float) old('besaran_angsuran'), 0, ',', '.') : ''); ?>"
                                     readonly
                                     class="w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm font-semibold text-neutral-900 shadow-sm focus:outline-none dark:border-neutral-600 dark:bg-neutral-800 dark:text-white"
                                 />
-                                <input type="hidden" name="besaran_angsuran" data-installment value="{{ old('besaran_angsuran') }}">
-                                @error('besaran_angsuran')
-                                    <p class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
-                                @enderror
+                                <input type="hidden" name="besaran_angsuran" data-installment value="<?php echo e(old('besaran_angsuran')); ?>">
+                                <?php $__errorArgs = ['besaran_angsuran'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                    <p class="mt-2 text-sm text-rose-600 dark:text-rose-400"><?php echo e($message); ?></p>
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                                 <p class="mt-2 text-xs text-neutral-500 dark:text-neutral-400" data-installment-display>
-                                    {{ __('Besaran angsuran dihitung dari sisa harga emas dibagi tenor yang dipilih.') }}
+                                    <?php echo e(__('Besaran angsuran dihitung dari sisa harga emas dibagi tenor yang dipilih.')); ?>
+
                                 </p>
                                 <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400" data-margin-display>
-                                    {{ __('Margin akan dihitung setelah paket dan tenor dipilih.') }}
+                                    <?php echo e(__('Margin akan dihitung setelah paket dan tenor dipilih.')); ?>
+
                                 </p>
                                 <p class="text-xs text-neutral-500 dark:text-neutral-400" data-financing-display>
-                                    {{ __('Total pembiayaan akan tampil setelah simulasi lengkap.') }}
+                                    <?php echo e(__('Total pembiayaan akan tampil setelah simulasi lengkap.')); ?>
+
                                 </p>
                             </div>
                         </div>
 
                         <div class="rounded-lg bg-neutral-100 px-4 py-3 text-sm text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200" data-summary-panel hidden>
-                            <p class="font-semibold text-neutral-900 dark:text-white">{{ __('Ringkasan Barang') }}</p>
+                            <p class="font-semibold text-neutral-900 dark:text-white"><?php echo e(__('Ringkasan Barang')); ?></p>
                             <div class="mt-2 space-y-2">
-                                <p data-summary-package>{{ __('Barang belum dipilih.') }}</p>
+                                <p data-summary-package><?php echo e(__('Barang belum dipilih.')); ?></p>
                                 <ul class="space-y-1 text-xs text-neutral-600 dark:text-neutral-400" data-summary-items></ul>
                                 <p data-summary-price></p>
                                 <p data-summary-option></p>
@@ -540,7 +639,8 @@
                                 type="submit"
                                 class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-900"
                             >
-                                {{ __('Simpan Simulasi') }}
+                                <?php echo e(__('Simpan Simulasi')); ?>
+
                             </button>
                         </div>
                     </form>
@@ -552,8 +652,8 @@
         <script>
         (() => {
             function initCicilEmas() {
-                const packages = @json($packagesCollection);
-                const marginConfig = @json($resolvedMarginConfig);
+                const packages = <?php echo json_encode($packagesCollection, 15, 512) ?>;
+                const marginConfig = <?php echo json_encode($resolvedMarginConfig, 15, 512) ?>;
                 const customerSelector = document.querySelector('[data-customer-selector]');
                 const customerSelect = customerSelector?.querySelector('[data-customer-select]') ?? null;
                 const customerSearch = customerSelector?.querySelector('[data-customer-search]') ?? null;
@@ -605,9 +705,9 @@
 
                 const customerOptions = customerSelect ? Array.from(customerSelect.options) : [];
                 const totalCustomers = customerOptions.filter((option) => option.value).length;
-                const defaultCustomerMeta = @json(__('Gunakan pencarian untuk Menyeleksi daftar nasabah.'));
-                const foundCustomerMeta = @json(__('Ditemukan :visible nasabah yang cocok.'));
-                const emptyCustomerMeta = @json(__('Tidak ada nasabah yang cocok dengan pencarian ini.'));
+                const defaultCustomerMeta = <?php echo json_encode(__('Gunakan pencarian untuk Menyeleksi daftar nasabah.'), 15, 512) ?>;
+                const foundCustomerMeta = <?php echo json_encode(__('Ditemukan :visible nasabah yang cocok.'), 15, 512) ?>;
+                const emptyCustomerMeta = <?php echo json_encode(__('Tidak ada nasabah yang cocok dengan pencarian ini.'), 15, 512) ?>;
 
                 const updateCustomerMeta = (visibleCount, term) => {
                     if (!customerMeta) {
@@ -740,8 +840,8 @@
 
                     downPaymentLabel.textContent =
                         mode === 'percentage'
-                            ? '{{ __('Persen') }}'
-                            : '{{ __('Rupiah') }}';
+                            ? '<?php echo e(__('Persen')); ?>'
+                            : '<?php echo e(__('Rupiah')); ?>';
                 };
 
                 const getDownPaymentMode = () =>
@@ -826,7 +926,7 @@
                     const pkg = {
                         id,
                         barang_id: Number.parseInt(option.value, 10) || null,
-                        nama_barang: option.dataset.name ?? option.textContent?.trim() ?? '{{ __('Barang') }}',
+                        nama_barang: option.dataset.name ?? option.textContent?.trim() ?? '<?php echo e(__('Barang')); ?>',
                         kode_baki: option.dataset.baki ?? null,
                         kode_jenis: option.dataset.jenis ?? null,
                         kode_intern: option.dataset.intern ?? null,
@@ -848,7 +948,7 @@
                     selectedPackages.map((pkg) => {
                         const code = pkg?.kode_intern ?? pkg?.kode_baki ?? '—';
                         const barcode = pkg?.kode_barcode ?? '—';
-                        return `${pkg?.nama_barang ?? '{{ __('Barang') }}'} • ${formatWeight(pkg?.berat ?? 0)} gr • ${code} • ${barcode} • ${formatCurrency(Number(pkg?.harga ?? 0))}`;
+                        return `${pkg?.nama_barang ?? '<?php echo e(__('Barang')); ?>'} • ${formatWeight(pkg?.berat ?? 0)} gr • ${code} • ${barcode} • ${formatCurrency(Number(pkg?.harga ?? 0))}`;
                     });
 
                 const updatePackageSummaryList = (summaryLines) => {
@@ -860,7 +960,7 @@
 
                     if (!summaryLines.length) {
                         const li = document.createElement('li');
-                        li.textContent = '{{ __('Belum ada barang dipilih.') }}';
+                        li.textContent = '<?php echo e(__('Belum ada barang dipilih.')); ?>';
                         li.className = 'italic text-neutral-500 dark:text-neutral-400';
                         li.setAttribute('data-package-empty', '');
                         packageSummaryList.appendChild(li);
@@ -926,13 +1026,13 @@
                         }
 
                         if (!Number.isFinite(Number(totalPrice)) || totalPrice <= 0) {
-                            caption.textContent = '{{ __('Pilih barang terlebih dahulu.') }}';
+                            caption.textContent = '<?php echo e(__('Pilih barang terlebih dahulu.')); ?>';
                             return;
                         }
 
                         const tenorValue = Number(option.value);
                         if (!Number.isFinite(tenorValue) || tenorValue <= 0) {
-                            caption.textContent = '{{ __('Tenor tidak tersedia.') }}';
+                            caption.textContent = '<?php echo e(__('Tenor tidak tersedia.')); ?>';
                             return;
                         }
 
@@ -944,7 +1044,7 @@
                             ? Math.round((totalFinanced / tenorValue) * 100) / 100
                             : 0;
 
-                        caption.textContent = `${formatCurrency(installment)} {{ __('per bulan') }}`;
+                        caption.textContent = `${formatCurrency(installment)} <?php echo e(__('per bulan')); ?>`;
                     });
                 };
 
@@ -1097,12 +1197,12 @@
 
                     const summaryMetaText = (() => {
                         if (!hasPackages) {
-                            return '{{ __('Belum ada barang dipilih. Gunakan kolom pencarian untuk menemukan barang.') }}';
+                            return '<?php echo e(__('Belum ada barang dipilih. Gunakan kolom pencarian untuk menemukan barang.')); ?>';
                         }
                         if (summaryLines.length === 1) {
                             return summaryLines[0];
                         }
-                        return `${formatNumber(summaryLines.length)} {{ __('barang dipilih') }} • ${weightDisplay} gr • ${formatCurrency(totalPrice)}`;
+                        return `${formatNumber(summaryLines.length)} <?php echo e(__('barang dipilih')); ?> • ${weightDisplay} gr • ${formatCurrency(totalPrice)}`;
                     })();
 
                     if (packageMeta) {
@@ -1132,43 +1232,43 @@
                         summaryPackage.textContent = hasPackages
                             ? (summaryLines.length === 1
                                 ? summaryLines[0]
-                                : `${formatNumber(summaryLines.length)} {{ __('barang dipilih') }} • ${weightDisplay} gr`)
-                            : '{{ __('Barang belum dipilih.') }}';
+                                : `${formatNumber(summaryLines.length)} <?php echo e(__('barang dipilih')); ?> • ${weightDisplay} gr`)
+                            : '<?php echo e(__('Barang belum dipilih.')); ?>';
                     }
 
                     if (summaryPrice) {
                         summaryPrice.textContent = hasPackages
-                            ? `{{ __('Total Harga Barang') }}: ${formatCurrency(totalPrice)}`
+                            ? `<?php echo e(__('Total Harga Barang')); ?>: ${formatCurrency(totalPrice)}`
                             : '';
                     }
 
                     if (summaryOption) {
                         summaryOption.textContent = hasPackages && tenorValue
-                            ? `{{ __('Tenor') }}: ${formatNumber(tenorValue)} {{ __('bulan') }} • {{ __('Angsuran') }} ${formatCurrency(installment)}`
+                            ? `<?php echo e(__('Tenor')); ?>: ${formatNumber(tenorValue)} <?php echo e(__('bulan')); ?> • <?php echo e(__('Angsuran')); ?> ${formatCurrency(installment)}`
                             : '';
                     }
 
                     if (summaryPrincipal) {
                         summaryPrincipal.textContent = hasPackages
-                            ? `{{ __('Pokok Pembiayaan') }}: ${formatCurrency(principalBalance)}`
+                            ? `<?php echo e(__('Pokok Pembiayaan')); ?>: ${formatCurrency(principalBalance)}`
                             : '';
                     }
 
                     if (summaryMargin) {
                         summaryMargin.textContent = hasPackages
-                            ? `{{ __('Margin Pembiayaan') }}: ${formatCurrency(marginAmount)} (${formatPercentage(marginPercentage)}%)`
+                            ? `<?php echo e(__('Margin Pembiayaan')); ?>: ${formatCurrency(marginAmount)} (${formatPercentage(marginPercentage)}%)`
                             : '';
                     }
 
                     if (summaryAdministration) {
                         summaryAdministration.textContent = administrationAmount > 0
-                            ? `{{ __('Biaya Administrasi') }}: ${formatCurrency(administrationAmount)}`
+                            ? `<?php echo e(__('Biaya Administrasi')); ?>: ${formatCurrency(administrationAmount)}`
                             : '';
                     }
 
                     if (summaryFinancing) {
                         summaryFinancing.textContent = hasPackages && tenorValue
-                            ? `{{ __('Total Pembiayaan') }}: ${formatCurrency(totalFinanced)}`
+                            ? `<?php echo e(__('Total Pembiayaan')); ?>: ${formatCurrency(totalFinanced)}`
                             : '';
                     }
 
@@ -1182,40 +1282,40 @@
 
                     if (downPaymentDisplay) {
                         downPaymentDisplay.textContent = hasPackages
-                            ? `${formatCurrency(downPaymentAmount)} • ${formatPercentage(percentValue)}% {{ __('dari total harga barang') }}`
-                            : '{{ __('Masukkan uang muka untuk menghitung besaran cicilan.') }}';
+                            ? `${formatCurrency(downPaymentAmount)} • ${formatPercentage(percentValue)}% <?php echo e(__('dari total harga barang')); ?>`
+                            : '<?php echo e(__('Masukkan uang muka untuk menghitung besaran cicilan.')); ?>';
                     }
 
                     if (tenorMeta) {
                         tenorMeta.textContent = hasPackages
                             ? (tenorValue
-                                ? `{{ __('Cicilan selama :bulan bulan.', ['bulan' => ':bulan']) }}`.replace(':bulan', formatNumber(tenorValue))
-                                : '{{ __('Pilih tenor cicilan untuk melihat estimasi angsuran.') }}')
-                            : '{{ __('Pilih barang terlebih dahulu.') }}';
+                                ? `<?php echo e(__('Cicilan selama :bulan bulan.', ['bulan' => ':bulan'])); ?>`.replace(':bulan', formatNumber(tenorValue))
+                                : '<?php echo e(__('Pilih tenor cicilan untuk melihat estimasi angsuran.')); ?>')
+                            : '<?php echo e(__('Pilih barang terlebih dahulu.')); ?>';
                     }
 
                     if (installmentDisplay) {
                         installmentDisplay.textContent = hasPackages && tenorValue
-                            ? `{{ __('Estimasi angsuran: :amount per bulan', ['amount' => ':amount']) }}`.replace(':amount', formatCurrency(installment))
-                            : '{{ __('Besaran angsuran dihitung dari sisa harga emas dibagi tenor yang dipilih.') }}';
+                            ? `<?php echo e(__('Estimasi angsuran: :amount per bulan', ['amount' => ':amount'])); ?>`.replace(':amount', formatCurrency(installment))
+                            : '<?php echo e(__('Besaran angsuran dihitung dari sisa harga emas dibagi tenor yang dipilih.')); ?>';
                     }
 
                     if (marginDisplay) {
                         marginDisplay.textContent = hasPackages
-                            ? `${formatCurrency(marginAmount)} ({{ __('Margin') }} ${formatPercentage(marginPercentage)}%)`
-                            : '{{ __('Margin akan dihitung setelah paket dan tenor dipilih.') }}';
+                            ? `${formatCurrency(marginAmount)} (<?php echo e(__('Margin')); ?> ${formatPercentage(marginPercentage)}%)`
+                            : '<?php echo e(__('Margin akan dihitung setelah paket dan tenor dipilih.')); ?>';
                     }
 
                     if (financingDisplay) {
                         financingDisplay.textContent = hasPackages && tenorValue
-                            ? `{{ __('Total pembiayaan: :amount', ['amount' => ':amount']) }}`.replace(':amount', formatCurrency(totalFinanced))
-                            : '{{ __('Total pembiayaan akan tampil setelah simulasi lengkap.') }}';
+                            ? `<?php echo e(__('Total pembiayaan: :amount', ['amount' => ':amount'])); ?>`.replace(':amount', formatCurrency(totalFinanced))
+                            : '<?php echo e(__('Total pembiayaan akan tampil setelah simulasi lengkap.')); ?>';
                     }
 
                     if (administrationDisplay) {
                         administrationDisplay.textContent = administrationAmount > 0
-                            ? `{{ __('Biaya Administrasi') }}: ${formatCurrency(administrationAmount)}`
-                            : '{{ __('Jika diisi, biaya administrasi akan ditambahkan ke total pembiayaan cicilan.') }}';
+                            ? `<?php echo e(__('Biaya Administrasi')); ?>: ${formatCurrency(administrationAmount)}`
+                            : '<?php echo e(__('Jika diisi, biaya administrasi akan ditambahkan ke total pembiayaan cicilan.')); ?>';
                     }
 
                     updateTenorCaptions(totalPrice, downPaymentAmount);
@@ -1299,4 +1399,14 @@
             document.addEventListener('livewire:navigated', initCicilEmas);
         })();
     </script>
-</x-layouts.app>
+ <?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal5863877a5171c196453bfa0bd807e410)): ?>
+<?php $attributes = $__attributesOriginal5863877a5171c196453bfa0bd807e410; ?>
+<?php unset($__attributesOriginal5863877a5171c196453bfa0bd807e410); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal5863877a5171c196453bfa0bd807e410)): ?>
+<?php $component = $__componentOriginal5863877a5171c196453bfa0bd807e410; ?>
+<?php unset($__componentOriginal5863877a5171c196453bfa0bd807e410); ?>
+<?php endif; ?>
+<?php /**PATH E:\New folder\laravel 12 php 8\gd\resources\views/cicil-emas/transaksi-emas.blade.php ENDPATH**/ ?>

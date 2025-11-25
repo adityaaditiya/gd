@@ -8,7 +8,7 @@
         <div class="flex flex-col gap-2">
             <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white">{{ __('Penyelesaian Cicilan') }}</h1>
             <p class="text-neutral-600 dark:text-neutral-300">
-                {{ __('Nasabah Gagal Bayar Cicilan Emas lebih dari 30 hari.') }}
+                {{ __('Kelola Penyelesaian Cicilan Nasabah Gagal Bayar Cicilan Emas lebih dari 30 hari.') }}
             </p>
             <!-- <p class="text-xs text-neutral-500 dark:text-neutral-400">
                 {{ __('Tunggakan minimal 30 hari dari angsuran terlama yang belum dibayar. Daftar diperbarui otomatis berdasarkan jadwal angsuran.') }}
@@ -51,7 +51,7 @@
                                 <tr>
                                     <th scope="col" class="px-4 py-3 text-left">{{ __('Nomor Cicilan') }}</th>
                                     <th scope="col" class="px-4 py-3 text-left">{{ __('Nasabah') }}</th>
-                                    <th scope="col" class="px-4 py-3 text-center">{{ __('Tunggakan Terlama') }}</th>
+                                    <th scope="col" class="px-4 py-3 text-center">{{ __('Awal Tunggakan') }}</th>
                                     <th scope="col" class="px-4 py-3 text-right">{{ __('Akumulasi Denda') }}</th>
                                     <th scope="col" class="px-4 py-3 text-right">{{ __('Total Kewajiban Bersih') }}</th>
                                     <th scope="col" class="px-4 py-3 text-center">{{ __('Aksi') }}</th>
@@ -96,7 +96,7 @@
                                         <td class="px-4 py-3 align-top text-neutral-800 dark:text-neutral-100">
                                             <div class="flex flex-col">
                                                 <span class="font-mono text-sm font-semibold">{{ $transaction->nomor_cicilan }}</span>
-                                                <span class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Paket') }} {{ $transaction->option_label ?? '—' }}</span>
+                                                <span class="text-xs text-neutral-500 dark:text-neutral-400">{{ $transaction->option_label ?? '—' }}</span>
                                             </div>
                                         </td>
                                         <td class="px-4 py-3 align-top text-neutral-800 dark:text-neutral-100">
@@ -143,7 +143,7 @@
                                                         </div>
 
                                                         <div class="flex flex-col gap-1">
-                                                            <label class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Tanggal Tunggakan Tertua') }}</label>
+                                                            <label class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Tanggal Awal Tunggakan') }}</label>
                                                             <input type="text" readonly value="{{ optional($oldestUnpaid?->due_date)->translatedFormat('d M Y') }}" class="w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-700 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100">
                                                         </div>
 
@@ -157,10 +157,7 @@
                                                             <input id="harga_beli_emas_{{ $transaction->id }}" name="harga_beli_emas" type="number" step="0.01" required value="{{ $transaction->harga_emas }}" class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-700 focus:border-amber-400 focus:outline-none focus:ring-amber-400 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100">
                                                         </div>
 
-                                                        <div class="flex flex-col gap-1">
-                                                            <label for="nominal_denda_{{ $transaction->id }}" class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Nominal Denda (Penalty Amount)') }}</label>
-                                                            <input id="nominal_denda_{{ $transaction->id }}" name="nominal_denda" type="number" step="0.01" required value="{{ $totalPenalty }}" class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-700 focus:border-amber-400 focus:outline-none focus:ring-amber-400 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100" data-penalty-input>
-                                                        </div>
+                                                       
 
                                                         <div class="flex flex-col gap-1">
                                                             <label for="uang_muka_{{ $transaction->id }}" class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Uang Muka (DP)') }}</label>
@@ -186,6 +183,11 @@
                                                             <label class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Sisa Utang (belum termasuk denda)') }}</label>
                                                             <input type="text" readonly value="{{ number_format($sisaUtang, 0, ',', '.') }}" class="w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-700 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100">
                                                         </div>
+                                                        
+                                                        <div class="flex flex-col gap-1">
+                                                            <label for="nominal_denda_{{ $transaction->id }}" class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Nominal Denda (Penalty Amount)') }}</label>
+                                                            <input id="nominal_denda_{{ $transaction->id }}" name="nominal_denda" type="number" step="0.01" required value="{{ $totalPenalty }}" class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-700 focus:border-amber-400 focus:outline-none focus:ring-amber-400 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100" data-penalty-input>
+                                                        </div>
 
                                                         <div class="flex flex-col gap-1">
                                                             <label class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{{ __('Total Kewajiban Bersih') }}</label>
@@ -209,7 +211,7 @@
                                                         <div class="md:col-span-2 flex items-center justify-between rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-500/10 dark:text-black">
                                                             <div class="flex flex-col">
                                                                 <span class="font-semibold">{{ __('Status Transaksi akan menjadi SELESAI') }}</span>
-                                                                <span>{{ __('Pencatatan kewajiban pengembalian surplus dilakukan otomatis berdasarkan perhitungan surplus/defisit.') }}</span>
+                                                                <span>{{ __('Sistem mencatat pengembalian surplus dana (jika ada) kepada nasabah berdasarkan perhitungan bersih hasil eksekusi jaminan.') }}</span>
                                                             </div>
                                                             <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-400">
                                                                 {{ __('Simpan Penyelesaian') }}
