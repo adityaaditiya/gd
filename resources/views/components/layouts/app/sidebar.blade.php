@@ -19,16 +19,22 @@
                     'gadai.lihat-data-lelang',
                 ];
                 $isGadaiActive = request()->routeIs(...$gadaiRoutes);
-                $laporanRoutes = [
-                    'laporan.saldo-kas',
+                $laporanGadaiRoutes = [
                     'laporan.transaksi-gadai',
                     'laporan.pelunasan-gadai',
                     'laporan.batal-gadai',
                     'laporan.perpanjangan-gadai',
-                    'laporan.lelang',
-                    'laporan.cicil-emas',
                 ];
+                $laporanRoutes = array_merge(
+                    [
+                        'laporan.saldo-kas',
+                        'laporan.lelang',
+                        'laporan.cicil-emas',
+                    ],
+                    $laporanGadaiRoutes,
+                );
                 $isLaporanActive = request()->routeIs(...$laporanRoutes);
+                $isLaporanGadaiActive = request()->routeIs(...$laporanGadaiRoutes);
                 $akuntansiRoutes = [
                     'akuntansi.jurnal',
                     'akuntansi.buku-besar',
@@ -725,50 +731,95 @@
                         >
                             {{ __('Laporan Saldo Kas') }}
                         </a>
-                        <a
-                            href="{{ route('laporan.transaksi-gadai') }}"
-                            wire:navigate
-                            @class([
-                                'block rounded-lg px-3 py-2 transition-colors duration-200',
-                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('laporan.transaksi-gadai'),
-                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('laporan.transaksi-gadai'),
-                            ])
-                        >
-                            {{ __('Laporan Transaksi Gadai') }}
-                        </a>
-                        <a
-                            href="{{ route('laporan.pelunasan-gadai') }}"
-                            wire:navigate
-                            @class([
-                                'block rounded-lg px-3 py-2 transition-colors duration-200',
-                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('laporan.pelunasan-gadai'),
-                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('laporan.pelunasan-gadai'),
-                            ])
-                        >
-                            {{ __('Laporan Pelunasan Gadai') }}
-                        </a>
-                        <a
-                            href="{{ route('laporan.batal-gadai') }}"
-                            wire:navigate
-                            @class([
-                                'block rounded-lg px-3 py-2 transition-colors duration-200',
-                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('laporan.batal-gadai'),
-                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('laporan.batal-gadai'),
-                            ])
-                        >
-                            {{ __('Laporan Pembatalan Gadai') }}
-                        </a>
-                        <a
-                            href="{{ route('laporan.perpanjangan-gadai') }}"
-                            wire:navigate
-                            @class([
-                                'block rounded-lg px-3 py-2 transition-colors duration-200',
-                                'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('laporan.perpanjangan-gadai'),
-                                'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('laporan.perpanjangan-gadai'),
-                            ])
-                        >
-                            {{ __('Laporan Perpanjangan Gadai') }}
-                        </a>
+                        <div>
+                            <button
+                                type="button"
+                                class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-neutral-700 transition-colors duration-200 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-700 dark:hover:text-white"
+                                data-accordion-toggle
+                                data-accordion-target="laporan-gadai-menu"
+                                aria-expanded="{{ $isLaporanGadaiActive ? 'true' : 'false' }}"
+                            >
+                                <span class="flex items-center gap-2">
+                                    <svg
+                                        class="size-5"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke-width="1.5"
+                                        stroke="currentColor"
+                                        aria-hidden="true"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            d="M3 6.75h13.5M3 12h18M3 17.25h13.5"
+                                        />
+                                    </svg>
+                                    <span>{{ __('Laporan Gadai') }}</span>
+                                </span>
+                                <svg
+                                    data-accordion-icon
+                                    class="size-4 transform transition-transform duration-300 {{ $isLaporanGadaiActive ? 'rotate-90' : '' }}"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                >
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                                </svg>
+                            </button>
+                            <div
+                                id="laporan-gadai-menu"
+                                class="ms-3 mt-1 space-y-1 overflow-hidden text-sm transition-all duration-300"
+                                style="max-height: {{ $isLaporanGadaiActive ? '500px' : '0px' }};"
+                            >
+                                <a
+                                    href="{{ route('laporan.transaksi-gadai') }}"
+                                    wire:navigate
+                                    @class([
+                                        'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                        'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('laporan.transaksi-gadai'),
+                                        'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('laporan.transaksi-gadai'),
+                                    ])
+                                >
+                                    {{ __('Laporan Transaksi Gadai') }}
+                                </a>
+                                <a
+                                    href="{{ route('laporan.pelunasan-gadai') }}"
+                                    wire:navigate
+                                    @class([
+                                        'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                        'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('laporan.pelunasan-gadai'),
+                                        'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('laporan.pelunasan-gadai'),
+                                    ])
+                                >
+                                    {{ __('Laporan Pelunasan Gadai') }}
+                                </a>
+                                <a
+                                    href="{{ route('laporan.batal-gadai') }}"
+                                    wire:navigate
+                                    @class([
+                                        'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                        'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('laporan.batal-gadai'),
+                                        'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('laporan.batal-gadai'),
+                                    ])
+                                >
+                                    {{ __('Laporan Pembatalan Gadai') }}
+                                </a>
+                                <a
+                                    href="{{ route('laporan.perpanjangan-gadai') }}"
+                                    wire:navigate
+                                    @class([
+                                        'block rounded-lg px-3 py-2 transition-colors duration-200',
+                                        'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-white' => request()->routeIs('laporan.perpanjangan-gadai'),
+                                        'text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white' => !request()->routeIs('laporan.perpanjangan-gadai'),
+                                    ])
+                                >
+                                    {{ __('Laporan Perpanjangan Gadai') }}
+                                </a>
+                            </div>
+                        </div>
                         <a
                             href="{{ route('laporan.lelang') }}"
                             wire:navigate
