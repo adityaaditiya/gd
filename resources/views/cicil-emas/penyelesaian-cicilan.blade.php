@@ -8,11 +8,11 @@
         <div class="flex flex-col gap-2">
             <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white">{{ __('Penyelesaian Cicilan') }}</h1>
             <p class="text-neutral-600 dark:text-neutral-300">
-                {{ __('Nasabah Menghilang/Gagal Bayar — deteksi tunggakan lebih dari 30 hari dan catat penyelesaian dengan keterangan surplus/defisit.') }}
+                {{ __('Nasabah Gagal Bayar Cicilan Emas lebih dari 30 hari.') }}
             </p>
-            <p class="text-xs text-neutral-500 dark:text-neutral-400">
+            <!-- <p class="text-xs text-neutral-500 dark:text-neutral-400">
                 {{ __('Tunggakan minimal 30 hari dari angsuran terlama yang belum dibayar. Daftar diperbarui otomatis berdasarkan jadwal angsuran.') }}
-            </p>
+            </p> -->
         </div>
 
         @if (session('status'))
@@ -28,13 +28,13 @@
         @endif
 
         <section class="flex flex-col gap-4 rounded-xl border border-amber-200 bg-white p-5 shadow-sm dark:border-amber-400/30 dark:bg-neutral-900">
-            <header class="flex flex-col gap-1">
+            <!-- <header class="flex flex-col gap-1">
                 <span class="text-xs font-semibold uppercase tracking-wide text-amber-500">{{ __('Deteksi Tunggakan') }}</span>
                 <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Daftar cicilan dengan angsuran terlama belum dibayar (> 30 hari)') }}</h2>
                 <p class="text-sm text-neutral-600 dark:text-neutral-300">
                     {{ __('Pilih transaksi yang akan diselesaikan. Pastikan penilaian harga pasar emas terbaru dan keterangan dicatat sebelum status berubah menjadi SELESAI.') }}
                 </p>
-            </header>
+            </header> -->
 
             @if ($transactions->isEmpty())
                 <div class="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-neutral-300 p-6 text-center text-neutral-600 dark:border-neutral-600 dark:text-neutral-300">

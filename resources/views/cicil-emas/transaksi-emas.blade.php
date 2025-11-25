@@ -89,7 +89,7 @@
         <div class="flex flex-col gap-2">
             <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white">{{ __('Transaksi Cicil Emas') }}</h1>
             <p class="text-sm text-neutral-600 dark:text-neutral-300">
-                {{ __('Lakukan simulasi cicilan dengan memilih nasabah, barang emas, serta menentukan uang muka dan jangka waktu untuk menghasilkan estimasi pembayaran yang otomatis tersimpan.') }}
+                {{ __('Transaksi Cicilan Emas dengan memilih nasabah, barang emas, serta menentukan uang muka dan jangka waktu untuk menghasilkan estimasi pembayaran yang otomatis tersimpan.') }}
             </p>
         </div>
 
@@ -274,14 +274,14 @@
                             </div>
 
                             <div>
-                                <label class="mb-2 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
+                                <!-- <label class="mb-2 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
                                     {{ __('Data Barang') }}
-                                </label>
+                                </label> -->
                                 <div class="space-y-4" data-package-selector>
                                     <div class="grid gap-4 lg:grid-cols-2">
                                         <div class="flex flex-col gap-2">
                                             <div class="flex items-center justify-between gap-2">
-                                                <label for="package_ids" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Daftar Barang') }}</label>
+                                                <label for="package_ids" class="text-sm font-semibold text-neutral-800 dark:text-neutral-200">{{ __('Data Barang') }}</label>
                                                 <label for="package_search" class="sr-only">{{ __('Cari Barang Emas') }}</label>
                                                 <input
                                                     type="search"
@@ -488,9 +488,9 @@
                                 @error('administrasi')
                                     <p class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
                                 @enderror
-                                <p class="mt-2 text-xs text-neutral-500 dark:text-neutral-400" data-administration-display>
+                                <!-- <p class="mt-2 text-xs text-neutral-500 dark:text-neutral-400" data-administration-display>
                                     {{ __('Jika diisi, biaya administrasi akan ditambahkan ke total pembiayaan cicilan.') }}
-                                </p>
+                                </p> -->
                             </div>
 
                             <div class="md:col-span-1">
@@ -605,7 +605,7 @@
 
                 const customerOptions = customerSelect ? Array.from(customerSelect.options) : [];
                 const totalCustomers = customerOptions.filter((option) => option.value).length;
-                const defaultCustomerMeta = @json(__('Menampilkan :visible dari :total nasabah. Gunakan pencarian untuk menyaring daftar.'));
+                const defaultCustomerMeta = @json(__('Gunakan pencarian untuk Menyeleksi daftar nasabah.'));
                 const foundCustomerMeta = @json(__('Ditemukan :visible nasabah yang cocok.'));
                 const emptyCustomerMeta = @json(__('Tidak ada nasabah yang cocok dengan pencarian ini.'));
 

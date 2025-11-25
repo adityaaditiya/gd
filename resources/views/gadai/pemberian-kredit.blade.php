@@ -216,6 +216,7 @@
                                     <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                 @enderror
                                 <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Tanggal jatuh tempo dihitung otomatis dari hari master yang terdaftar pada type yang dipilih.') }}</p>
+                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('* Otomatis akan terisi setelah mengisi kolom Nominal Pinjaman.') }}</p>
                             </div>
 
                             <div class="flex flex-col gap-2">
@@ -227,7 +228,9 @@
                                     readonly
                                     class="block w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-neutral-300 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
                                 />
-                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Tenor dihitung otomatis dari tanggal gadai dan jatuh tempo yang bersumber dari Master Perhitungan Gadai.') }}</p>
+                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Tenor dihitung otomatis dari tanggal gadai dan jatuh tempo yang bersumber dari data Master Perhitungan Gadai.') }}</p>
+                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('* Otomatis akan terisi setelah mengisi kolom Nominal Pinjaman.') }}</p>
+
                             </div>
 
                             <div class="flex flex-col gap-2">
@@ -245,7 +248,7 @@
                                 @error('uang_pinjaman')
                                     <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                 @enderror
-                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Masukkan nominal pinjaman untuk menentukan range master yang aktif.') }}</p>
+                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Masukkan nominal pinjaman untuk menentukan range data master yang aktif.') }}</p>
                             </div>
 
                             <div class="flex flex-col gap-2">
@@ -303,7 +306,7 @@
                                     data-formula-helper
                                     data-default-message="{{ __('Tarif bunga, biaya admin, dan jatuh tempo mengikuti Master Perhitungan Gadai.') }}"
                                     data-type-message="{{ __('Pilih type kredit terlebih dahulu untuk memuat tarif master.') }}"
-                                    data-amount-message="{{ __('Masukkan nominal pinjaman untuk mencari range master yang tepat.') }}"
+                                    data-amount-message="{{ __('Masukkan nominal pinjaman untuk mencari range data master yang tepat.') }}"
                                     data-not-found-message="{{ __('Tidak ada konfigurasi master yang cocok untuk nominal :amount.') }}"
                                     data-empty-message="{{ __('Belum ada data Master Perhitungan Gadai. Silakan tambahkan di menu Master terlebih dahulu.') }}"
                                 >
@@ -330,7 +333,7 @@
                             </div>
 
                             <div class="flex flex-col gap-2">
-                                <label for="premi" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Premi') }}</label>
+                                <label for="premi" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Premi / Asuransi') }}</label>
                                 <input
                                     type="text"
                                     inputmode="decimal"
@@ -365,7 +368,7 @@
                                     readonly
                                     class="block w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-neutral-300 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
                                 />
-                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Nilai ini otomatis muncul di nota kontrak sebagai dana bersih yang diterima nasabah.') }}</p>
+                                <!-- <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Nilai ini otomatis muncul di nota kontrak sebagai dana bersih yang diterima nasabah.') }}</p> -->
                             </div>
 
                             <div class="flex flex-col gap-2">
@@ -377,7 +380,7 @@
                                     readonly
                                     class="block w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-neutral-300 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
                                 />
-                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Nilai bunga mengikuti tarif harian dari master perhitungan gadai dikalikan nominal pinjaman dan tenor aktual.') }}</p>
+                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Nilai bunga mengikuti tarif harian dari data master perhitungan gadai dikalikan nominal pinjaman dan tenor aktual.') }}</p>
                             </div>
                         </div>
                     </section>
