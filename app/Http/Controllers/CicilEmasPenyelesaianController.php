@@ -85,7 +85,13 @@ class CicilEmasPenyelesaianController extends Controller
 
         $pokokPembiayaanBersih = max(0, (float) $validated['harga_beli_emas'] - (float) $validated['uang_muka']);
         $totalHargaJual = $pokokPembiayaanBersih + (float) $transaction->margin_amount;
-        $surplusDefisit = (float) $validated['penilaian_harga_pasar_emas'] - $totalHargaJual;
+        $sisaUtang = $transaction->installments->sum(function ($installment) {
+            $paidAmount = (float) ($installment->paid_amount ?? 0);
+
+            return max(0, (float) $installment->amount - $paidAmount);
+        });
+        $totalKewajibanBersih = $sisaUtang + (float) $validated['nominal_denda'];
+        $surplusDefisit = (float) $validated['penilaian_harga_pasar_emas'] - $totalKewajibanBersih;
         $kewajibanPengembalianSurplus = $surplusDefisit > 0 ? $surplusDefisit : 0.0;
 
         $completedAt = Carbon::now();
@@ -183,7 +189,7 @@ class CicilEmasPenyelesaianController extends Controller
         }
 
         if ($refundObligation > 0) {
-            $refundReference = __('Pengembalian Surplus Penyelesaian Cicil Emas :nomor', [
+            $refundReference = __('Pengembalian Dana ke Nasabah (Netting Pelunasan) :nomor', [
                 'nomor' => $transaction->nomor_cicilan ?? $transaction->id,
             ]);
 
@@ -197,7 +203,7 @@ class CicilEmasPenyelesaianController extends Controller
                     'tipe' => 'keluar',
                     'jumlah' => number_format($refundObligation, 2, '.', ''),
                     'sumber' => __('Penyelesaian Cicil Emas'),
-                    'keterangan' => __('Pengembalian surplus kepada :nasabah', [
+                    'keterangan' => __('Pengembalian surplus hasil proses netting kepada :nasabah', [
                         'nasabah' => $transaction->nasabah?->nama ?? __('Nasabah tidak diketahui'),
                     ]),
                 ]
@@ -211,6 +217,9 @@ class CicilEmasPenyelesaianController extends Controller
 
         $references = [
             __('Penyelesaian Cicil Emas :nomor', [
+                'nomor' => $transaction->nomor_cicilan ?? $transaction->id,
+            ]),
+            __('Pengembalian Dana ke Nasabah (Netting Pelunasan) :nomor', [
                 'nomor' => $transaction->nomor_cicilan ?? $transaction->id,
             ]),
             __('Pengembalian Surplus Penyelesaian Cicil Emas :nomor', [
