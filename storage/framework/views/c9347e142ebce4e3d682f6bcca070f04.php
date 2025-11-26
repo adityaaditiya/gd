@@ -1,32 +1,42 @@
-@php
+<?php
     $pageTitle = $pageTitle ?? __('Data Nasabah');
     $searchEndpoint = $searchEndpoint ?? route('nasabah.data-nasabah');
     $showCreateButton = $showCreateButton ?? true; // <-- Kesalahan di baris ini
-@endphp
-<x-layouts.app :title="__('Data Nasabah')">
+?>
+<?php if (isset($component)) { $__componentOriginal5863877a5171c196453bfa0bd807e410 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal5863877a5171c196453bfa0bd807e410 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.layouts.app','data' => ['title' => __('Data Nasabah')]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('layouts.app'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['title' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(__('Data Nasabah'))]); ?>
     <div class="space-y-8" id="nasabah-page">
         <div class="flex flex-col gap-2">
-            <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white">{{ __('Data Nasabah') }}</h1>
+            <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white"><?php echo e(__('Data Nasabah')); ?></h1>
             <p class="text-sm text-neutral-600 dark:text-neutral-300">
-                {{ __('Kelola dan telusuri informasi lengkap nasabah melalui tabel interaktif berikut.') }}
+                <?php echo e(__('Kelola dan telusuri informasi lengkap nasabah melalui tabel interaktif berikut.')); ?>
+
             </p>
         </div>
 
-        @if (session('status'))
+        <?php if(session('status')): ?>
             <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-700 dark:border-emerald-500/60 dark:bg-emerald-500/10 dark:text-emerald-300">
-                <p class="font-semibold text-black">{{ session('status') }}</p>
-                @if (session('kode_member'))
-                    <p class="mt-1 text-sm text-black">{{ __('Kode member otomatis:') }}</p>
+                <p class="font-semibold text-black"><?php echo e(session('status')); ?></p>
+                <?php if(session('kode_member')): ?>
+                    <p class="mt-1 text-sm text-black"><?php echo e(__('Kode member otomatis:')); ?></p>
                     <input
                         type="text"
                         readonly
-                        value="{{ session('kode_member') }}"
+                        value="<?php echo e(session('kode_member')); ?>"
                         class="mt-2 w-full rounded-lg border border-emerald-300 bg-white px-3 py-2 font-semibold tracking-wide text-emerald-700 shadow-sm dark:border-emerald-500/60 dark:bg-neutral-900 dark:text-emerald-300"
                     />
-                    <p class="mt-1 text-x text-black" >{{ __('Salin kode ini untuk keperluan verifikasi dan layanan selanjutnya.') }}</p>
-                @endif
+                    <p class="mt-1 text-x text-black" ><?php echo e(__('Salin kode ini untuk keperluan verifikasi dan layanan selanjutnya.')); ?></p>
+                <?php endif; ?>
             </div>
-        @endif
+        <?php endif; ?>
 
         <div class="rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-800">
             <div class="flex flex-col gap-4 border-b border-neutral-200 p-4 dark:border-neutral-700 lg:flex-row lg:items-center lg:justify-between">
@@ -36,28 +46,28 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
                         </svg>
                         <div class="flex w-full flex-col">
-                            <span class="text-xs font-medium uppercase tracking-wide text-neutral-400">{{ __('Cari Data (NIK, Nama, Telepon, dll.)') }}</span>
+                            <span class="text-xs font-medium uppercase tracking-wide text-neutral-400"><?php echo e(__('Cari Data (NIK, Nama, Telepon, dll.)')); ?></span>
                             <input
                                 id="nasabahSearch"
                                 type="search"
-                                placeholder="{{ __('Ketik untuk mencari seluruh data kolom...') }}"
+                                placeholder="<?php echo e(__('Ketik untuk mencari seluruh data kolom...')); ?>"
                                 class="w-full border-0 bg-transparent p-0 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-0 dark:text-white"
                             />
                         </div>
                     </label>
                 </div>
-                @if ($showCreateButton)
+                <?php if($showCreateButton): ?>
                     <a
-                        href="{{ route('nasabah.tambah-nasabah') }}"
+                        href="<?php echo e(route('nasabah.tambah-nasabah')); ?>"
                         wire:navigate
                         class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-emerald-600 bg-emerald-600 px-4 py-4 text-sm font-semibold text-white shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-500 dark:bg-emerald-500 dark:hover:border-emerald-400 dark:hover:bg-emerald-400"
                     >
                         <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                         </svg>
-                        <span>{{ __('Tambah Nasabah') }}</span>
+                        <span><?php echo e(__('Tambah Nasabah')); ?></span>
                     </a>
-                @endif
+                <?php endif; ?>
             </div>
         </div>
 
@@ -70,12 +80,12 @@
                         <tr>
                             <th scope="col" class="min-w-[120px] px-4 py-3">
                                 <button type="button" class="flex items-center gap-1" data-sort-key="actions" disabled>
-                                    <span>{{ __('Aksi') }}</span>
+                                    <span><?php echo e(__('Aksi')); ?></span>
                                 </button>
                             </th>
                             <th scope="col" class="min-w-[160px] px-4 py-3">
                                 <button type="button" class="flex items-center gap-1" data-sort-key="nik">
-                                    <span>{{ __('Kode Member') }}</span>
+                                    <span><?php echo e(__('Kode Member')); ?></span>
                                     <span data-sort-icon class="hidden">
                                         <svg class="size-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
@@ -85,7 +95,7 @@
                             </th>
                             <th scope="col" class="min-w-[160px] px-4 py-3">
                                 <button type="button" class="flex items-center gap-1" data-sort-key="nik">
-                                    <span>{{ __('NIK') }}</span>
+                                    <span><?php echo e(__('NIK')); ?></span>
                                     <span data-sort-icon class="hidden">
                                         <svg class="size-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
@@ -95,7 +105,7 @@
                             </th>
                             <th scope="col" class="min-w-[160px] px-4 py-3">
                                 <button type="button" class="flex items-center gap-1" data-sort-key="nama">
-                                    <span>{{ __('Nama') }}</span>
+                                    <span><?php echo e(__('Nama')); ?></span>
                                     <span data-sort-icon class="hidden">
                                         <svg class="size-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
@@ -105,7 +115,7 @@
                             </th>
                             <th scope="col" class="min-w-[150px] px-4 py-3">
                                 <button type="button" class="flex items-center gap-1" data-sort-key="tanggal_lahir">
-                                    <span>{{ __('Tanggal Lahir') }}</span>
+                                    <span><?php echo e(__('Tanggal Lahir')); ?></span>
                                     <span data-sort-icon class="hidden">
                                         <svg class="size-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
@@ -115,7 +125,7 @@
                             </th>
                             <th scope="col" class="min-w-[140px] px-4 py-3">
                                 <button type="button" class="flex items-center gap-1" data-sort-key="telepon">
-                                    <span>{{ __('Telepon') }}</span>
+                                    <span><?php echo e(__('Telepon')); ?></span>
                                     <span data-sort-icon class="hidden">
                                         <svg class="size-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
@@ -125,7 +135,7 @@
                             </th>
                             <th scope="col" class="min-w-[140px] px-4 py-3">
                                 <button type="button" class="flex items-center gap-1" data-sort-key="kota">
-                                    <span>{{ __('Kota') }}</span>
+                                    <span><?php echo e(__('Kota')); ?></span>
                                     <span data-sort-icon class="hidden">
                                         <svg class="size-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
@@ -135,7 +145,7 @@
                             </th>
                             <th scope="col" class="min-w-[160px] px-4 py-3">
                                 <button type="button" class="flex items-center gap-1" data-sort-key="kecamatan">
-                                    <span>{{ __('Kecamatan') }}</span>
+                                    <span><?php echo e(__('Kecamatan')); ?></span>
                                     <span data-sort-icon class="hidden">
                                         <svg class="size-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
@@ -145,7 +155,7 @@
                             </th>
                             <th scope="col" class="min-w-[160px] px-4 py-3">
                                 <button type="button" class="flex items-center gap-1" data-sort-key="kecamatan">
-                                    <span>{{ __('Alamat') }}</span>
+                                    <span><?php echo e(__('Alamat')); ?></span>
                                     <span data-sort-icon class="hidden">
                                         <svg class="size-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
@@ -155,7 +165,7 @@
                             </th>
                             <th scope="col" class="min-w-[140px] px-4 py-3">
                                 <button type="button" class="flex items-center gap-1" data-sort-key="npwp">
-                                    <span>{{ __('NPWP') }}</span>
+                                    <span><?php echo e(__('NPWP')); ?></span>
                                     <span data-sort-icon class="hidden">
                                         <svg class="size-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
@@ -165,7 +175,7 @@
                             </th>
                             <!-- <th scope="col" class="min-w-[140px] px-4 py-3">
                                 <button type="button" class="flex items-center gap-1" data-sort-key="nasabah_lama">
-                                    <span>{{ __('Nasabah Lama') }}</span>
+                                    <span><?php echo e(__('Nasabah Lama')); ?></span>
                                     <span data-sort-icon class="hidden">
                                         <svg class="size-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
@@ -175,7 +185,7 @@
                             </th> -->
                             <th scope="col" class="min-w-[150px] px-4 py-3">
                                 <button type="button" class="flex items-center gap-1" data-sort-key="id_lain">
-                                    <span>{{ __('ID Lain') }}</span>
+                                    <span><?php echo e(__('ID Lain')); ?></span>
                                     <span data-sort-icon class="hidden">
                                         <svg class="size-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
@@ -205,15 +215,15 @@
                 </div>
 
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end sm:gap-4">
-                    <nav id="nasabahPagination" class="flex flex-wrap items-center gap-2" aria-label="{{ __('Navigasi halaman nasabah') }}"></nav>
+                    <nav id="nasabahPagination" class="flex flex-wrap items-center gap-2" aria-label="<?php echo e(__('Navigasi halaman nasabah')); ?>"></nav>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        const nasabahInitialDataset = @js($nasabahs);
-        const nasabahSearchEndpoint = @js(route('nasabah.data-nasabah'));
+        const nasabahInitialDataset = <?php echo \Illuminate\Support\Js::from($nasabahs)->toHtml() ?>;
+        const nasabahSearchEndpoint = <?php echo \Illuminate\Support\Js::from(route('nasabah.data-nasabah'))->toHtml() ?>;
         (() => {
             function initializeNasabahPage() {
                 const container = document.getElementById('nasabah-page');
@@ -459,7 +469,8 @@
                         tableBody.innerHTML = `
                             <tr>
                                 <td colspan="10" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-300">
-                                    {{ __('Data tidak ditemukan untuk kata kunci yang dimasukkan.') }}
+                                    <?php echo e(__('Data tidak ditemukan untuk kata kunci yang dimasukkan.')); ?>
+
                                 </td>
                             </tr>
                         `;
@@ -485,11 +496,11 @@
                                 <tr class="hover:bg-neutral-50 dark:hover:bg-neutral-700/40">
                                     <td class="px-4 py-3">
                                         <div class="flex items-center gap-2">
-                                            <a href="${editUrl}" wire:navigate class="rounded-lg border border-emerald-200 px-2 py-1 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50 focus:outline-none dark:border-emerald-400/40 dark:text-emerald-300 dark:hover:bg-emerald-400/10">{{ __('Edit') }}</a>
+                                            <a href="${editUrl}" wire:navigate class="rounded-lg border border-emerald-200 px-2 py-1 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50 focus:outline-none dark:border-emerald-400/40 dark:text-emerald-300 dark:hover:bg-emerald-400/10"><?php echo e(__('Edit')); ?></a>
                                             <form method="POST" action="${deleteUrl}" data-nasabah-delete-form data-nasabah-id="${recordId}" class="inline-flex">
                                                 <input type="hidden" name="_token" value="${escapeAttribute(csrfToken)}">
                                                 <input type="hidden" name="_method" value="DELETE">
-                                                <button type="submit" data-nasabah-delete-button class="rounded-lg border border-red-200 px-2 py-1 text-xs font-semibold text-red-600 transition hover:bg-red-50 focus:outline-none dark:border-red-400/40 dark:text-red-300 dark:hover:bg-red-400/10">{{ __('Hapus') }}</button>
+                                                <button type="submit" data-nasabah-delete-button class="rounded-lg border border-red-200 px-2 py-1 text-xs font-semibold text-red-600 transition hover:bg-red-50 focus:outline-none dark:border-red-400/40 dark:text-red-300 dark:hover:bg-red-400/10"><?php echo e(__('Hapus')); ?></button>
                                             </form>
                                         </div>
                                     </td>
@@ -797,8 +808,8 @@
                     const target = window.__dataNasabahDataset?.find?.((entry) => String(entry.id ?? '') === String(recordId ?? ''));
                     const name = target?.nama ?? '';
                     const sanitizedName = String(name ?? '').replace(/"/g, '\\"');
-                    const prefix = `{{ __('Apakah Anda yakin ingin menghapus data nasabah') }}`;
-                    const fallback = `{{ __('Apakah Anda yakin ingin menghapus data nasabah ini?') }}`;
+                    const prefix = `<?php echo e(__('Apakah Anda yakin ingin menghapus data nasabah')); ?>`;
+                    const fallback = `<?php echo e(__('Apakah Anda yakin ingin menghapus data nasabah ini?')); ?>`;
                     const message = sanitizedName ? `${prefix} "${sanitizedName}"?` : fallback;
 
                     if (!window.confirm(message)) {
@@ -817,4 +828,14 @@
             }
         })();
     </script>
-</x-layouts.app>
+ <?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal5863877a5171c196453bfa0bd807e410)): ?>
+<?php $attributes = $__attributesOriginal5863877a5171c196453bfa0bd807e410; ?>
+<?php unset($__attributesOriginal5863877a5171c196453bfa0bd807e410); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal5863877a5171c196453bfa0bd807e410)): ?>
+<?php $component = $__componentOriginal5863877a5171c196453bfa0bd807e410; ?>
+<?php unset($__componentOriginal5863877a5171c196453bfa0bd807e410); ?>
+<?php endif; ?>
+<?php /**PATH /var/www/gd/resources/views/nasabah/data-nasabah.blade.php ENDPATH**/ ?>

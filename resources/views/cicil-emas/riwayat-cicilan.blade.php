@@ -2,8 +2,11 @@
     <div class="flex flex-col gap-8">
         <div class="flex flex-col gap-2">
             <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white">{{ __('Riwayat Cicilan') }}</h1>
-            <p class="text-neutral-600 dark:text-neutral-300">
+            <!-- <p class="text-neutral-600 dark:text-neutral-300">
                 {{ __('Pantau status pembayaran, saldo pokok tersisa, serta nilai aset emas terbaru untuk setiap portofolio cicilan.') }}
+            </p> -->
+            <p class="text-neutral-600 dark:text-neutral-300">
+                {{ __('Pantau status pembayaran dan saldo pokok tersisa untuk setiap portofolio cicilan.') }}
             </p>
         </div>
 
@@ -47,8 +50,8 @@
                 </div>
 <span></span>
                 <div class="flex gap-3">
-                    <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-blue-600 shadow hover:bg-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 dark:focus:ring-offset-neutral-900">
-                        {{ __('Terapkan') }}
+                    <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 dark:focus:ring-offset-neutral-900">
+                        {{ __('Cari Data') }}
                     </button>
                     @if(($filters['query'] ?? null) || ($filters['status'] ?? null))
                         <a href="{{ route('cicil-emas.riwayat-cicilan') }}" class="inline-flex items-center justify-center rounded-lg border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 dark:border-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-800 dark:focus:ring-offset-neutral-900">

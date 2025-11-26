@@ -12,7 +12,7 @@
         <div class="flex flex-col gap-2">
             <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white"><?php echo e(__('Laporan Cicil Emas')); ?></h1>
             <p class="text-neutral-600 dark:text-neutral-300">
-                <?php echo e(__('Susun laporan audit internal atas kinerja portofolio cicilan emas lengkap dengan filter periode dan status pembayaran.')); ?>
+                <?php echo e(__('Laporan kinerja portofolio cicilan emas lengkap dengan filter periode dan status pembayaran.')); ?>
 
             </p>
         </div>
