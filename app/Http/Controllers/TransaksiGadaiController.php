@@ -314,6 +314,15 @@ class TransaksiGadaiController extends Controller
         ]);
     }
 
+    public function previewNota(TransaksiGadai $transaksi): View
+    {
+        $transaksi->loadMissing(['nasabah', 'kasir', 'barangJaminan']);
+
+        return view('gadai.nota-transaksi', [
+            'transaksi' => $transaksi,
+        ]);
+    }
+
     public function cancel(Request $request, TransaksiGadai $transaksi): RedirectResponse
     {
         $request->validate([
