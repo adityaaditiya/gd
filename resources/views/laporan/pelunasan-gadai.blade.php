@@ -3,7 +3,7 @@
         <div class="flex flex-col gap-2">
             <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white">{{ __('Laporan Pelunasan Gadai') }}</h1>
             <p class="text-sm text-neutral-600 dark:text-neutral-300">
-                {{ __('Daftar kontrak gadai yang telah dilunasi beserta ringkasan pembayarannya.') }}
+                {{ __('Daftar kontrak gadai yang telah dilunasi.') }}
             </p>
         </div>
 

@@ -2,8 +2,11 @@
     <div class="space-y-6">
         <div class="flex flex-col gap-2">
             <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white">{{ __('Laporan Perpanjangan Gadai') }}</h1>
+            <!-- <p class="text-sm text-neutral-600 dark:text-neutral-300">
+                {{ __('Pantau seluruh perpanjangan kontrak gadai termasuk tenor baru dan biaya kas yang diterima.') }}
+            </p> -->
             <p class="text-sm text-neutral-600 dark:text-neutral-300">
-                {{ __('Pantau seluruh perpanjangan kontrak gadai termasuk tenor baru dan biaya yang diterima kas.') }}
+                {{ __('Pantau seluruh perpanjangan kontrak gadai dan biaya yang diterima.') }}
             </p>
         </div>
 
@@ -22,7 +25,7 @@
                             name="search"
                             type="search"
                             value="{{ $search ?? '' }}"
-                            placeholder="{{ __('    Cari No. SBG atau nama nasabah…') }}"
+                            placeholder="{{ __('Cari No. SBG atau nama nasabah…') }}"
                             class="w-full rounded-lg border border-neutral-200 bg-white py-2 pl-10 pr-3 text-sm text-neutral-700 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
                         />
                     </div>
@@ -51,7 +54,7 @@
                 <div class="flex items-center gap-2 sm:col-span-2 lg:col-span-4">
                     <button
                         type="submit"
-                        class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-blue-600 shadow-sm transition hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400"
+                        class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400"
                     >
                         <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 9.75L8.25 12l3 2.25M12.75 9.75l3 2.25-3 2.25" />

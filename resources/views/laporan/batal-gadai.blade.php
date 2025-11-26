@@ -2,8 +2,11 @@
     <div class="space-y-6">
         <div class="flex flex-col gap-2">
             <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white">{{ __('Laporan Pembatalan Gadai') }}</h1>
-            <p class="text-sm text-neutral-600 dark:text-neutral-300">
+            <!-- <p class="text-sm text-neutral-600 dark:text-neutral-300">
                 {{ __('Daftar kontrak gadai yang dibatalkan lengkap dengan alasan dan petugas pembatal.') }}
+            </p> -->
+            <p class="text-sm text-neutral-600 dark:text-neutral-300">
+                {{ __('Daftar lengkap kontrak gadai yang dibatalkan.') }}
             </p>
         </div>
 
@@ -22,7 +25,7 @@
                             name="search"
                             type="search"
                             value="{{ $search ?? '' }}"
-                            placeholder="{{ __('   Cari No. SBG, nama nasabah, atau kontak…') }}"
+                            placeholder="{{ __('Cari No. SBG, Nama, atau Kontak Nasabah…') }}"
                             class="w-full rounded-lg border border-neutral-200 bg-white py-2 pl-9 pr-3 text-sm text-neutral-700 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
                         />
                     </div>
@@ -36,7 +39,7 @@
                     @endif
                     <button
                         type="submit"
-                        class="inline-flex items-center rounded-lg border border-emerald-600 bg-emerald-600 px-3 py-2 text-xs font-semibold text-black shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-400 dark:bg-emerald-500 dark:hover:border-emerald-300 dark:hover:bg-emerald-400"
+                        class="inline-flex items-center rounded-lg border border-emerald-600 bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-400 dark:bg-emerald-500 dark:hover:border-emerald-300 dark:hover:bg-emerald-400"
                     >
                         {{ __('Cari') }}
                     </button>

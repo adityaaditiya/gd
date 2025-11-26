@@ -93,7 +93,7 @@
                             <span></span>
                         <a
                                     href="<?php echo e(route('gadai.pemberian-kredit')); ?>"
-                                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-neutral-800  px-4 py-2 text-sm font-semibold text-blue-600 shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-500 dark:bg-emerald-500 dark:hover:border-emerald-400 dark:hover:bg-emerald-400"
+                                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-neutral-800  px-4 py-2 text-sm font-semibold text-blue-600 shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-neutral-500 dark:bg-neutral-800 dark:hover:border-emerald-400 dark:hover:bg-emerald-400"
                                 >
                                     <?php echo e(__('Tambah Data')); ?>
 
@@ -481,7 +481,7 @@
         </div>
     </div>
 
-    <?php if (! $__env->hasRenderedOnce('7eb17d86-8964-458f-8775-b8033f59fd9d')): $__env->markAsRenderedOnce('7eb17d86-8964-458f-8775-b8033f59fd9d'); ?>
+    <?php if (! $__env->hasRenderedOnce('476218e2-fba8-4536-a6e5-d3b79bc8bb8f')): $__env->markAsRenderedOnce('476218e2-fba8-4536-a6e5-d3b79bc8bb8f'); ?>
 <script data-navigate-once>
   window.KRESNO = window.KRESNO || {};
   if (!window.KRESNO.lihatGadaiBound) {

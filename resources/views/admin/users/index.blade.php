@@ -2,7 +2,7 @@
     <div class="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <p class="text-sm font-semibold uppercase tracking-wide text-neutral-500">{{ __('Master') }}</p>
+                <!-- <p class="text-sm font-semibold uppercase tracking-wide text-neutral-500">{{ __('Master') }}</p> -->
                 <h1 class="text-2xl font-bold text-neutral-900 dark:text-white">{{ __('Master User') }}</h1>
             </div>
         </div>
@@ -129,12 +129,13 @@
                     @php
                         $isEditingUser = (string) old('user_id') === (string) $user->id;
                         $oldEmail = $isEditingUser ? old('email') : $user->email;
+                        $oldUsername = $isEditingUser ? old('username') : $user->username;
                         $selectedRole = $isEditingUser ? old('role') : $user->role;
                     @endphp
                     <div class="rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
                         <div class="border-b border-neutral-200 px-4 py-3 dark:border-neutral-700">
                             <h3 class="text-base font-semibold text-neutral-900 dark:text-white">{{ $user->name }}</h3>
-                            <p class="text-sm text-neutral-500">{{ $user->email }} &middot; <span class="uppercase">{{ $user->role }}</span></p>
+                            <p class="text-sm text-neutral-500">username: {{ $user->username }} &middot; <span class="text-sm text-neutral-500">Role: {{ $user->role }}</span></p>
                         </div>
 
                         <form method="POST" action="{{ route('admin.users.update', $user) }}" class="space-y-4 px-4 py-4">

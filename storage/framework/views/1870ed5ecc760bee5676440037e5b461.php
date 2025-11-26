@@ -12,7 +12,7 @@
         <div class="flex flex-col gap-2">
             <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white"><?php echo e(__('Laporan Saldo Kas')); ?></h1>
             <p class="text-neutral-600 dark:text-neutral-300">
-                <?php echo e(__('Pantau mutasi kas masuk dan keluar termasuk hasil distribusi lelang dalam periode tertentu.')); ?>
+                <?php echo e(__('Pantau mutasi kas masuk dan keluar dalam periode tertentu.')); ?>
 
             </p>
         </div>

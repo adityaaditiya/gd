@@ -1,66 +1,77 @@
-<x-layouts.app :title="__('Master Kode Group')">
+<?php if (isset($component)) { $__componentOriginal5863877a5171c196453bfa0bd807e410 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal5863877a5171c196453bfa0bd807e410 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.layouts.app','data' => ['title' => __('Master Kode Group')]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('layouts.app'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['title' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(__('Master Kode Group'))]); ?>
     <div class="space-y-8">
         <div class="flex flex-col gap-2">
-            <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white">{{ __('Master Kode Group') }}</h1>
+            <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white"><?php echo e(__('Master Kode Group')); ?></h1>
             <p class="text-sm text-neutral-600 dark:text-neutral-300">
-                {{ __('Kelola daftar kode group dan harga dasar yang digunakan saat menambah atau mengubah data barang.') }}
+                <?php echo e(__('Kelola daftar kode group dan harga dasar yang digunakan saat menambah atau mengubah data barang.')); ?>
+
             </p>
         </div>
 
-        @if (session('status'))
+        <?php if(session('status')): ?>
             <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-700 dark:border-emerald-500/60 dark:bg-emerald-500/10 dark:text-emerald-300">
-                <p class="font-semibold">{{ session('status') }}</p>
+                <p class="font-semibold"><?php echo e(session('status')); ?></p>
             </div>
-        @endif
+        <?php endif; ?>
 
         <div class="space-y-6 rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
             <div>
-                <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Tambah Kode Group Baru') }}</h2>
+                <h2 class="text-lg font-semibold text-neutral-900 dark:text-white"><?php echo e(__('Tambah Kode Group Baru')); ?></h2>
                 <p class="text-sm text-neutral-600 dark:text-neutral-300">
-                    {{ __('Masukkan kode group dan harga agar tersedia pada formulir data barang.') }}
+                    <?php echo e(__('Masukkan kode group dan harga agar tersedia pada formulir data barang.')); ?>
+
                 </p>
             </div>
 
-            <form method="POST" action="{{ route('admin.master-kode-group.store') }}" class="grid gap-4 md:grid-cols-3 md:items-end">
-                @csrf
-                @php
+            <form method="POST" action="<?php echo e(route('admin.master-kode-group.store')); ?>" class="grid gap-4 md:grid-cols-3 md:items-end">
+                <?php echo csrf_field(); ?>
+                <?php
                     $isCreateContext = old('form_mode') === 'create';
-                @endphp
+                ?>
                 <input type="hidden" name="form_mode" value="create">
 
                 <div class="space-y-2">
-                    <label for="kode_group" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Kode Group') }}</label>
+                    <label for="kode_group" class="text-sm font-medium text-neutral-700 dark:text-neutral-200"><?php echo e(__('Kode Group')); ?></label>
                     <input
                         type="text"
                         id="kode_group"
                         name="kode_group"
-                        value="{{ $isCreateContext ? old('kode_group') : '' }}"
+                        value="<?php echo e($isCreateContext ? old('kode_group') : ''); ?>"
                         maxlength="191"
                         required
                         class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-emerald-500 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-100"
-                        placeholder="{{ __('Masukkan kode group') }}"
+                        placeholder="<?php echo e(__('Masukkan kode group')); ?>"
                     >
-                    @if ($isCreateContext && $errors->has('kode_group'))
-                        <p class="text-xs text-rose-600 dark:text-rose-400">{{ $errors->first('kode_group') }}</p>
-                    @endif
+                    <?php if($isCreateContext && $errors->has('kode_group')): ?>
+                        <p class="text-xs text-rose-600 dark:text-rose-400"><?php echo e($errors->first('kode_group')); ?></p>
+                    <?php endif; ?>
                 </div>
 
                 <div class="space-y-2">
-                    <label for="harga" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Harga (Rp)') }}</label>
+                    <label for="harga" class="text-sm font-medium text-neutral-700 dark:text-neutral-200"><?php echo e(__('Harga (Rp)')); ?></label>
                     <input
                         type="number"
                         id="harga"
                         name="harga"
-                        value="{{ $isCreateContext ? old('harga') : '' }}"
+                        value="<?php echo e($isCreateContext ? old('harga') : ''); ?>"
                         step="0.01"
                         min="0"
                         required
                         class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-emerald-500 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-100"
-                        placeholder="{{ __('Masukkan harga') }}"
+                        placeholder="<?php echo e(__('Masukkan harga')); ?>"
                     >
-                    @if ($isCreateContext && $errors->has('harga'))
-                        <p class="text-xs text-rose-600 dark:text-rose-400">{{ $errors->first('harga') }}</p>
-                    @endif
+                    <?php if($isCreateContext && $errors->has('harga')): ?>
+                        <p class="text-xs text-rose-600 dark:text-rose-400"><?php echo e($errors->first('harga')); ?></p>
+                    <?php endif; ?>
                 </div>
 
                 <div class="flex items-center gap-3 md:justify-end">
@@ -71,7 +82,7 @@
                         <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                         </svg>
-                        <span>{{ __('Tambah Kode Group') }}</span>
+                        <span><?php echo e(__('Tambah Kode Group')); ?></span>
                     </button>
                 </div>
             </form>
@@ -80,9 +91,10 @@
         <div class="space-y-4 rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                    <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Daftar Kode Group Tersimpan') }}</h2>
+                    <h2 class="text-lg font-semibold text-neutral-900 dark:text-white"><?php echo e(__('Daftar Kode Group Tersimpan')); ?></h2>
                     <span class="text-sm text-neutral-500 dark:text-neutral-400">
-                        {{ trans_choice('{0}Tidak ada kode group|{1}1 kode group|[2,*]:count kode group', $masterKodeGroups->count(), ['count' => $masterKodeGroups->count()]) }}
+                        <?php echo e(trans_choice('{0}Tidak ada kode group|{1}1 kode group|[2,*]:count kode group', $masterKodeGroups->count(), ['count' => $masterKodeGroups->count()])); ?>
+
                     </span>
                 </div>
             </div>
@@ -92,59 +104,59 @@
                     <thead class="bg-neutral-50 text-xs uppercase tracking-wide text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
                         <tr>
                             <th scope="col" class="px-4 py-3">#</th>
-                            <th scope="col" class="px-4 py-3">{{ __('Kode Group') }}</th>
-                            <th scope="col" class="px-4 py-3">{{ __('Harga (Rp)') }}</th>
-                            <th scope="col" class="px-4 py-3">{{ __('Terakhir Diubah') }}</th>
-                            <th scope="col" class="px-4 py-3 text-right">{{ __('Aksi') }}</th>
+                            <th scope="col" class="px-4 py-3"><?php echo e(__('Kode Group')); ?></th>
+                            <th scope="col" class="px-4 py-3"><?php echo e(__('Harga (Rp)')); ?></th>
+                            <th scope="col" class="px-4 py-3"><?php echo e(__('Terakhir Diubah')); ?></th>
+                            <th scope="col" class="px-4 py-3 text-right"><?php echo e(__('Aksi')); ?></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-neutral-200 bg-white dark:divide-neutral-800 dark:bg-neutral-900">
-                        @forelse ($masterKodeGroups as $masterKodeGroup)
-                            @php
+                        <?php $__empty_1 = true; $__currentLoopData = $masterKodeGroups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $masterKodeGroup): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                            <?php
                                 $isActiveRow = (int) old('master_kode_group_id') === $masterKodeGroup->id;
-                            @endphp
-                            <form method="POST" action="{{ route('admin.master-kode-group.update', $masterKodeGroup) }}" class="contents">
-                                @csrf
-                                @method('PUT')
-                                <input type="hidden" name="master_kode_group_id" value="{{ $masterKodeGroup->id }}">
+                            ?>
+                            <form method="POST" action="<?php echo e(route('admin.master-kode-group.update', $masterKodeGroup)); ?>" class="contents">
+                                <?php echo csrf_field(); ?>
+                                <?php echo method_field('PUT'); ?>
+                                <input type="hidden" name="master_kode_group_id" value="<?php echo e($masterKodeGroup->id); ?>">
                                 <tr class="transition hover:bg-neutral-50 dark:hover:bg-neutral-800/60">
-                                    <td class="px-4 py-3 align-top text-neutral-500 dark:text-neutral-400">{{ $loop->iteration }}</td>
+                                    <td class="px-4 py-3 align-top text-neutral-500 dark:text-neutral-400"><?php echo e($loop->iteration); ?></td>
                                     <td class="px-4 py-3 align-top">
                                         <div class="space-y-2">
-                                            <label class="sr-only" for="kode_group-{{ $masterKodeGroup->id }}">{{ __('Kode Group') }}</label>
+                                            <label class="sr-only" for="kode_group-<?php echo e($masterKodeGroup->id); ?>"><?php echo e(__('Kode Group')); ?></label>
                                             <input
                                                 type="text"
-                                                id="kode_group-{{ $masterKodeGroup->id }}"
+                                                id="kode_group-<?php echo e($masterKodeGroup->id); ?>"
                                                 name="kode_group"
-                                                value="{{ $isActiveRow ? old('kode_group') : $masterKodeGroup->kode_group }}"
+                                                value="<?php echo e($isActiveRow ? old('kode_group') : $masterKodeGroup->kode_group); ?>"
                                                 maxlength="191"
                                                 required
                                                 class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-emerald-500 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-100"
                                             >
-                                            @if ($isActiveRow && $errors->has('kode_group'))
-                                                <p class="text-xs text-rose-600 dark:text-rose-400">{{ $errors->first('kode_group') }}</p>
-                                            @endif
+                                            <?php if($isActiveRow && $errors->has('kode_group')): ?>
+                                                <p class="text-xs text-rose-600 dark:text-rose-400"><?php echo e($errors->first('kode_group')); ?></p>
+                                            <?php endif; ?>
                                         </div>
                                     </td>
                                     <td class="px-4 py-3 align-top">
                                         <div class="space-y-2">
-                                            <label class="sr-only" for="harga-{{ $masterKodeGroup->id }}">{{ __('Harga') }}</label>
+                                            <label class="sr-only" for="harga-<?php echo e($masterKodeGroup->id); ?>"><?php echo e(__('Harga')); ?></label>
                                             <input
                                                 type="number"
-                                                id="harga-{{ $masterKodeGroup->id }}"
+                                                id="harga-<?php echo e($masterKodeGroup->id); ?>"
                                                 name="harga"
-                                                value="{{ $isActiveRow ? old('harga') : $masterKodeGroup->harga }}"
+                                                value="<?php echo e($isActiveRow ? old('harga') : $masterKodeGroup->harga); ?>"
                                                 step="0.01"
                                                 min="0"
                                                 required
                                                 class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition focus:border-emerald-500 focus:outline-none focus:ring-emerald-500 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-100"
                                             >
-                                            @if ($isActiveRow && $errors->has('harga'))
-                                                <p class="text-xs text-rose-600 dark:text-rose-400">{{ $errors->first('harga') }}</p>
-                                            @endif
+                                            <?php if($isActiveRow && $errors->has('harga')): ?>
+                                                <p class="text-xs text-rose-600 dark:text-rose-400"><?php echo e($errors->first('harga')); ?></p>
+                                            <?php endif; ?>
                                         </div>
                                     </td>
-                                    <td class="px-4 py-3 align-top text-neutral-500 dark:text-neutral-400">{{ $masterKodeGroup->updated_at?->translatedFormat('d F Y H:i') ?? '—' }}</td>
+                                    <td class="px-4 py-3 align-top text-neutral-500 dark:text-neutral-400"><?php echo e($masterKodeGroup->updated_at?->translatedFormat('d F Y H:i') ?? '—'); ?></td>
                                     <td class="px-4 py-3 align-top">
                                         <div class="flex justify-end gap-2">
                                             <button
@@ -154,38 +166,49 @@
                                                 <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                                                 </svg>
-                                                <span>{{ __('Simpan') }}</span>
+                                                <span><?php echo e(__('Simpan')); ?></span>
                                             </button>
 
                                             <button
                                                 type="submit"
-                                                form="delete-master-kode-group-{{ $masterKodeGroup->id }}"
+                                                form="delete-master-kode-group-<?php echo e($masterKodeGroup->id); ?>"
                                                 class="inline-flex items-center gap-1 rounded-lg border border-rose-600 bg-rose-600 px-3 py-2 text-xs font-semibold text-rose-600 shadow-sm transition hover:border-rose-700 hover:bg-rose-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-500 dark:border-rose-500 dark:bg-rose-500 dark:hover:border-rose-400 dark:hover:bg-rose-400"
-                                                onclick="return confirm('{{ __('Hapus kode group ini?') }}')"
+                                                onclick="return confirm('<?php echo e(__('Hapus kode group ini?')); ?>')"
                                             >
                                                 <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 4.5 15 15m0-15-15 15" />
                                                 </svg>
-                                                <span>{{ __('Hapus') }}</span>
+                                                <span><?php echo e(__('Hapus')); ?></span>
                                             </button>
                                         </div>
                                     </td>
                                 </tr>
                             </form>
-                            <form method="POST" action="{{ route('admin.master-kode-group.destroy', $masterKodeGroup) }}" id="delete-master-kode-group-{{ $masterKodeGroup->id }}" class="hidden">
-                                @csrf
-                                @method('DELETE')
+                            <form method="POST" action="<?php echo e(route('admin.master-kode-group.destroy', $masterKodeGroup)); ?>" id="delete-master-kode-group-<?php echo e($masterKodeGroup->id); ?>" class="hidden">
+                                <?php echo csrf_field(); ?>
+                                <?php echo method_field('DELETE'); ?>
                             </form>
-                        @empty
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                             <tr>
                                 <td colspan="5" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-400">
-                                    {{ __('Belum ada data kode group yang tersimpan.') }}
+                                    <?php echo e(__('Belum ada data kode group yang tersimpan.')); ?>
+
                                 </td>
                             </tr>
-                        @endforelse
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-</x-layouts.app>
+ <?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal5863877a5171c196453bfa0bd807e410)): ?>
+<?php $attributes = $__attributesOriginal5863877a5171c196453bfa0bd807e410; ?>
+<?php unset($__attributesOriginal5863877a5171c196453bfa0bd807e410); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal5863877a5171c196453bfa0bd807e410)): ?>
+<?php $component = $__componentOriginal5863877a5171c196453bfa0bd807e410; ?>
+<?php unset($__componentOriginal5863877a5171c196453bfa0bd807e410); ?>
+<?php endif; ?>
+<?php /**PATH /var/www/gd/resources/views/admin/master-kode-group/index.blade.php ENDPATH**/ ?>
