@@ -868,4 +868,15 @@
             })();
         </script>
     @endif
+
+    @if (session('preview_nota_url'))
+        <script>
+            window.addEventListener('load', () => {
+                const url = @json(session('preview_nota_url'));
+                if (url) {
+                    window.open(url, '_blank', 'noopener');
+                }
+            });
+        </script>
+    @endif
 </x-layouts.app>

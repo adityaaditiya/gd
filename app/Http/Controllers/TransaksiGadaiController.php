@@ -236,7 +236,7 @@ class TransaksiGadaiController extends Controller
         $uangCair = $this->formatDecimal(max(0, $uangPinjaman - $totalPotongan));
         $uangCairValue = (float) $uangCair;
 
-        DB::transaction(function () use (
+        $transaksiBaru = DB::transaction(function () use (
             $barangCollection,
             $kasirId,
             $data,
@@ -295,11 +295,23 @@ class TransaksiGadaiController extends Controller
                     ]
                 );
             }
+
+            return $transaksi;
         });
 
         return redirect()
-            ->route('gadai.lihat-gadai')
-            ->with('status', __('Kontrak gadai berhasil diterbitkan dan barang dikunci.'));
+            ->route('gadai.pemberian-kredit')
+            ->with('status', __('Kontrak gadai berhasil diterbitkan dan barang dikunci.'))
+            ->with('preview_nota_url', route('gadai.transaksi-gadai.preview', ['transaksi' => $transaksiBaru->transaksi_id]));
+    }
+
+    public function previewNota(TransaksiGadai $transaksi): View
+    {
+        $transaksi->loadMissing(['nasabah', 'kasir', 'barangJaminan']);
+
+        return view('gadai.nota-transaksi', [
+            'transaksi' => $transaksi,
+        ]);
     }
 
     public function cancel(Request $request, TransaksiGadai $transaksi): RedirectResponse
