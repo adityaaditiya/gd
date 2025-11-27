@@ -135,4 +135,56 @@
             </div>
         </div>
     </div>
+
+    @if (request()->boolean('auto_print'))
+        <script>
+            (() => {
+                const removeAutoPrintParam = () => {
+                    try {
+                        const url = new URL(window.location.href);
+                        url.searchParams.delete('auto_print');
+                        window.history.replaceState({}, '', url.toString());
+                    } catch (error) {
+                        // noop
+                    }
+                };
+
+                const triggerPrint = (targetWindow) => {
+                    if (!targetWindow) return;
+
+                    const startPrint = () => {
+                        try {
+                            targetWindow.focus();
+                            targetWindow.print();
+                        } catch (error) {
+                            // noop
+                        }
+                    };
+
+                    if (targetWindow.document?.readyState === 'complete') {
+                        startPrint();
+                        return;
+                    }
+
+                    targetWindow.addEventListener('load', () => {
+                        startPrint();
+                    }, { once: true });
+                };
+
+                if (window.opener) {
+                    triggerPrint(window);
+                    removeAutoPrintParam();
+                    return;
+                }
+
+                const printWindow = window.open(window.location.href, '_blank');
+                if (!printWindow) {
+                    return;
+                }
+
+                triggerPrint(printWindow);
+                removeAutoPrintParam();
+            })();
+        </script>
+    @endif
 </x-layouts.app>
