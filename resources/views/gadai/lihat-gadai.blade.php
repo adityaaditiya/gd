@@ -294,6 +294,8 @@
                                     >
                                         <a
                                             href="{{ route('gadai.transaksi-gadai.preview', ['transaksi' => $transaksi->transaksi_id, 'auto_print' => 1]) }}"
+                                            target="_blank"
+                                            rel="noreferrer"
                                             class="flex w-full items-center gap-2 px-4 py-2 text-left text-neutral-700 transition hover:bg-neutral-50 focus:outline-none dark:text-neutral-200 dark:hover:bg-neutral-700/60"
                                             role="menuitem"
                                         >
