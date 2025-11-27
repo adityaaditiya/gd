@@ -93,7 +93,7 @@
                             <div class="flex justify-between gap-3">
                                 <dt>{{ __('Bunga Periodik') }}</dt>
                                 <dd class="font-semibold text-neutral-900 dark:text-white">
-                                    {{ number_format((float) ($masterFormula->tarif_bunga_per_periode ?? 0) * 100, 3, ',', '.') }}%
+                                    {{ number_format((float) ($masterFormula->tarif_bunga_per_periode ?? 0) * 100, 1, ',', '.') }}%
                                     / {{ (int) ($masterFormula->periode_hari ?? 0) }} {{ __('hari') }}
                                 </dd>
                             </div>
@@ -120,25 +120,25 @@
                         <div class="flex justify-between gap-3">
                             <dt>{{ __('Pinjaman Disetujui') }}</dt>
                             <dd class="font-semibold text-neutral-900 dark:text-white">
-                                Rp {{ number_format((float) ($transaksi->uang_pinjaman ?? 0), 2, ',', '.') }}
+                                Rp {{ number_format((float) ($transaksi->uang_pinjaman ?? 0), ) }}
                             </dd>
                         </div>
                         <div class="flex justify-between gap-3">
                             <dt>{{ __('Biaya Admin') }}</dt>
                             <dd class="font-semibold text-neutral-900 dark:text-white">
-                                Rp {{ number_format((float) ($transaksi->biaya_admin ?? 0), 2, ',', '.') }}
+                                Rp {{ number_format((float) ($transaksi->biaya_admin ?? 0), ) }}
                             </dd>
                         </div>
                         <div class="flex justify-between gap-3">
                             <dt>{{ __('Premi') }}</dt>
                             <dd class="font-semibold text-neutral-900 dark:text-white">
-                                Rp {{ number_format((float) ($transaksi->premi ?? 0), 2, ',', '.') }}
+                                Rp {{ number_format((float) ($transaksi->premi ?? 0), ) }}
                             </dd>
                         </div>
                         <div class="flex justify-between gap-3">
-                            <dt>{{ __('Uang Cair') }}</dt>
+                            <dt>{{ __('Pencairan') }}</dt>
                             <dd class="font-semibold text-neutral-900 dark:text-white">
-                                Rp {{ number_format((float) ($transaksi->uang_cair ?? 0), 2, ',', '.') }}
+                                Rp {{ number_format((float) ($transaksi->uang_cair ?? 0), ) }}
                             </dd>
                         </div>
                     </dl>
@@ -171,7 +171,7 @@
                                         </p>
                                     </td>
                                     <td class="px-4 py-3 text-right font-semibold text-neutral-900 dark:text-white">
-                                        Rp {{ number_format((float) ($barang->nilai_taksiran ?? 0), 2, ',', '.') }}
+                                        Rp {{ number_format((float) ($barang->nilai_taksiran ?? 0), ) }}
                                     </td>
                                 </tr>
                             @empty

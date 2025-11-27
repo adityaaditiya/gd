@@ -96,12 +96,24 @@
 
                             </dd>
                         </div>
-                        <div class="flex justify-between gap-3">
-                            <dt><?php echo e(__('Tarif Bunga Harian')); ?></dt>
-                            <dd class="font-semibold text-neutral-900 dark:text-white">
-                                <?php echo e(number_format((float) ($transaksi->tarif_bunga_harian ?? 0) * 100, 3, ',', '.')); ?>%
-                            </dd>
-                        </div>
+                        <?php $skemaBunga = $skemaBunga ?? 'harian'; ?>
+                        <?php if($skemaBunga === 'periodik' && $masterFormula): ?>
+                            <div class="flex justify-between gap-3">
+                                <dt><?php echo e(__('Bunga Periodik')); ?></dt>
+                                <dd class="font-semibold text-neutral-900 dark:text-white">
+                                    <?php echo e(number_format((float) ($masterFormula->tarif_bunga_per_periode ?? 0) * 100, 1, ',', '.')); ?>%
+                                    / <?php echo e((int) ($masterFormula->periode_hari ?? 0)); ?> <?php echo e(__('hari')); ?>
+
+                                </dd>
+                            </div>
+                        <?php else: ?>
+                            <div class="flex justify-between gap-3">
+                                <dt><?php echo e(__('Tarif Bunga Harian')); ?></dt>
+                                <dd class="font-semibold text-neutral-900 dark:text-white">
+                                    <?php echo e(number_format((float) ($transaksi->tarif_bunga_harian ?? 0) * 100, 3, ',', '.')); ?>%
+                                </dd>
+                            </div>
+                        <?php endif; ?>
                         <!-- <div class="flex justify-between gap-3">
                             <dt><?php echo e(__('Kasir')); ?></dt>
                             <dd class="font-semibold text-neutral-900 dark:text-white">
@@ -118,28 +130,28 @@
                         <div class="flex justify-between gap-3">
                             <dt><?php echo e(__('Pinjaman Disetujui')); ?></dt>
                             <dd class="font-semibold text-neutral-900 dark:text-white">
-                                Rp <?php echo e(number_format((float) ($transaksi->uang_pinjaman ?? 0), 2, ',', '.')); ?>
+                                Rp <?php echo e(number_format((float) ($transaksi->uang_pinjaman ?? 0), )); ?>
 
                             </dd>
                         </div>
                         <div class="flex justify-between gap-3">
                             <dt><?php echo e(__('Biaya Admin')); ?></dt>
                             <dd class="font-semibold text-neutral-900 dark:text-white">
-                                Rp <?php echo e(number_format((float) ($transaksi->biaya_admin ?? 0), 2, ',', '.')); ?>
+                                Rp <?php echo e(number_format((float) ($transaksi->biaya_admin ?? 0), )); ?>
 
                             </dd>
                         </div>
                         <div class="flex justify-between gap-3">
                             <dt><?php echo e(__('Premi')); ?></dt>
                             <dd class="font-semibold text-neutral-900 dark:text-white">
-                                Rp <?php echo e(number_format((float) ($transaksi->premi ?? 0), 2, ',', '.')); ?>
+                                Rp <?php echo e(number_format((float) ($transaksi->premi ?? 0), )); ?>
 
                             </dd>
                         </div>
                         <div class="flex justify-between gap-3">
-                            <dt><?php echo e(__('Uang Cair')); ?></dt>
+                            <dt><?php echo e(__('Pencairan')); ?></dt>
                             <dd class="font-semibold text-neutral-900 dark:text-white">
-                                Rp <?php echo e(number_format((float) ($transaksi->uang_cair ?? 0), 2, ',', '.')); ?>
+                                Rp <?php echo e(number_format((float) ($transaksi->uang_cair ?? 0), )); ?>
 
                             </dd>
                         </div>
@@ -176,7 +188,7 @@
                                         </p>
                                     </td>
                                     <td class="px-4 py-3 text-right font-semibold text-neutral-900 dark:text-white">
-                                        Rp <?php echo e(number_format((float) ($barang->nilai_taksiran ?? 0), 2, ',', '.')); ?>
+                                        Rp <?php echo e(number_format((float) ($barang->nilai_taksiran ?? 0), )); ?>
 
                                     </td>
                                 </tr>
