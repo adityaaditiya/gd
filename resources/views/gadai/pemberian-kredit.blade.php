@@ -398,7 +398,7 @@
                             <ul class="list-disc space-y-1 pl-5">
                                 <li>{{ __('Nominal pinjaman otomatis divalidasi agar tidak melampaui plafon 80% dari nilai taksiran.') }}</li>
                                 <li>{{ __('Barang jaminan yang dipilih tidak lagi tampil pada daftar siap gadai setelah SBG terbit.') }}</li>
-                                <li>{{ __('Kasir akan diarahkan ke halaman lihat gadai untuk menindaklanjuti proses berikutnya.') }}</li>
+                                <li>{{ __('Halaman ini tetap terbuka setelah simpan dan sistem akan membuka jendela cetak nota secara otomatis.') }}</li>
                             </ul>
                         </div>
                     </section>
@@ -865,6 +865,29 @@
                     if (root) root.dataset.initialized = 'false';
                     run();
                 });
+            })();
+        </script>
+    @endif
+
+    @if (session('print_preview_url'))
+        <script>
+            (() => {
+                const printUrl = @json(session('print_preview_url'));
+                if (!printUrl) return;
+
+                const openPrintWindow = () => {
+                    try {
+                        window.open(printUrl, '_blank');
+                    } catch (error) {
+                        // noop
+                    }
+                };
+
+                if (document.readyState === 'complete') {
+                    openPrintWindow();
+                } else {
+                    window.addEventListener('load', openPrintWindow, { once: true });
+                }
             })();
         </script>
     @endif
