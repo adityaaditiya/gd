@@ -311,8 +311,13 @@ class TransaksiGadaiController extends Controller
     {
         $transaksi->loadMissing(['nasabah', 'kasir', 'barangJaminan']);
 
+        $masterFormula = $this->findMasterFormulaForTransaction($transaksi);
+        $skemaBunga = $masterFormula->skema_bunga ?? 'harian';
+
         return view('gadai.nota-transaksi', [
             'transaksi' => $transaksi,
+            'masterFormula' => $masterFormula,
+            'skemaBunga' => $skemaBunga,
         ]);
     }
 
@@ -962,6 +967,20 @@ class TransaksiGadaiController extends Controller
         $tarif = (float) $transaksi->tarif_bunga_harian;
 
         return $tarif > 0 ? $tarif : 0.0015;
+    }
+
+    private function findMasterFormulaForTransaction(TransaksiGadai $transaksi): ?MasterPerhitunganGadai
+    {
+        if ($transaksi->type === null || $transaksi->uang_pinjaman === null) {
+            return null;
+        }
+
+        return MasterPerhitunganGadai::query()
+            ->where('type', $transaksi->type)
+            ->where('range_awal', '<=', $transaksi->uang_pinjaman)
+            ->where('range_akhir', '>=', $transaksi->uang_pinjaman)
+            ->orderBy('range_awal')
+            ->first();
     }
 
     private function nextNoSbg(Carbon $tanggalGadai, bool $lock = false): string

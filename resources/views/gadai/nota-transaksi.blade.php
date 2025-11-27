@@ -88,12 +88,23 @@
                                 {{ $transaksi->tenor_hari ?? '—' }}
                             </dd>
                         </div>
-                        <div class="flex justify-between gap-3">
-                            <dt>{{ __('Tarif Bunga Harian') }}</dt>
-                            <dd class="font-semibold text-neutral-900 dark:text-white">
-                                {{ number_format((float) ($transaksi->tarif_bunga_harian ?? 0) * 100, 3, ',', '.') }}%
-                            </dd>
-                        </div>
+                        @php $skemaBunga = $skemaBunga ?? 'harian'; @endphp
+                        @if ($skemaBunga === 'periodik' && $masterFormula)
+                            <div class="flex justify-between gap-3">
+                                <dt>{{ __('Bunga Periodik') }}</dt>
+                                <dd class="font-semibold text-neutral-900 dark:text-white">
+                                    {{ number_format((float) ($masterFormula->tarif_bunga_per_periode ?? 0) * 100, 3, ',', '.') }}%
+                                    / {{ (int) ($masterFormula->periode_hari ?? 0) }} {{ __('hari') }}
+                                </dd>
+                            </div>
+                        @else
+                            <div class="flex justify-between gap-3">
+                                <dt>{{ __('Tarif Bunga Harian') }}</dt>
+                                <dd class="font-semibold text-neutral-900 dark:text-white">
+                                    {{ number_format((float) ($transaksi->tarif_bunga_harian ?? 0) * 100, 3, ',', '.') }}%
+                                </dd>
+                            </div>
+                        @endif
                         <!-- <div class="flex justify-between gap-3">
                             <dt>{{ __('Kasir') }}</dt>
                             <dd class="font-semibold text-neutral-900 dark:text-white">
