@@ -2,16 +2,25 @@
     <div class="space-y-6">
         <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-                <p class="text-sm font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">{{ __('Preview Nota') }}</p>
+                <p class="text-sm font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">{{ __('Preview PDF') }}</p>
                 <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white">{{ __('Nota Transaksi Gadai') }}</h1>
-                <p class="text-sm text-neutral-600 dark:text-neutral-300">{{ __('Nota kontrak gadai berikut siap ditinjau dan diarsipkan.') }}</p>
+                <p class="text-sm text-neutral-600 dark:text-neutral-300">{{ __('Tinjau nota kontrak gadai berikut sebelum mencetak atau menyimpan sebagai PDF.') }}</p>
             </div>
-            <a
-                href="{{ route('gadai.lihat-gadai') }}"
-                class="inline-flex items-center gap-2 rounded-lg border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
-            >
-                {{ __('Kembali ke daftar') }}
-            </a>
+            <div class="flex flex-wrap gap-2">
+                <a
+                    href="{{ route('gadai.lihat-gadai') }}"
+                    class="inline-flex items-center gap-2 rounded-lg border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                >
+                    {{ __('Kembali ke daftar') }}
+                </a>
+                <button
+                    type="button"
+                    onclick="window.print()"
+                    class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:ring-offset-2 dark:focus:ring-offset-neutral-900"
+                >
+                    {{ __('Cetak / Simpan PDF') }}
+                </button>
+            </div>
         </div>
 
         <div class="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-800">
