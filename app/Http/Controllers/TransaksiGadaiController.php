@@ -300,11 +300,12 @@ class TransaksiGadaiController extends Controller
         });
 
         return redirect()
-            ->route('gadai.transaksi-gadai.preview', [
+            ->route('gadai.pemberian-kredit')
+            ->with('status', __('Kontrak gadai berhasil diterbitkan dan barang dikunci.'))
+            ->with('print_preview_url', route('gadai.transaksi-gadai.preview', [
                 'transaksi' => $transaksiBaru->transaksi_id,
                 'auto_print' => 1,
-            ])
-            ->with('status', __('Kontrak gadai berhasil diterbitkan dan barang dikunci.'));
+            ]));
     }
 
     public function previewNota(TransaksiGadai $transaksi): View
