@@ -107,7 +107,7 @@
                             @endif
                         </div>
                         <div class="space-y-1">
-                            <dt class="font-semibold text-neutral-900 dark:text-white">{{ __('Paket Emas') }}</dt>
+                            <dt class="font-semibold text-neutral-900 dark:text-white">{{ __('Detail Barang') }}</dt>
                             @if (!empty($summary['packages']) && is_array($summary['packages']))
                                 <dd class="space-y-1">
                                     <ul class="list-disc space-y-1 ps-4 text-xs text-neutral-600 dark:text-neutral-300">
@@ -273,7 +273,7 @@
                                 @enderror
                             </div>
 
-                            <div>
+                            <div class="md:col-span-2" data-package-selector>
                                 <!-- <label class="mb-2 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
                                     {{ __('Data Barang') }}
                                 </label> -->
@@ -513,7 +513,7 @@
                                     {{ __('Besaran angsuran dihitung dari sisa harga emas dibagi tenor yang dipilih.') }}
                                 </p>
                                 <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400" data-margin-display>
-                                    {{ __('Margin akan dihitung setelah paket dan tenor dipilih.') }}
+                                    {{ __('Margin akan dihitung setelah detail barang dan tenor dipilih.') }}
                                 </p>
                                 <p class="text-xs text-neutral-500 dark:text-neutral-400" data-financing-display>
                                     {{ __('Total pembiayaan akan tampil setelah simulasi lengkap.') }}
@@ -546,7 +546,7 @@
                     </form>
                 </div>
             </div>
-        </div>
+        <!-- </div> -->
     </div>
 
         <script>
