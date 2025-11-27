@@ -1,6 +1,36 @@
 <x-layouts.app :title="__('Nota Transaksi Gadai')">
+    <style>
+        @media print {
+            body {
+                background: #fff !important;
+            }
+
+            body * {
+                visibility: hidden;
+            }
+
+            #nota-print-area,
+            #nota-print-area * {
+                visibility: visible;
+            }
+
+            #nota-print-area {
+                position: absolute;
+                inset: 0;
+                margin: 0;
+                width: 100%;
+                border: none !important;
+                box-shadow: none !important;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+
     <div class="space-y-6">
-        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between no-print">
             <div>
                 <p class="text-sm font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">{{ __('Preview PDF') }}</p>
                 <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white">{{ __('Nota Transaksi Gadai') }}</h1>
@@ -106,8 +136,8 @@
             </div>
 
             <div class="border-t border-neutral-200 px-6 py-4 dark:border-neutral-700">
-                <p class="text-sm font-semibold text-neutral-700 dark:text-neutral-200">{{ __('Rincian Barang Jaminan') }}</p>
-                <div class="mt-3 overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-700">
+                <p class="text-sm font-semibold text-neutral-700 dark:text-neutral-200 no-print">{{ __('Rincian Barang Jaminan') }}</p>
+                <div id="nota-print-area" class="mt-3 overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-700">
                     <table class="min-w-full divide-y divide-neutral-200 text-sm dark:divide-neutral-700">
                         <thead class="bg-neutral-50 text-left text-xs uppercase tracking-wider text-neutral-600 dark:bg-neutral-900 dark:text-neutral-300">
                             <tr>
