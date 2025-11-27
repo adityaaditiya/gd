@@ -175,7 +175,7 @@ $message = $__bag->first($__errorArgs[0]); ?>
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
-                            <p class="text-xs text-neutral-500"><?php echo e(__('Kolom input hanya aktif jika pilih skema Bunga Harian.')); ?></p>
+                            <!-- <p class="text-xs text-neutral-500"><?php echo e(__('Kolom input hanya aktif jika pilih skema Bunga Harian.')); ?></p> -->
                             <p class="text-xs text-neutral-500"><?php echo e(__('Panduan: Gunakan format desimal, contoh: 0.015 untuk 1.5% harian. untuk bunga total 2,5% dalam 30 hari gunakan ±0.00083 per hari.')); ?></p>
                         </div>
                         <div class="space-y-1" x-show="skemaBunga === 'periodik'" x-cloak>

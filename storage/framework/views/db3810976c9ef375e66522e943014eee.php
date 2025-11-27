@@ -91,12 +91,11 @@
             <table class="min-w-full divide-y divide-neutral-200 text-left text-sm text-neutral-700 dark:divide-neutral-700 dark:text-neutral-200">
                 <thead class="bg-neutral-50 text-xs uppercase tracking-wide text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
                     <tr>
-                        <th scope="col" class="px-4 py-3"><?php echo e(__('Aksi')); ?></th>
                         <th scope="col" class="px-4 py-3"><?php echo e(__('No. SBG')); ?></th>
                         <th scope="col" class="px-4 py-3"><?php echo e(__('Nasabah')); ?></th>
                         <th scope="col" class="px-4 py-3"><?php echo e(__('Jenis Barang')); ?></th>
                         <th scope="col" class="px-4 py-3"><?php echo e(__('Merek')); ?></th>
-                        <th scope="col" class="px-4 py-3"><?php echo e(__('Tahun Pembuatan')); ?></th>
+                        <th scope="col" class="px-4 py-3"><?php echo e(__('Usia Barang (Th)')); ?></th>
                         <th scope="col" class="px-4 py-3"><?php echo e(__('Harga Pasar Setempat')); ?></th>
                         <th scope="col" class="px-4 py-3"><?php echo e(__('Nilai Taksiran')); ?></th>
                         <th scope="col" class="px-4 py-3"><?php echo e(__('Uang Pinjaman')); ?></th>
@@ -108,44 +107,13 @@
                         <th scope="col" class="px-4 py-3"><?php echo e(__('Kondisi Fisik')); ?></th>
                         <th scope="col" class="px-4 py-3"><?php echo e(__('Kelengkapan')); ?></th>
                         <th scope="col" class="px-4 py-3"><?php echo e(__('Foto')); ?></th>
+                        <th scope="col" class="px-4 py-3"><?php echo e(__('Aksi')); ?></th>
+
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-neutral-200 bg-white dark:divide-neutral-700 dark:bg-neutral-800">
                     <?php $__empty_1 = true; $__currentLoopData = $barangJaminan; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $barang): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                         <tr class="hover:bg-neutral-50 dark:hover:bg-neutral-700/70">
-                            <td class="whitespace-nowrap px-4 py-3">
-                                <?php
-                                    $statusTransaksi = $barang->transaksi?->status_transaksi;
-                                ?>
-                                <?php if(in_array($statusTransaksi, ['Aktif', 'Lunas'], true)): ?>
-                                    <span class="text-xs font-medium text-neutral-400 dark:text-neutral-500"><?php echo e(__('Tidak tersedia')); ?></span>
-                                <?php else: ?>
-                                    <div class="flex flex-wrap items-center gap-2">
-                                        <a
-                                            href="<?php echo e(route('gadai.barang-jaminan.edit', $barang)); ?>"
-                                            class="inline-flex items-center justify-center rounded-lg border border-emerald-600 px-3 py-1 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50 dark:border-emerald-400 dark:text-emerald-300 dark:hover:bg-emerald-500/10"
-                                        >
-                                            <?php echo e(__('Ubah')); ?>
-
-                                        </a>
-                                        <form
-                                            method="POST"
-                                            action="<?php echo e(route('gadai.barang-jaminan.destroy', $barang)); ?>"
-                                            onsubmit="return confirm('<?php echo e(__('Apakah Anda yakin ingin menghapus data ini?')); ?>');"
-                                        >
-                                            <?php echo csrf_field(); ?>
-                                            <?php echo method_field('DELETE'); ?>
-                                            <button
-                                                type="submit"
-                                                class="inline-flex items-center justify-center rounded-lg border border-red-500 px-3 py-1 text-xs font-semibold text-red-600 transition hover:bg-red-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500 dark:border-red-400 dark:text-red-300 dark:hover:bg-red-500/10"
-                                            >
-                                                <?php echo e(__('Hapus')); ?>
-
-                                            </button>
-                                        </form>
-                                    </div>
-                                <?php endif; ?>
-                            </td>
                             <td class="whitespace-nowrap px-4 py-3 font-semibold text-neutral-900 dark:text-white"><?php echo e($barang->transaksi?->no_sbg ?? '—'); ?></td>
                             <td class="px-4 py-3">
                                 <div class="flex flex-col">
@@ -216,13 +184,46 @@
                                     </div>
                                 <?php endif; ?>
                             </td>
+                            <td class="whitespace-nowrap px-4 py-3">
+                                <?php
+                                    $statusTransaksi = $barang->transaksi?->status_transaksi;
+                                ?>
+                                <?php if(in_array($statusTransaksi, ['Aktif', 'Lunas'], true)): ?>
+                                    <span class="text-xs font-medium text-neutral-400 dark:text-neutral-500"><?php echo e(__('Tidak tersedia')); ?></span>
+                                <?php else: ?>
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <a
+                                            href="<?php echo e(route('gadai.barang-jaminan.edit', $barang)); ?>"
+                                            class="inline-flex items-center justify-center rounded-lg border border-emerald-600 px-3 py-1 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50 dark:border-emerald-400 dark:text-emerald-300 dark:hover:bg-emerald-500/10"
+                                        >
+                                            <?php echo e(__('Ubah')); ?>
+
+                                        </a>
+                                        <form
+                                            method="POST"
+                                            action="<?php echo e(route('gadai.barang-jaminan.destroy', $barang)); ?>"
+                                            onsubmit="return confirm('<?php echo e(__('Apakah Anda yakin ingin menghapus data ini?')); ?>');"
+                                        >
+                                            <?php echo csrf_field(); ?>
+                                            <?php echo method_field('DELETE'); ?>
+                                            <button
+                                                type="submit"
+                                                class="inline-flex items-center justify-center rounded-lg border border-red-500 px-3 py-1 text-xs font-semibold text-red-600 transition hover:bg-red-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500 dark:border-red-400 dark:text-red-300 dark:hover:bg-red-500/10"
+                                            >
+                                                <?php echo e(__('Hapus')); ?>
+
+                                            </button>
+                                        </form>
+                                    </div>
+                                <?php endif; ?>
+                            </td>
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <tr>
                             <td colspan="17" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-300">
                                 <?php echo e(__('Belum ada data barang jaminan yang tersimpan.')); ?>
 
-                            </td>
+                            </td>``
                         </tr>
                     <?php endif; ?>
                 </tbody>

@@ -315,6 +315,18 @@
                                         data-more-menu
                                         role="menu"
                                     >
+                                        <a
+                                            href="<?php echo e(route('gadai.transaksi-gadai.preview', ['transaksi' => $transaksi->transaksi_id, 'auto_print' => 1])); ?>"
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            class="flex w-full items-center gap-2 px-4 py-2 text-left text-neutral-700 transition hover:bg-neutral-50 focus:outline-none dark:text-neutral-200 dark:hover:bg-neutral-700/60"
+                                            role="menuitem"
+                                        >
+                                            <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 12h9m-6 3H9m6 0h-1.5m-6-9h9V6a2.25 2.25 0 0 0-2.25-2.25h-4.5A2.25 2.25 0 0 0 7.5 6zm0 0H5.625A2.625 2.625 0 0 0 3 8.625v5.625A2.625 2.625 0 0 0 5.625 16.875H7.5m0 0V18a2.25 2.25 0 0 0 2.25 2.25h4.5A2.25 2.25 0 0 0 16.5 18v-1.125" />
+                                            </svg>
+                                            <span><?php echo e(__('Reprint Nota')); ?></span>
+                                        </a>
                                         <button
                                             type="button"
                                             class="flex w-full items-center gap-2 px-4 py-2 text-left text-neutral-700 transition hover:bg-neutral-50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:text-neutral-200 dark:hover:bg-neutral-700/60"
@@ -481,7 +493,7 @@
         </div>
     </div>
 
-    <?php if (! $__env->hasRenderedOnce('476218e2-fba8-4536-a6e5-d3b79bc8bb8f')): $__env->markAsRenderedOnce('476218e2-fba8-4536-a6e5-d3b79bc8bb8f'); ?>
+    <?php if (! $__env->hasRenderedOnce('c77a44c2-7442-47a6-8edb-d5e8c6af2b8a')): $__env->markAsRenderedOnce('c77a44c2-7442-47a6-8edb-d5e8c6af2b8a'); ?>
 <script data-navigate-once>
   window.KRESNO = window.KRESNO || {};
   if (!window.KRESNO.lihatGadaiBound) {

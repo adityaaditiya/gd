@@ -13,7 +13,7 @@
             <div class="space-y-1">
                 <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white">{{ __('Tambah Data Barang') }}</h1>
                 <p class="text-sm text-neutral-600 dark:text-neutral-300">
-                    {{ __('Lengkapi formulir di bawah untuk menyimpan data barang emas ke database.') }}
+                    {{ __('Lengkapi formulir di bawah untuk menyimpan data barang cicilan emas.') }}
                 </p>
             </div>
         </div>
@@ -196,7 +196,7 @@
 
                     <button
                         type="submit"
-                        class="inline-flex items-center gap-2 rounded-lg border border-emerald-600 bg-emerald-600 px-4 py-2 text-sm font-semibold text-blue-600 shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-500 dark:bg-emerald-500 dark:hover:border-emerald-400 dark:hover:bg-emerald-400"
+                        class="inline-flex items-center gap-2 rounded-lg border border-emerald-600 bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-500 dark:bg-emerald-500 dark:hover:border-emerald-400 dark:hover:bg-emerald-400"
                     >
                         <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />

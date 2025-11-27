@@ -77,12 +77,11 @@
             <table class="min-w-full divide-y divide-neutral-200 text-left text-sm text-neutral-700 dark:divide-neutral-700 dark:text-neutral-200">
                 <thead class="bg-neutral-50 text-xs uppercase tracking-wide text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
                     <tr>
-                        <th scope="col" class="px-4 py-3">{{ __('Aksi') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('No. SBG') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Nasabah') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Jenis Barang') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Merek') }}</th>
-                        <th scope="col" class="px-4 py-3">{{ __('Tahun Pembuatan') }}</th>
+                        <th scope="col" class="px-4 py-3">{{ __('Usia Barang (Th)') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Harga Pasar Setempat') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Nilai Taksiran') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Uang Pinjaman') }}</th>
@@ -94,42 +93,13 @@
                         <th scope="col" class="px-4 py-3">{{ __('Kondisi Fisik') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Kelengkapan') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Foto') }}</th>
+                        <th scope="col" class="px-4 py-3">{{ __('Aksi') }}</th>
+
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-neutral-200 bg-white dark:divide-neutral-700 dark:bg-neutral-800">
                     @forelse ($barangJaminan as $barang)
                         <tr class="hover:bg-neutral-50 dark:hover:bg-neutral-700/70">
-                            <td class="whitespace-nowrap px-4 py-3">
-                                @php
-                                    $statusTransaksi = $barang->transaksi?->status_transaksi;
-                                @endphp
-                                @if (in_array($statusTransaksi, ['Aktif', 'Lunas'], true))
-                                    <span class="text-xs font-medium text-neutral-400 dark:text-neutral-500">{{ __('Tidak tersedia') }}</span>
-                                @else
-                                    <div class="flex flex-wrap items-center gap-2">
-                                        <a
-                                            href="{{ route('gadai.barang-jaminan.edit', $barang) }}"
-                                            class="inline-flex items-center justify-center rounded-lg border border-emerald-600 px-3 py-1 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50 dark:border-emerald-400 dark:text-emerald-300 dark:hover:bg-emerald-500/10"
-                                        >
-                                            {{ __('Ubah') }}
-                                        </a>
-                                        <form
-                                            method="POST"
-                                            action="{{ route('gadai.barang-jaminan.destroy', $barang) }}"
-                                            onsubmit="return confirm('{{ __('Apakah Anda yakin ingin menghapus data ini?') }}');"
-                                        >
-                                            @csrf
-                                            @method('DELETE')
-                                            <button
-                                                type="submit"
-                                                class="inline-flex items-center justify-center rounded-lg border border-red-500 px-3 py-1 text-xs font-semibold text-red-600 transition hover:bg-red-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500 dark:border-red-400 dark:text-red-300 dark:hover:bg-red-500/10"
-                                            >
-                                                {{ __('Hapus') }}
-                                            </button>
-                                        </form>
-                                    </div>
-                                @endif
-                            </td>
                             <td class="whitespace-nowrap px-4 py-3 font-semibold text-neutral-900 dark:text-white">{{ $barang->transaksi?->no_sbg ?? '—' }}</td>
                             <td class="px-4 py-3">
                                 <div class="flex flex-col">
@@ -198,12 +168,43 @@
                                     </div>
                                 @endif
                             </td>
+                            <td class="whitespace-nowrap px-4 py-3">
+                                @php
+                                    $statusTransaksi = $barang->transaksi?->status_transaksi;
+                                @endphp
+                                @if (in_array($statusTransaksi, ['Aktif', 'Lunas'], true))
+                                    <span class="text-xs font-medium text-neutral-400 dark:text-neutral-500">{{ __('Tidak tersedia') }}</span>
+                                @else
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <a
+                                            href="{{ route('gadai.barang-jaminan.edit', $barang) }}"
+                                            class="inline-flex items-center justify-center rounded-lg border border-emerald-600 px-3 py-1 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50 dark:border-emerald-400 dark:text-emerald-300 dark:hover:bg-emerald-500/10"
+                                        >
+                                            {{ __('Ubah') }}
+                                        </a>
+                                        <form
+                                            method="POST"
+                                            action="{{ route('gadai.barang-jaminan.destroy', $barang) }}"
+                                            onsubmit="return confirm('{{ __('Apakah Anda yakin ingin menghapus data ini?') }}');"
+                                        >
+                                            @csrf
+                                            @method('DELETE')
+                                            <button
+                                                type="submit"
+                                                class="inline-flex items-center justify-center rounded-lg border border-red-500 px-3 py-1 text-xs font-semibold text-red-600 transition hover:bg-red-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500 dark:border-red-400 dark:text-red-300 dark:hover:bg-red-500/10"
+                                            >
+                                                {{ __('Hapus') }}
+                                            </button>
+                                        </form>
+                                    </div>
+                                @endif
+                            </td>
                         </tr>
                     @empty
                         <tr>
                             <td colspan="17" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-300">
                                 {{ __('Belum ada data barang jaminan yang tersimpan.') }}
-                            </td>
+                            </td>``
                         </tr>
                     @endforelse
                 </tbody>

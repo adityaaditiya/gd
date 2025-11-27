@@ -470,7 +470,7 @@ unset($__errorArgs, $__bag); ?>
                             <ul class="list-disc space-y-1 pl-5">
                                 <li><?php echo e(__('Nominal pinjaman otomatis divalidasi agar tidak melampaui plafon 80% dari nilai taksiran.')); ?></li>
                                 <li><?php echo e(__('Barang jaminan yang dipilih tidak lagi tampil pada daftar siap gadai setelah SBG terbit.')); ?></li>
-                                <li><?php echo e(__('Kasir akan diarahkan ke halaman lihat gadai untuk menindaklanjuti proses berikutnya.')); ?></li>
+                                <li><?php echo e(__('Halaman ini tetap terbuka setelah simpan dan sistem akan membuka jendela cetak nota secara otomatis.')); ?></li>
                             </ul>
                         </div>
                     </section>
@@ -939,6 +939,29 @@ unset($__errorArgs, $__bag); ?>
                     if (root) root.dataset.initialized = 'false';
                     run();
                 });
+            })();
+        </script>
+    <?php endif; ?>
+
+    <?php if(session('print_preview_url')): ?>
+        <script>
+            (() => {
+                const printUrl = <?php echo json_encode(session('print_preview_url'), 15, 512) ?>;
+                if (!printUrl) return;
+
+                const openPrintWindow = () => {
+                    try {
+                        window.open(printUrl, '_blank');
+                    } catch (error) {
+                        // noop
+                    }
+                };
+
+                if (document.readyState === 'complete') {
+                    openPrintWindow();
+                } else {
+                    window.addEventListener('load', openPrintWindow, { once: true });
+                }
             })();
         </script>
     <?php endif; ?>
