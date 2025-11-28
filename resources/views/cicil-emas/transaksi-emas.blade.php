@@ -1203,7 +1203,7 @@
                     if (marginDisplay) {
                         marginDisplay.textContent = hasPackages
                             ? `${formatCurrency(marginAmount)} ({{ __('Margin') }} ${formatPercentage(marginPercentage)}%)`
-                            : '{{ __('Margin akan dihitung setelah paket dan tenor dipilih.') }}';
+                            : '{{ __('Margin akan dihitung setelah detail barang dan tenor dipilih.') }}';
                     }
 
                     if (financingDisplay) {
