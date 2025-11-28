@@ -117,6 +117,7 @@
                         <!-- <th scope="col" class="px-4 py-3">{{ __('Premi') }}</th> -->
                         <th scope="col" class="px-4 py-3">{{ __('Tenor') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Bunga Terakumulasi') }}</th>
+                        <th scope="col" class="px-4 py-3">{{ __('Tarif Bunga Periodik') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Tarif Bunga Harian') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Jatuh Tempo') }}</th>
                         <th scope="col" class="px-4 py-3">{{ __('Status') }}</th>
@@ -261,6 +262,25 @@
                                     —
                                 @endif
                             </td>
+                            <td class="whitespace-nowrap px-4 py-3">
+                                @php
+                                    $periodicRate = $transaksi->tarif_bunga_per_periode ?? null;
+                                    $periodDays = $transaksi->periode_hari ?? null;
+                                    $isPeriodic = $transaksi->skema_bunga === 'periodik' && $periodicRate !== null;
+                                @endphp
+                                @if ($isPeriodic)
+                                    <div class="font-semibold text-neutral-900 dark:text-white">
+                                        {{ number_format((float) $periodicRate * 100, 2, ',', '.') }}%
+                                    </div>
+                                    @if ($periodDays)
+                                        <div class="text-xs text-neutral-500 dark:text-neutral-300">
+                                            {{ __('Per :days hari', ['days' => $periodDays]) }}
+                                        </div>
+                                    @endif
+                                @else
+                                    —
+                                @endif
+                            </td>
                             <td class="whitespace-nowrap px-4 py-3">{{ number_format((float) $transaksi->tarif_bunga_harian * 100, 2, ',', '.') }}%</td>
                             <td class="whitespace-nowrap px-4 py-3">{{ optional($transaksi->jatuh_tempo_awal)->format('d M Y') ?? '—' }}</td>
                             <td class="px-4 py-3">
@@ -388,7 +408,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="11" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-300">
+                            <td colspan="12" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-300">
                                 {{ __('Belum ada transaksi gadai yang tersimpan.') }}
                             </td>
                         </tr>
