@@ -51,6 +51,8 @@ class TransaksiGadaiController extends Controller
             $tanggalSampai = $today;
         }
 
+        $masterFormulas = MasterPerhitunganGadai::query()->get();
+
         $transaksiGadai = TransaksiGadai::with([
             'nasabah',
             'kasir',
@@ -80,8 +82,24 @@ class TransaksiGadaiController extends Controller
             ->paginate($perPage > 0 ? $perPage : 10)
             ->withQueryString();
 
-        $transaksiGadai->getCollection()->each(function (TransaksiGadai $transaksi) {
+        $transaksiGadai->getCollection()->transform(function (TransaksiGadai $transaksi) use ($masterFormulas) {
             $transaksi->refreshBungaTerutangRiil();
+
+            $formula = $masterFormulas->first(function (MasterPerhitunganGadai $row) use ($transaksi) {
+                if ($transaksi->type === null || $transaksi->uang_pinjaman === null) {
+                    return false;
+                }
+
+                return $row->type === $transaksi->type
+                    && $row->range_awal <= $transaksi->uang_pinjaman
+                    && $row->range_akhir >= $transaksi->uang_pinjaman;
+            });
+
+            $transaksi->setAttribute('skema_bunga', $formula?->skema_bunga);
+            $transaksi->setAttribute('tarif_bunga_per_periode', $formula?->tarif_bunga_per_periode);
+            $transaksi->setAttribute('periode_hari', $formula?->periode_hari);
+
+            return $transaksi;
         });
 
         return view('gadai.lihat-gadai', [
