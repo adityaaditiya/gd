@@ -1197,7 +1197,7 @@ unset($__errorArgs, $__bag); ?>
 
                     const summaryMetaText = (() => {
                         if (!hasPackages) {
-                            return '<?php echo e(__('Belum ada barang dipilih. Gunakan kolom pencarian untuk menemukan barang.')); ?>';
+                            return '<?php echo e(__('Belum ada barang dipilih. Gunakan kolom pencarian untuk mencari nama barang, kode barcode atau kode internal,.')); ?>';
                         }
                         if (summaryLines.length === 1) {
                             return summaryLines[0];

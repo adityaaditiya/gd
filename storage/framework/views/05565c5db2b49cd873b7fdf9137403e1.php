@@ -31,20 +31,84 @@
         <?php endif; ?>
 
         <section class="flex flex-col gap-3 rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
-            <!-- <header class="flex flex-col gap-1">
-                <span class="text-xs font-semibold uppercase tracking-wide text-emerald-500"><?php echo e(__('Menu Daftar Cicilan')); ?></span>
-                <h2 class="text-lg font-semibold text-neutral-900 dark:text-white"><?php echo e(__('Penjadwalan Angsuran Otomatis')); ?></h2>
-                <p class="text-sm text-neutral-600 dark:text-neutral-300">
-                    <?php echo e(__('Setiap transaksi cicilan yang disetujui menghasilkan jadwal angsuran terstruktur sebagai panduan penagihan.')); ?>
+            <div class="flex flex-col gap-4 border-b border-neutral-200 pb-4 dark:border-neutral-700">
+                <form
+                    method="GET"
+                    action="<?php echo e(route('cicil-emas.daftar-cicilan')); ?>"
+                    class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"
+                    data-filter-form
+                    data-auto-submit="<?php echo e($shouldAutoSubmitFilters ? 'true' : 'false'); ?>"
+                >
+                    <input type="hidden" name="per_page" value="<?php echo e($perPage); ?>">
+                    <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:gap-4">
+                        <label class="flex flex-col gap-2 text-sm text-neutral-600 dark:text-neutral-200">
+                            <span class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400"><?php echo e(__('Tanggal Dari')); ?></span>
+                            <input
+                                id="tanggal-dari"
+                                name="tanggal_dari"
+                                type="date"
+                                value="<?php echo e($tanggalDari); ?>"
+                                class="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-700 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-200 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
+                                onchange="this.form.requestSubmit()"
+                            />
+                        </label>
+                        <label class="flex flex-col gap-2 text-sm text-neutral-600 dark:text-neutral-200">
+                            <span class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400"><?php echo e(__('Tanggal Sampai')); ?></span>
+                            <input
+                                id="tanggal-sampai"
+                                name="tanggal_sampai"
+                                type="date"
+                                value="<?php echo e($tanggalSampai); ?>"
+                                class="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-700 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-200 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
+                                onchange="this.form.requestSubmit()"
+                            />
+                        </label>
+                        <div class="flex flex-col gap-2 text-sm text-neutral-600 dark:text-neutral-200">
+                            
+                            
+                                <a
+                                    href="<?php echo e(route('cicil-emas.daftar-cicilan', ['per_page' => $perPage])); ?>"
+                                    class="inline-flex items-centerr rounded-lg border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-700/60"
+                                >
+                                    <?php echo e(__('Reset')); ?>
 
-                </p>
-            </header> -->
+                                </a>
+                         
+                        </div>
+                        <div class="flex flex-col gap-1 text-sm text-neutral-600 dark:text-neutral-200">
+                            
+                            <a
+                                href="<?php echo e(route('cicil-emas.transaksi-emas')); ?>"
+                                class="inline-flex items-center gap-2 whitespace-nowrap rounded-lg border border-neutral-700 px-4 py-2 text-sm font-semibold text-blue-600 shadow-sm transition hover:border-emerald-700 hover:bg-neutral-100 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-neutral-500 dark:bg-neutral-800 dark:text-emerald-300 dark:hover:border-emerald-400 dark:hover:bg-emerald-400 dark:hover:text-white"
+                            >
+                                <?php echo e(__('Tambah Data')); ?>
+
+                            </a>
+                        </div>
+                    </div>
+                    <label class="flex w-full items-center gap-3 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-600 shadow-sm focus-within:border-emerald-500 focus-within:text-neutral-900 focus-within:ring-2 focus-within:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-300 dark:focus-within:border-emerald-400 dark:focus-within:text-white dark:focus-within:ring-emerald-500/40" for="search-transaksi">
+                        <svg class="size-5 text-neutral-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                        </svg>
+                        <div class="flex w-full flex-col">
+                            <input
+                                id="search-transaksi"
+                                name="search"
+                                type="search"
+                                value="<?php echo e($search ?? ''); ?>"
+                                placeholder="<?php echo e(__('Cari nomor cicilan, nama nasabah, kode member, atau telepon…')); ?>"
+                                class="w-full border-0 bg-transparent p-0 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-0 dark:text-white"
+                            />
+                        </div>
+                    </label>
+                </form>
+            </div>
 
             <?php if($transactions->isEmpty()): ?>
                 <div class="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-neutral-300 p-6 text-center text-neutral-600 dark:border-neutral-600 dark:text-neutral-300">
                     <div class="space-y-1">
-                        <p class="text-base font-semibold text-neutral-800 dark:text-neutral-100"><?php echo e(__('Belum ada cicilan tersimpan')); ?></p>
-                        <p class="text-sm"><?php echo e(__('Simulasi yang Anda simpan melalui menu Transaksi Cicil Emas akan muncul di sini secara otomatis.')); ?></p>
+                        <!-- <p class="text-base font-semibold text-neutral-800 dark:text-neutral-100"><?php echo e(__('Belum ada cicilan tersimpan')); ?></p> -->
+                        <p class="text-sm"><?php echo e(__('Belum ada transaksi cicilan emas yang tersimpan.')); ?></p>
                     </div>
                     <a
                         href="<?php echo e(route('cicil-emas.transaksi-emas')); ?>"
@@ -460,6 +524,16 @@ unset($__errorArgs, $__bag); ?>
             <?php endif; ?>
         </section>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const filterForm = document.querySelector('[data-filter-form]');
+
+            if (filterForm && filterForm.dataset.autoSubmit === 'true') {
+                filterForm.requestSubmit();
+            }
+        });
+    </script>
 
     <script>
         (() => {

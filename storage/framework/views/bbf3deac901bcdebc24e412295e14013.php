@@ -168,7 +168,7 @@ unset($__errorArgs, $__bag); ?>
                                 data-price="<?php echo e($masterKodeGroup->harga); ?>"
                                 <?php if($isCreateContext && old('kode_group') === $masterKodeGroup->kode_group): echo 'selected'; endif; ?>
                             >
-                                <?php echo e($masterKodeGroup->kode_group); ?> — Rp <?php echo e(number_format((float) $masterKodeGroup->harga, 2, ',', '.')); ?>
+                                <?php echo e($masterKodeGroup->kode_group); ?> — Rp. <?php echo e(number_format((float) $masterKodeGroup->harga, 2, ',', '.')); ?>
 
                             </option>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -231,7 +231,7 @@ unset($__errorArgs, $__bag); ?>
                 <div class="space-y-1.5">
                     <label for="harga" class="text-sm font-medium text-neutral-700 dark:text-neutral-200"><?php echo e(__('Harga (Rp)')); ?></label>
                     <div class="flex rounded-lg border border-neutral-300 bg-white text-sm shadow-sm focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-100 dark:border-neutral-600 dark:bg-neutral-950 dark:focus-within:border-emerald-400 dark:focus-within:ring-emerald-900/40">
-                        <span class="flex items-center px-3 text-neutral-500 dark:text-neutral-400">Rp</span>
+                        <span class="flex items-center px-3 text-neutral-500 dark:text-neutral-400">Rp.</span>
                         <input
                             type="number"
                             id="harga"

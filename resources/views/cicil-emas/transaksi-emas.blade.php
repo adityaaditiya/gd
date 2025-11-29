@@ -1097,7 +1097,7 @@
 
                     const summaryMetaText = (() => {
                         if (!hasPackages) {
-                            return '{{ __('Belum ada barang dipilih. Gunakan kolom pencarian untuk menemukan barang.') }}';
+                            return '{{ __('Belum ada barang dipilih. Gunakan kolom pencarian untuk mencari nama barang, kode barcode atau kode internal,.') }}';
                         }
                         if (summaryLines.length === 1) {
                             return summaryLines[0];

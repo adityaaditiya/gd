@@ -70,7 +70,7 @@
                                     {{ $barang->kadar !== null ? number_format((float) $barang->kadar, 2, ',', '.') : '–' }}
                                 </td>
                                 <td class="px-4 py-3 align-top text-right text-neutral-700 dark:text-neutral-200">{{ number_format((float) $barang->berat, 3, ',', '.') }}</td>
-                                <td class="px-4 py-3 align-top text-right font-semibold text-neutral-900 dark:text-white">{{ 'Rp '.number_format((float) $barang->harga, 2, ',', '.') }}</td>
+                                <td class="px-4 py-3 align-top text-right font-semibold text-neutral-900 dark:text-white">{{ number_format((float) $barang->harga) }}</td>
                                 <td class="px-4 py-3 align-top text-neutral-500 dark:text-neutral-400">{{ optional($barang->created_at)->format('d M Y') }}</td>
                                 <td class="px-4 py-3 align-top">
                                     <div class="flex justify-end gap-2">

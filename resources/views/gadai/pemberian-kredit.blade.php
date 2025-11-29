@@ -380,7 +380,7 @@
                                     readonly
                                     class="block w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-neutral-300 focus:outline-none focus:ring-0 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
                                 />
-                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Nilai bunga mengikuti tarif harian dari data master perhitungan gadai dikalikan nominal pinjaman dan tenor aktual.') }}</p>
+                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Nilai bunga mengikuti tarif bunga dari data master perhitungan gadai dikalikan nominal pinjaman dan tenor aktual.') }}</p>
                             </div>
                         </div>
                     </section>

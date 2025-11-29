@@ -80,7 +80,7 @@
                             <span></span>
                         <a
                                     href="{{ route('gadai.pemberian-kredit') }}"
-                                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-neutral-700  px-4 py-2 text-sm font-semibold text-blue-600 shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-neutral-500 dark:bg-neutral-800 dark:hover:border-emerald-400 dark:hover:bg-emerald-400"
+                                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-neutral-700  px-4 py-2 text-sm font-semibold text-blue-600 shadow-sm transition hover:border-emerald-700 hover:bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:text-emerald-300 dark:border-neutral-500 dark:bg-neutral-800 dark:hover:border-emerald-400 dark:hover:bg-emerald-400 dark:hover:text-white" 
                                 >
                                     {{ __('Tambah Data') }}
                                 </a>

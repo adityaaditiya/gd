@@ -84,7 +84,7 @@
 
                                 </td>
                                 <td class="px-4 py-3 align-top text-right text-neutral-700 dark:text-neutral-200"><?php echo e(number_format((float) $barang->berat, 3, ',', '.')); ?></td>
-                                <td class="px-4 py-3 align-top text-right font-semibold text-neutral-900 dark:text-white"><?php echo e('Rp '.number_format((float) $barang->harga, 2, ',', '.')); ?></td>
+                                <td class="px-4 py-3 align-top text-right font-semibold text-neutral-900 dark:text-white"><?php echo e(number_format((float) $barang->harga)); ?></td>
                                 <td class="px-4 py-3 align-top text-neutral-500 dark:text-neutral-400"><?php echo e(optional($barang->created_at)->format('d M Y')); ?></td>
                                 <td class="px-4 py-3 align-top">
                                     <div class="flex justify-end gap-2">

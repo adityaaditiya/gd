@@ -53,25 +53,21 @@
                             />
                         </label>
                         <div class="flex flex-col gap-2 text-sm text-neutral-600 dark:text-neutral-200">
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                            @if (!empty($search) || $tanggalDari || $tanggalSampai)
+                            
+                            
                                 <a
                                     href="{{ route('cicil-emas.daftar-cicilan', ['per_page' => $perPage]) }}"
-                                    class="inline-flex items-center justify-center rounded-lg border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-700/60"
+                                    class="inline-flex items-centerr rounded-lg border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-700/60"
                                 >
                                     {{ __('Reset') }}
                                 </a>
-                            @endif
+                         
                         </div>
-                        <div class="flex flex-col gap-2 text-sm text-neutral-600 dark:text-neutral-200">
-                            <span></span>
-                            <span></span>
-                            <span></span>
+                        <div class="flex flex-col gap-1 text-sm text-neutral-600 dark:text-neutral-200">
+                            
                             <a
                                 href="{{ route('cicil-emas.transaksi-emas') }}"
-                                class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-neutral-700 px-4 py-2 text-sm font-semibold text-emerald-600 shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-neutral-500 dark:bg-neutral-800 dark:text-emerald-300 dark:hover:border-emerald-400 dark:hover:bg-emerald-400 dark:hover:text-neutral-900"
+                                class="inline-flex items-center gap-2 whitespace-nowrap rounded-lg border border-neutral-700 px-4 py-2 text-sm font-semibold text-blue-600 shadow-sm transition hover:border-emerald-700 hover:bg-neutral-100 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-neutral-500 dark:bg-neutral-800 dark:text-emerald-300 dark:hover:border-emerald-400 dark:hover:bg-emerald-400 dark:hover:text-white"
                             >
                                 {{ __('Tambah Data') }}
                             </a>
@@ -98,8 +94,8 @@
             @if ($transactions->isEmpty())
                 <div class="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-neutral-300 p-6 text-center text-neutral-600 dark:border-neutral-600 dark:text-neutral-300">
                     <div class="space-y-1">
-                        <p class="text-base font-semibold text-neutral-800 dark:text-neutral-100">{{ __('Belum ada cicilan tersimpan') }}</p>
-                        <p class="text-sm">{{ __('Simulasi yang Anda simpan melalui menu Transaksi Cicil Emas akan muncul di sini secara otomatis.') }}</p>
+                        <!-- <p class="text-base font-semibold text-neutral-800 dark:text-neutral-100">{{ __('Belum ada cicilan tersimpan') }}</p> -->
+                        <p class="text-sm">{{ __('Belum ada transaksi cicilan emas yang tersimpan.') }}</p>
                     </div>
                     <a
                         href="{{ route('cicil-emas.transaksi-emas') }}"
