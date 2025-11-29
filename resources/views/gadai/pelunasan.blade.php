@@ -16,7 +16,7 @@
                     {{ __('Pelunasan Transaksi Gadai') }}
                 </h1>
                 <p class="text-sm text-neutral-600 dark:text-neutral-300">
-                    {{ __('Konfirmasi penerimaan pelunasan untuk kontrak :number milik :customer.', [
+                    {{ __('Konfirmasi penerimaan pelunasan untuk kontrak :number atas nama :customer.', [
                         'number' => $transaksi->no_sbg,
                         'customer' => $nasabah,
                     ]) }}
@@ -120,7 +120,7 @@
                                 name="tanggal_pelunasan"
                                 value="{{ old('tanggal_pelunasan', $defaults['tanggal_pelunasan']) }}"
                                 required
-                                class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-black dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
+                                class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
                             >
                             @error('tanggal_pelunasan')
                                 <span class="text-xs text-red-600 dark:text-red-400">{{ $message }}</span>
@@ -135,7 +135,7 @@
                                 value="{{ old('metode_pembayaran', $defaults['metode_pembayaran']) }}"
                                 required
                                 maxlength="100"
-                                class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-black dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
+                                class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
                                 placeholder="{{ __('Contoh: Tunai, Transfer Bank…') }}"
                             >
                             @error('metode_pembayaran')
@@ -154,7 +154,7 @@
                                 required
                                 inputmode="decimal"
                                 data-currency-input
-                                class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-black dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
+                                class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
                                 placeholder="{{ __('Masukkan nominal pokok…') }}"
                             >
                             @error('pokok_dibayar')
@@ -170,7 +170,7 @@
                                 value="{{ old('bunga_dibayar', $defaults['bunga_dibayar']) }}"
                                 inputmode="decimal"
                                 data-currency-input
-                                class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-black dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
+                                class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
                                 placeholder="{{ __('Masukkan nominal bunga…') }}"
                             >
                             @error('bunga_dibayar')
@@ -187,7 +187,7 @@
                             value="{{ old('biaya_lain_dibayar', $defaults['biaya_lain_dibayar']) }}"
                             inputmode="decimal"
                             data-currency-input
-                            class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-black dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
+                            class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
                             placeholder="{{ __('Nominal biaya lain-lain yang harus dilunasi (jika ada)…') }}"
                         >
                         @error('biaya_lain_dibayar')
@@ -204,7 +204,7 @@
                             required
                             inputmode="decimal"
                             data-currency-input
-                            class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-black dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
+                            class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
                             placeholder="{{ __('Total dana yang diterima kasir…') }}"
                         >
                         @error('total_pelunasan')
@@ -218,7 +218,7 @@
                             name="catatan_pelunasan"
                             rows="3"
                             class="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/40"
-                            placeholder="{{ __('Catat detail tambahan seperti nomor referensi transfer atau kondisi barang saat ditebus…') }}"
+                            placeholder="{{ __('Catat detail tambahan atau kondisi barang saat ditebus…') }}"
                         >{{ old('catatan_pelunasan') }}</textarea>
                         @error('catatan_pelunasan')
                             <span class="text-xs text-red-600 dark:text-red-400">{{ $message }}</span>
@@ -242,7 +242,7 @@
                         </a>
                         <button
                             type="submit"
-                            class="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-600 bg-emerald-600 px-4 py-2 text-sm font-semibold text-blue-600 shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-500 dark:bg-emerald-500 dark:hover:border-emerald-400 dark:hover:bg-emerald-400"
+                            class="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-600 bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:border-emerald-700 hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-emerald-500 dark:bg-emerald-500 dark:hover:border-emerald-400 dark:hover:bg-emerald-400"
                         >
                             <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m6 .75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />

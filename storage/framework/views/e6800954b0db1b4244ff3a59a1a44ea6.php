@@ -131,6 +131,7 @@
                         <!-- <th scope="col" class="px-4 py-3"><?php echo e(__('Premi')); ?></th> -->
                         <th scope="col" class="px-4 py-3"><?php echo e(__('Tenor')); ?></th>
                         <th scope="col" class="px-4 py-3"><?php echo e(__('Bunga Terakumulasi')); ?></th>
+                        <th scope="col" class="px-4 py-3"><?php echo e(__('Tarif Bunga Periodik')); ?></th>
                         <th scope="col" class="px-4 py-3"><?php echo e(__('Tarif Bunga Harian')); ?></th>
                         <th scope="col" class="px-4 py-3"><?php echo e(__('Jatuh Tempo')); ?></th>
                         <th scope="col" class="px-4 py-3"><?php echo e(__('Status')); ?></th>
@@ -284,6 +285,26 @@
                                     —
                                 <?php endif; ?>
                             </td>
+                            <td class="whitespace-nowrap px-4 py-3">
+                                <?php
+                                    $periodicRate = $transaksi->tarif_bunga_per_periode ?? null;
+                                    $periodDays = $transaksi->periode_hari ?? null;
+                                    $isPeriodic = $transaksi->skema_bunga === 'periodik' && $periodicRate !== null;
+                                ?>
+                                <?php if($isPeriodic): ?>
+                                    <div class="font-semibold text-neutral-900 dark:text-white">
+                                        <?php echo e(number_format((float) $periodicRate * 100, 2, ',', '.')); ?>%
+                                    </div>
+                                    <?php if($periodDays): ?>
+                                        <div class="text-xs text-neutral-500 dark:text-neutral-300">
+                                            <?php echo e(__('Per :days hari', ['days' => $periodDays])); ?>
+
+                                        </div>
+                                    <?php endif; ?>
+                                <?php else: ?>
+                                    —
+                                <?php endif; ?>
+                            </td>
                             <td class="whitespace-nowrap px-4 py-3"><?php echo e(number_format((float) $transaksi->tarif_bunga_harian * 100, 2, ',', '.')); ?>%</td>
                             <td class="whitespace-nowrap px-4 py-3"><?php echo e(optional($transaksi->jatuh_tempo_awal)->format('d M Y') ?? '—'); ?></td>
                             <td class="px-4 py-3">
@@ -412,7 +433,7 @@
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <tr>
-                            <td colspan="11" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-300">
+                            <td colspan="12" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-300">
                                 <?php echo e(__('Belum ada transaksi gadai yang tersimpan.')); ?>
 
                             </td>
@@ -493,7 +514,7 @@
         </div>
     </div>
 
-    <?php if (! $__env->hasRenderedOnce('03b7dbaf-29bd-4f26-a00f-f835a2a992eb')): $__env->markAsRenderedOnce('03b7dbaf-29bd-4f26-a00f-f835a2a992eb'); ?>
+    <?php if (! $__env->hasRenderedOnce('989b3f61-770f-4f01-afcb-600ebd49849b')): $__env->markAsRenderedOnce('989b3f61-770f-4f01-afcb-600ebd49849b'); ?>
 <script data-navigate-once>
   window.KRESNO = window.KRESNO || {};
   if (!window.KRESNO.lihatGadaiBound) {
@@ -897,7 +918,7 @@ unset($__errorArgs, $__bag); ?>
                 <div class="flex items-center justify-between gap-3">
                     <button
                         type="button"
-                        class="inline-flex items-center justify-center rounded-lg border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-600 transition hover:bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-400 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800/70"
+                        class="inline-flex items-center justify-center rounded-lg border border-neutral-300 px-4 py-2 text-white font-semibold text-neutral-600 transition hover:bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-400 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800/70"
                         data-cancel-close
                     >
                         <?php echo e(__('Batal')); ?>
@@ -905,7 +926,7 @@ unset($__errorArgs, $__bag); ?>
                     </button>
                     <button
                         type="submit"
-                        class="inline-flex items-center justify-center gap-2 rounded-lg border border-red-600 bg-red-600 px-4 py-2 text-white font-semibold text-red shadow-sm transition hover:border-red-700 hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500 dark:border-red-500 dark:bg-red-500 dark:hover:border-red-400 dark:hover:bg-red-400"
+                        class="inline-flex items-center justify-center gap-2 rounded-lg border border-red-600 bg-red-600 px-4 py-2 text-sm font-semibold text-red shadow-sm transition hover:border-red-700 hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500 dark:border-red-500 dark:bg-red-500 dark:hover:border-red-400 dark:hover:bg-red-400"
                     >
                         <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />

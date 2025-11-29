@@ -47,11 +47,11 @@
                             <th scope="col" class="px-4 py-3">{{ __('Kode Group') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('Kode Baki') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('Kode Jenis') }}</th>
-                            <th scope="col" class="px-4 py-3 text-right">{{ __('Kadar (%)') }}</th>
+                            <th scope="col" class="px-4 py-3 text-right">{{ __('Kadar') }}</th>
                             <th scope="col" class="px-4 py-3 text-right">{{ __('Berat (gram)') }}</th>
                             <th scope="col" class="px-4 py-3 text-right">{{ __('Harga') }}</th>
                             <th scope="col" class="px-4 py-3">{{ __('Dibuat') }}</th>
-                            <th scope="col" class="px-4 py-3 text-right">{{ __('Aksi') }}</th>
+                            <th scope="col" class="px-4 py-3 text-center">{{ __('Aksi') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-neutral-200 bg-white dark:divide-neutral-800 dark:bg-neutral-900">

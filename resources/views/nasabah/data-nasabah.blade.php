@@ -8,7 +8,7 @@
         <div class="flex flex-col gap-2">
             <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white">{{ __('Data Nasabah') }}</h1>
             <p class="text-sm text-neutral-600 dark:text-neutral-300">
-                {{ __('Kelola dan telusuri informasi lengkap nasabah melalui tabel interaktif berikut.') }}
+                {{ __('Kelola dan telusuri informasi lengkap nasabah.') }}
             </p>
         </div>
 
@@ -45,8 +45,7 @@
                             />
                         </div>
                     </label>
-                </div>
-                @if ($showCreateButton)
+                    @if ($showCreateButton)
                     <a
                         href="{{ route('nasabah.tambah-nasabah') }}"
                         wire:navigate
@@ -58,6 +57,8 @@
                         <span>{{ __('Tambah Nasabah') }}</span>
                     </a>
                 @endif
+                </div>
+                
             </div>
         </div>
 

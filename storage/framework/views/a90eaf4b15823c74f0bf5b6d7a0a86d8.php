@@ -25,7 +25,7 @@
         <div class="flex flex-col gap-2">
             <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white"><?php echo e(__('Angsuran Rutin')); ?></h1>
             <p class="text-neutral-600 dark:text-neutral-300">
-                <?php echo e(__('Kelola proses penagihan bulanan, validasi pembayaran, dan hitung denda keterlambatan secara real-time.')); ?>
+                <?php echo e(__('Kelola proses angsuran, validasi pembayaran, dan hitung denda keterlambatan secara real-time.')); ?>
 
             </p>
         </div>
@@ -52,7 +52,7 @@
                     <?php echo e(__('Pastikan setiap jatuh tempo tercatat, pembayaran tervalidasi, dan denda dihitung otomatis bila terjadi keterlambatan.')); ?>
 
                 </p> -->
-                <p class="text-xs"><br></p>
+                <p class="text-xs"></p>
                 <p class="text-xs text-neutral-500 dark:text-neutral-400">
                     <?php echo e(__('Ketentuan denda: :rate% per hari dari nominal angsuran.', ['rate' => number_format($lateFeePercentagePerDay, 2, ',', '.')])); ?>
 
@@ -108,7 +108,7 @@
                         >
                     </label>
                 </div>
-                <div class="flex items-end gap-2 md:justify-end">
+                <div class="flex items-end gap-2">
                     <button
                         type="submit"
                         class="inline-flex items-center justify-center rounded-md bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500/40"

@@ -17,7 +17,7 @@
         <div class="flex flex-col gap-2">
             <h1 class="text-2xl font-semibold text-neutral-900 dark:text-white"><?php echo e(__('Data Nasabah')); ?></h1>
             <p class="text-sm text-neutral-600 dark:text-neutral-300">
-                <?php echo e(__('Kelola dan telusuri informasi lengkap nasabah melalui tabel interaktif berikut.')); ?>
+                <?php echo e(__('Kelola dan telusuri informasi lengkap nasabah.')); ?>
 
             </p>
         </div>
@@ -55,8 +55,7 @@
                             />
                         </div>
                     </label>
-                </div>
-                <?php if($showCreateButton): ?>
+                    <?php if($showCreateButton): ?>
                     <a
                         href="<?php echo e(route('nasabah.tambah-nasabah')); ?>"
                         wire:navigate
@@ -68,6 +67,8 @@
                         <span><?php echo e(__('Tambah Nasabah')); ?></span>
                     </a>
                 <?php endif; ?>
+                </div>
+                
             </div>
         </div>
 

@@ -13,14 +13,14 @@
         <form method="GET" class="grid gap-4 rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
             <div class="flex flex-col gap-3 md:flex-row md:items-end">
                 <div class="flex-1">
-                    <label for="search" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Cari Nasabah') }}</label>
+                    <label for="search" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Cari Riwayat Cicilan Nasabah') }}</label>
                     <div class="mt-2">
                         <input
                             id="search"
                             name="q"
                             type="search"
                             value="{{ $filters['query'] ?? '' }}"
-                            placeholder="{{ __('Nama atau kode member') }}"
+                            placeholder="{{ __('Cari riwayat cicilan dengan kode member..') }}"
                             class="w-full rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm text-neutral-900 shadow-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-400 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white"
                         >
                     </div>
@@ -291,7 +291,7 @@
             <header class="flex items-center justify-between gap-4">
                 <div>
                     <span class="text-xs font-semibold uppercase tracking-wide text-purple-500">{{ __('Ringkasan Portofolio') }}</span>
-                    <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Snapshot Kinerja Cicil Emas') }}</h2>
+                    <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ __('Snapshot Cicilan Emas') }}</h2>
                 </div>
                 <span class="rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700 dark:bg-purple-900/40 dark:text-purple-200">
                     {{ number_format($portfolio['total_transactions'] ?? 0, 0, ',', '.') }} {{ __('transaksi') }}

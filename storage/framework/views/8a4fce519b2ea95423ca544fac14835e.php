@@ -115,7 +115,7 @@
                             <?php if(!empty($summary['kode_member'])): ?>
                                 <dd class="text-xs text-neutral-500 dark:text-neutral-400"><?php echo e(__('Kode Member:')); ?> <?php echo e($summary['kode_member']); ?></dd>
                             <?php endif; ?>
-                        </div>
+                        </div>\
                         <div class="space-y-1">
                             <dt class="font-semibold text-neutral-900 dark:text-white"><?php echo e(__('Detail Barang')); ?></dt>
                             <?php if(!empty($summary['packages']) && is_array($summary['packages'])): ?>
@@ -626,11 +626,11 @@ unset($__errorArgs, $__bag); ?>
                                 <p data-summary-package><?php echo e(__('Barang belum dipilih.')); ?></p>
                                 <ul class="space-y-1 text-xs text-neutral-600 dark:text-neutral-400" data-summary-items></ul>
                                 <p data-summary-price></p>
-                                <p data-summary-option></p>
                                 <p data-summary-principal></p>
                                 <p data-summary-margin></p>
-                                <p data-summary-administration></p>
                                 <p data-summary-financing></p>
+                                <p data-summary-option></p>
+                                <p data-summary-administration></p>       
                             </div>
                         </div>
 
@@ -1303,7 +1303,7 @@ unset($__errorArgs, $__bag); ?>
                     if (marginDisplay) {
                         marginDisplay.textContent = hasPackages
                             ? `${formatCurrency(marginAmount)} (<?php echo e(__('Margin')); ?> ${formatPercentage(marginPercentage)}%)`
-                            : '<?php echo e(__('Margin akan dihitung setelah paket dan tenor dipilih.')); ?>';
+                            : '<?php echo e(__('Margin akan dihitung setelah detail barang dan tenor dipilih.')); ?>';
                     }
 
                     if (financingDisplay) {

@@ -144,7 +144,7 @@
                 </div>
 
                 <div class="space-y-1.5">
-                    <label for="kadar" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Kadar (%)') }}</label>
+                    <label for="kadar" class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ __('Kadar') }}</label>
                     <input
                         type="number"
                         id="kadar"

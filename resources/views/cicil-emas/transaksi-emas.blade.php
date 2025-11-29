@@ -105,7 +105,7 @@
                             @if (!empty($summary['kode_member']))
                                 <dd class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Kode Member:') }} {{ $summary['kode_member'] }}</dd>
                             @endif
-                        </div>
+                        </div>\
                         <div class="space-y-1">
                             <dt class="font-semibold text-neutral-900 dark:text-white">{{ __('Detail Barang') }}</dt>
                             @if (!empty($summary['packages']) && is_array($summary['packages']))
@@ -527,11 +527,11 @@
                                 <p data-summary-package>{{ __('Barang belum dipilih.') }}</p>
                                 <ul class="space-y-1 text-xs text-neutral-600 dark:text-neutral-400" data-summary-items></ul>
                                 <p data-summary-price></p>
-                                <p data-summary-option></p>
                                 <p data-summary-principal></p>
                                 <p data-summary-margin></p>
-                                <p data-summary-administration></p>
                                 <p data-summary-financing></p>
+                                <p data-summary-option></p>
+                                <p data-summary-administration></p>       
                             </div>
                         </div>
 
