@@ -28,17 +28,44 @@ class CicilEmasTransaksiController extends Controller
             $perPage = 10;
         }
 
-        $latestTransactionIds = CicilEmasTransaction::query()
-            ->latest()
-            ->limit(100)
-            ->pluck('id');
+        $filterValidator = Validator::make($request->query(), [
+            'search' => ['nullable', 'string', 'max:255'],
+            'tanggal_dari' => ['nullable', 'date'],
+            'tanggal_sampai' => ['nullable', 'date', 'after_or_equal:tanggal_dari'],
+        ]);
+
+        $filters = $filterValidator->safe()->only(['search', 'tanggal_dari', 'tanggal_sampai']);
+
+        $search = trim((string) ($filters['search'] ?? ''));
+        $tanggalDari = $filters['tanggal_dari'] ?? null;
+        $tanggalSampai = $filters['tanggal_sampai'] ?? null;
 
         $transactionsQuery = CicilEmasTransaction::with([
                 'nasabah',
                 'items',
                 'installments' => fn ($query) => $query->orderBy('due_date'),
             ])
-            ->whereIn('id', $latestTransactionIds)
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $query->where('nomor_cicilan', 'like', "%{$search}%")
+                        ->orWhereHas('nasabah', function ($nasabahQuery) use ($search) {
+                            $nasabahQuery->where('nama', 'like', "%{$search}%")
+                                ->orWhere('kode_member', 'like', "%{$search}%")
+                                ->orWhere('telepon', 'like', "%{$search}%");
+                        })
+                        ->orWhereHas('items', function ($itemQuery) use ($search) {
+                            $itemQuery->where('nama_barang', 'like', "%{$search}%")
+                                ->orWhere('kode_barcode', 'like', "%{$search}%")
+                                ->orWhere('kode_intern', 'like', "%{$search}%");
+                        });
+                });
+            })
+            ->when($tanggalDari, function ($query) use ($tanggalDari) {
+                $query->whereDate('created_at', '>=', $tanggalDari);
+            })
+            ->when($tanggalSampai, function ($query) use ($tanggalSampai) {
+                $query->whereDate('created_at', '<=', $tanggalSampai);
+            })
             ->orderByDesc('created_at');
 
         $transactions = $transactionsQuery
@@ -49,6 +76,10 @@ class CicilEmasTransaksiController extends Controller
             'transactions' => $transactions,
             'perPage' => $perPage,
             'perPageOptions' => $perPageOptions,
+            'search' => $search,
+            'tanggalDari' => $tanggalDari,
+            'tanggalSampai' => $tanggalSampai,
+            'shouldAutoSubmitFilters' => false,
         ]);
     }
 
