@@ -23,6 +23,7 @@ class BarangJaminan extends Model
         'nilai_taksiran',
         'kondisi_fisik',
         'kelengkapan',
+        'keterangan',
         'foto_1',
         'foto_2',
         'foto_3',

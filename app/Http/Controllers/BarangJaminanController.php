@@ -147,6 +147,7 @@ class BarangJaminanController extends Controller
             'nilai_taksiran' => ['required', 'string'],
             'kondisi_fisik' => ['nullable', 'string'],
             'kelengkapan' => ['nullable', 'string'],
+            'keterangan' => ['nullable', 'string'],
             'foto_1' => ['nullable', 'image', 'max:2048'],
             'foto_2' => ['nullable', 'image', 'max:2048'],
             'foto_3' => ['nullable', 'image', 'max:2048'],
@@ -164,6 +165,10 @@ class BarangJaminanController extends Controller
 
         if (($validated['kelengkapan'] ?? null) === '') {
             $validated['kelengkapan'] = null;
+        }
+
+        if (($validated['keterangan'] ?? null) === '') {
+            $validated['keterangan'] = null;
         }
 
         foreach (range(1, 6) as $index) {
