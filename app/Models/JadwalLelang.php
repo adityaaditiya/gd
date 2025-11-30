@@ -31,12 +31,16 @@ class JadwalLelang extends Model
         'distribusi_nasabah',
         'piutang_sisa',
         'status_pembayaran_nasabah',
+        'tanggal_ambil',
+        'tanggal_pembayaran',
         'tanggal_selesai',
     ];
 
     protected $casts = [
         'tanggal_rencana' => 'date',
         'tanggal_selesai' => 'datetime',
+        'tanggal_ambil' => 'date',
+        'tanggal_pembayaran' => 'date',
         'harga_limit' => 'decimal:2',
         'estimasi_biaya' => 'decimal:2',
         'harga_laku' => 'decimal:2',
