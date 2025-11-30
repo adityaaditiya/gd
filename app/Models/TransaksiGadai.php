@@ -201,7 +201,16 @@ class TransaksiGadai extends Model
             $dailyRate = 0.0015;
         }
 
-        $billableDays = $this->calculateBillableDays($days, $this->resolveMasterFormula());
+        $masterFormula = $this->resolveMasterFormula();
+        $billableDays = $this->calculateBillableDays($days, $masterFormula);
+
+        if ($masterFormula && ($masterFormula->skema_bunga ?? 'harian') === 'periodik') {
+            $periodeHari = max(1, (int) ($masterFormula->periode_hari ?? 0));
+            $tarifPerPeriode = max(0, (float) ($masterFormula->tarif_bunga_per_periode ?? 0));
+            $jumlahPeriode = (int) ceil($billableDays / $periodeHari);
+
+            return round($principal * $tarifPerPeriode * $jumlahPeriode, 2);
+        }
 
         return round($principal * $dailyRate * $billableDays, 2);
     }
