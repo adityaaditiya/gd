@@ -278,7 +278,16 @@
                         </div>
                     </dl>
                     <p class="mt-4 text-xs text-emerald-700 dark:text-emerald-200/80">
-                        {{ __('Nilai di atas dihitung berdasarkan tarif bunga harian 0,15% dan jumlah hari aktual sejak tanggal gadai.') }}
+                        @php
+                            $actualDays = $perhitungan['actual_days'];
+                            $billableDays = $perhitungan['billable_days'];
+                            $dailyRatePercent = number_format($perhitungan['tarif_bunga'] * 100, 2, ',', '.');
+                        @endphp
+                        {{ __('Nilai di atas dihitung dengan tarif bunga harian :rate% selama :billable hari tagih (:actual hari berjalan).', [
+                            'rate' => $dailyRatePercent,
+                            'billable' => $billableDays,
+                            'actual' => $actualDays,
+                        ]) }}
                     </p>
                 </div>
             </aside>
