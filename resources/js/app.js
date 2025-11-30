@@ -241,12 +241,6 @@ const initTotalPelunasanCalculator = () => {
     const bungaInput = document.querySelector('input[name="bunga_dibayar"]');
     const biayaLainInput = document.querySelector('input[name="biaya_lain_dibayar"]');
     const totalInput = document.querySelector('input[name="total_pelunasan"]');
-    const biayaLainRow = document.querySelector('[data-perhitungan-biaya-lain-row]');
-    const biayaLainValue = document.querySelector('[data-perhitungan-biaya-lain]');
-    const totalTagihanValue = document.querySelector('[data-perhitungan-total-tagihan]');
-    const baseTagihanTotal = totalTagihanValue
-        ? parseCurrencyToNumber(totalTagihanValue.dataset.baseTotal)
-        : null;
 
     if (!pokokInput || !bungaInput || !biayaLainInput || !totalInput) {
         return;
@@ -259,17 +253,6 @@ const initTotalPelunasanCalculator = () => {
             parseCurrencyToNumber(biayaLainInput.value);
 
         totalInput.value = formatCurrency(sum);
-
-        if (biayaLainRow && biayaLainValue) {
-            const biayaLainNominal = parseCurrencyToNumber(biayaLainInput.value);
-            biayaLainRow.classList.toggle('hidden', biayaLainNominal <= 0);
-            biayaLainValue.textContent = `Rp ${formatCurrency(biayaLainNominal.toFixed(0))}`;
-        }
-
-        if (totalTagihanValue && Number.isFinite(baseTagihanTotal)) {
-            const totalTagihan = baseTagihanTotal + parseCurrencyToNumber(biayaLainInput.value);
-            totalTagihanValue.textContent = `Rp ${formatCurrency(totalTagihan.toFixed(0))}`;
-        }
     };
 
     [pokokInput, bungaInput, biayaLainInput].forEach((input) => {
