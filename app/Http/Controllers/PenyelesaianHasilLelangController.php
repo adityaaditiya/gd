@@ -86,11 +86,16 @@ class PenyelesaianHasilLelangController extends Controller
         ]);
 
         $statusPembayaran = $data['status_pembayaran_nasabah'];
+        $updates = ['status_pembayaran_nasabah' => $statusPembayaran];
 
-        DB::transaction(function () use ($jadwalLelang, $statusPembayaran, $resultType) {
-            $jadwalLelang->forceFill([
-                'status_pembayaran_nasabah' => $statusPembayaran,
-            ])->save();
+        if ($resultType === 'surplus') {
+            $updates['tanggal_ambil'] = $this->determineTanggalAmbil($statusPembayaran);
+        } else {
+            $updates['tanggal_pembayaran'] = $this->determineTanggalPembayaran($statusPembayaran);
+        }
+
+        DB::transaction(function () use ($jadwalLelang, $statusPembayaran, $resultType, $updates) {
+            $jadwalLelang->forceFill($updates)->save();
 
             if ($resultType === 'surplus') {
                 $this->syncSurplusCashflow($jadwalLelang, $statusPembayaran);
@@ -177,6 +182,24 @@ class PenyelesaianHasilLelangController extends Controller
             'sumber' => $sumber,
             'keterangan' => $keterangan,
         ]);
+    }
+
+    private function determineTanggalAmbil(string $statusPembayaran): ?string
+    {
+        if (in_array($statusPembayaran, ['Sudah Diambil', 'Dialihkan ke Dana Sosial'], true)) {
+            return Carbon::now()->toDateString();
+        }
+
+        return null;
+    }
+
+    private function determineTanggalPembayaran(string $statusPembayaran): ?string
+    {
+        if ($statusPembayaran === 'Sudah Lunas') {
+            return Carbon::now()->toDateString();
+        }
+
+        return null;
     }
 
     private function formatDecimal($value): ?string
