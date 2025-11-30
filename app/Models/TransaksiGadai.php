@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Carbon\CarbonInterface;
 use App\Models\PerpanjanganGadai;
+use App\Models\MasterPerhitunganGadai;
 
 class TransaksiGadai extends Model
 {
@@ -106,6 +107,17 @@ class TransaksiGadai extends Model
         return $this->calculateActualDays();
     }
 
+    public function getBillableDaysAttribute(): ?int
+    {
+        $actualDays = $this->calculateActualDays();
+
+        if ($actualDays === null) {
+            return null;
+        }
+
+        return $this->calculateBillableDays($actualDays, $this->resolveMasterFormula());
+    }
+
     public function getAccruedInterestAttribute(): ?float
     {
         if ($this->bunga_terutang_riil !== null) {
@@ -189,7 +201,18 @@ class TransaksiGadai extends Model
             $dailyRate = 0.0015;
         }
 
-        return round($principal * $dailyRate * $days, 2);
+        $masterFormula = $this->resolveMasterFormula();
+        $billableDays = $this->calculateBillableDays($days, $masterFormula);
+
+        if ($masterFormula && ($masterFormula->skema_bunga ?? 'harian') === 'periodik') {
+            $periodeHari = max(1, (int) ($masterFormula->periode_hari ?? 0));
+            $tarifPerPeriode = max(0, (float) ($masterFormula->tarif_bunga_per_periode ?? 0));
+            $jumlahPeriode = (int) ceil($billableDays / $periodeHari);
+
+            return round($principal * $tarifPerPeriode * $jumlahPeriode, 2);
+        }
+
+        return round($principal * $dailyRate * $billableDays, 2);
     }
 
     public function hitungKewajibanLelang(?float $biayaLelang = null, ?CarbonInterface $referenceDate = null): float
@@ -199,6 +222,34 @@ class TransaksiGadai extends Model
         $biaya = max(0, (float) ($biayaLelang ?? 0));
 
         return round($principal + $interest + $biaya, 2);
+    }
+
+    private function calculateBillableDays(int $actualDays, ?MasterPerhitunganGadai $formula = null): int
+    {
+        $actualDays = max(1, $actualDays);
+
+        if (!$formula || ($formula->skema_bunga ?? 'harian') !== 'periodik') {
+            return $actualDays;
+        }
+
+        $periode = max(1, (int) ($formula->periode_hari ?? 0));
+        $periodsUsed = (int) ceil($actualDays / $periode);
+
+        return $periodsUsed * $periode;
+    }
+
+    private function resolveMasterFormula(): ?MasterPerhitunganGadai
+    {
+        if ($this->type === null || $this->uang_pinjaman === null) {
+            return null;
+        }
+
+        return MasterPerhitunganGadai::query()
+            ->where('type', $this->type)
+            ->where('range_awal', '<=', $this->uang_pinjaman)
+            ->where('range_akhir', '>=', $this->uang_pinjaman)
+            ->orderBy('range_awal')
+            ->first();
     }
 
     public function refreshBungaTerutangRiil(?CarbonInterface $referenceDate = null): void

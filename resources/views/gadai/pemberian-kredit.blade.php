@@ -522,9 +522,11 @@
                         }
 
                         if (tarifBungaDisplayInput) {
-                            tarifBungaDisplayInput.value = Number.isFinite(effectiveRate)
-                                ? formatPercent(effectiveRate)
-                                : '—';
+                            tarifBungaDisplayInput.value = Number.isFinite(perPeriodRate)
+                                ? '-'
+                                : Number.isFinite(effectiveRate)
+                                    ? formatPercent(effectiveRate)
+                                    : '—';
                         }
 
                         if (tarifBungaPerPeriodeDisplay) {

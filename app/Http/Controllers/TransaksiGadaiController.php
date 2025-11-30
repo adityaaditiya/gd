@@ -246,10 +246,14 @@ class TransaksiGadaiController extends Controller
 
         $tenorHari = max(1, $tanggalGadai->diffInDays($jatuhTempo) + 1);
         $tarifBungaHarian = $this->resolveDailyRate($masterFormula);
-        $totalBunga = $this->formatDecimal($uangPinjaman * $tarifBungaHarian * $tenorHari);
+        $billableTenorDays = $this->calculateBillableDays($tenorHari, $masterFormula);
+        $totalBunga = $this->formatDecimal(
+            $this->calculateSewaModalWithFormula($uangPinjaman, $tarifBungaHarian, $billableTenorDays, $masterFormula)
+        );
         $hariBerjalan = $this->calculateActualDays($tanggalGadai, Carbon::today());
+        $billableHariBerjalan = $this->calculateBillableDays($hariBerjalan, $masterFormula);
         $bungaTerutangRiil = $this->formatDecimal(
-            $this->calculateSewaModal($uangPinjaman, $tarifBungaHarian, $hariBerjalan)
+            $this->calculateSewaModalWithFormula($uangPinjaman, $tarifBungaHarian, $billableHariBerjalan, $masterFormula)
         );
         $uangCair = $this->formatDecimal(max(0, $uangPinjaman - $totalPotongan));
         $uangCairValue = (float) $uangCair;
@@ -405,10 +409,17 @@ class TransaksiGadaiController extends Controller
         $transaksi->loadMissing(['nasabah', 'kasir', 'barangJaminan']);
 
         $today = Carbon::today();
+        $masterFormula = $this->findMasterFormulaForTransaction($transaksi);
         $tarifBungaHarian = $this->resolveTarifBunga($transaksi);
         $pokokPinjaman = (float) $transaksi->uang_pinjaman;
         $actualDays = $this->calculateActualDays($transaksi->tanggal_gadai, $today);
-        $sewaModalTerutang = $this->calculateSewaModal($pokokPinjaman, $tarifBungaHarian, $actualDays);
+        $billableDays = $this->calculateBillableDays($actualDays, $masterFormula);
+        $sewaModalTerutang = $this->calculateSewaModalWithFormula(
+            $pokokPinjaman,
+            $tarifBungaHarian,
+            $billableDays,
+            $masterFormula
+        );
         $biayaLainPelunasan = 0.0;
         $totalTagihanPelunasan = $pokokPinjaman + $sewaModalTerutang + $biayaLainPelunasan;
 
@@ -425,7 +436,9 @@ class TransaksiGadaiController extends Controller
             ],
             'perhitunganPelunasan' => [
                 'tarif_bunga' => $tarifBungaHarian,
+                'tarif_bunga_per_periode' => $masterFormula?->tarif_bunga_per_periode,
                 'actual_days' => $actualDays,
+                'billable_days' => $billableDays,
                 'pokok' => $pokokPinjaman,
                 'sewa_modal' => $sewaModalTerutang,
                 'biaya_lain' => $biayaLainPelunasan,
@@ -449,10 +462,17 @@ class TransaksiGadaiController extends Controller
         $data = $this->validateSettlementData($request);
 
         $tarifBungaHarian = $this->resolveTarifBunga($transaksi);
+        $masterFormula = $this->findMasterFormulaForTransaction($transaksi);
         $pokokPinjaman = (float) $transaksi->uang_pinjaman;
         $tanggalPelunasan = Carbon::parse($data['tanggal_pelunasan']);
         $actualDays = $this->calculateActualDays($transaksi->tanggal_gadai, $tanggalPelunasan);
-        $sewaModalTerutang = $this->calculateSewaModal($pokokPinjaman, $tarifBungaHarian, $actualDays);
+        $billableDays = $this->calculateBillableDays($actualDays, $masterFormula);
+        $sewaModalTerutang = $this->calculateSewaModalWithFormula(
+            $pokokPinjaman,
+            $tarifBungaHarian,
+            $billableDays,
+            $masterFormula
+        );
         $biayaLainDibayar = (float) $data['biaya_lain_dibayar'];
         $minimalPelunasan = $pokokPinjaman + $sewaModalTerutang + $biayaLainDibayar;
 
@@ -462,7 +482,7 @@ class TransaksiGadaiController extends Controller
         if ($total + 0.00001 < $minimalPelunasan) {
             $message = __('Total pelunasan minimal adalah :amount berdasarkan pemakaian :days hari.', [
                 'amount' => $this->formatCurrency($minimalPelunasan),
-                'days' => $actualDays,
+                'days' => $billableDays,
             ]);
 
             return redirect()
@@ -549,6 +569,8 @@ class TransaksiGadaiController extends Controller
 
         $transaksi->loadMissing(['nasabah', 'kasir', 'barangJaminan', 'perpanjangan.petugas', 'perpanjangan.pembatal']);
 
+        $masterFormula = $this->findMasterFormulaForTransaction($transaksi);
+
         $today = Carbon::today()->startOfDay();
         $defaultMulai = $today->toDateString();
         $defaultTenor = max(1, (int) ($transaksi->tenor_hari ?? 30));
@@ -562,6 +584,9 @@ class TransaksiGadaiController extends Controller
         }
 
         $transaksi->refreshBungaTerutangRiil($referenceDate);
+
+        $transaksi->setAttribute('tarif_bunga_per_periode', $masterFormula?->tarif_bunga_per_periode);
+        $transaksi->setAttribute('periode_hari', $masterFormula?->periode_hari);
 
         $bungaBerjalan = (float) ($transaksi->bunga_terutang_riil ?? 0);
         $hasElapsed = $bungaBerjalan > 0.00001;
@@ -690,8 +715,14 @@ class TransaksiGadaiController extends Controller
             $transaksi->jatuh_tempo_awal = $tanggalJatuhTempoBaru->toDateString();
             $transaksi->tenor_hari = $tenorBaru;
             $transaksi->status_transaksi = 'Perpanjang';
+            $masterFormula = $this->findMasterFormulaForTransaction($transaksi);
             $transaksi->total_bunga = $this->formatDecimal(
-                $this->calculateSewaModal((float) ($transaksi->uang_pinjaman ?? 0), $this->resolveTarifBunga($transaksi), $tenorBaru)
+                $this->calculateSewaModalWithFormula(
+                    (float) ($transaksi->uang_pinjaman ?? 0),
+                    $this->resolveTarifBunga($transaksi),
+                    $this->calculateBillableDays($tenorBaru, $masterFormula),
+                    $masterFormula
+                )
             );
             $transaksi->bunga_terutang_riil = $this->formatDecimal(0);
             $transaksi->save();
@@ -770,10 +801,12 @@ class TransaksiGadaiController extends Controller
                 : null;
             $previousTenor = max(1, (int) ($perpanjangan->tenor_sebelumnya ?? 1));
             $tarifBunga = $this->resolveTarifBunga($transaksi);
-            $totalBungaSebelumnya = $this->calculateSewaModal(
+            $masterFormula = $this->findMasterFormulaForTransaction($transaksi);
+            $totalBungaSebelumnya = $this->calculateSewaModalWithFormula(
                 (float) ($transaksi->uang_pinjaman ?? 0),
                 $tarifBunga,
-                $previousTenor
+                $this->calculateBillableDays($previousTenor, $masterFormula),
+                $masterFormula
             );
 
             $otherActiveExists = PerpanjanganGadai::query()
@@ -958,6 +991,20 @@ class TransaksiGadaiController extends Controller
         return max(1, $mulai->diffInDays($selesai) + 1);
     }
 
+    private function calculateBillableDays(int $actualDays, ?MasterPerhitunganGadai $formula = null): int
+    {
+        $actualDays = max(1, $actualDays);
+
+        if (!$formula || ($formula->skema_bunga ?? 'harian') !== 'periodik') {
+            return $actualDays;
+        }
+
+        $periode = max(1, (int) ($formula->periode_hari ?? 0));
+        $periodsUsed = (int) ceil($actualDays / $periode);
+
+        return $periodsUsed * $periode;
+    }
+
     private function resolveDailyRate(MasterPerhitunganGadai $formula): float
     {
         $skema = $formula->skema_bunga ?? 'harian';
@@ -979,6 +1026,27 @@ class TransaksiGadaiController extends Controller
         $actualDays = max(0, $actualDays);
 
         return $pokokPinjaman * $tarifBunga * $actualDays;
+    }
+
+    private function calculateSewaModalWithFormula(
+        float $pokokPinjaman,
+        float $tarifBungaHarian,
+        int $billableDays,
+        ?MasterPerhitunganGadai $formula = null
+    ): float {
+        $pokokPinjaman = max(0, $pokokPinjaman);
+        $tarifBungaHarian = max(0, $tarifBungaHarian);
+        $billableDays = max(0, $billableDays);
+
+        if ($formula && ($formula->skema_bunga ?? 'harian') === 'periodik') {
+            $periodeHari = max(1, (int) ($formula->periode_hari ?? 0));
+            $tarifPerPeriode = max(0, (float) ($formula->tarif_bunga_per_periode ?? 0));
+            $jumlahPeriode = (int) ceil($billableDays / $periodeHari);
+
+            return $pokokPinjaman * $tarifPerPeriode * $jumlahPeriode;
+        }
+
+        return $this->calculateSewaModal($pokokPinjaman, $tarifBungaHarian, $billableDays);
     }
 
     private function resolveTarifBunga(TransaksiGadai $transaksi): float
