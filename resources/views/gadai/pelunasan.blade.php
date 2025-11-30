@@ -9,6 +9,9 @@
         $tarifBungaPersen = $perhitungan['tarif_bunga'] * 100;
         $tarifBungaPerPeriode = $perhitungan['tarif_bunga_per_periode'] ?? null;
         $tarifBungaPerPeriodePersen = $tarifBungaPerPeriode !== null ? $tarifBungaPerPeriode * 100 : null;
+        $tarifBungaHarianDisplay = $tarifBungaPerPeriodePersen !== null
+            ? '-'
+            : number_format($tarifBungaPersen, 2, ',', '.') . '%';
     @endphp
 
     <div class="space-y-8">
@@ -68,7 +71,7 @@
                         </div>
                         <div class="flex items-start justify-between gap-4">
                             <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('Tarif Bunga Harian') }}</dt>
-                            <dd class="text-right text-neutral-900 dark:text-white">{{ number_format($tarifBungaPersen, 2, ',', '.') }}%</dd>
+                            <dd class="text-right text-neutral-900 dark:text-white">{{ $tarifBungaHarianDisplay }}</dd>
                         </div>
                         @if ($tarifBungaPerPeriodePersen !== null)
                             <div class="flex items-start justify-between gap-4">

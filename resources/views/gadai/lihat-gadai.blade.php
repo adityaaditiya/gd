@@ -281,7 +281,13 @@
                                     —
                                 @endif
                             </td>
-                            <td class="whitespace-nowrap px-4 py-3">{{ number_format((float) $transaksi->tarif_bunga_harian * 100, 2, ',', '.') }}%</td>
+                            <td class="whitespace-nowrap px-4 py-3">
+                                @if ($isPeriodic)
+                                    -
+                                @else
+                                    {{ number_format((float) $transaksi->tarif_bunga_harian * 100, 2, ',', '.') }}%
+                                @endif
+                            </td>
                             <td class="whitespace-nowrap px-4 py-3">{{ optional($transaksi->jatuh_tempo_awal)->format('d M Y') ?? '—' }}</td>
                             <td class="px-4 py-3">
                                 <div class="font-semibold text-emerald-600 dark:text-emerald-300">
