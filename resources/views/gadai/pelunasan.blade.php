@@ -7,6 +7,12 @@
         $barangJaminan = $transaksi->barangJaminan ?? collect();
         $perhitungan = $perhitunganPelunasan;
         $tarifBungaPersen = $perhitungan['tarif_bunga'] * 100;
+        $tarifBungaPerPeriode = $perhitungan['tarif_bunga_per_periode'] ?? null;
+        $tarifBungaPerPeriodePersen = $tarifBungaPerPeriode !== null ? $tarifBungaPerPeriode * 100 : null;
+        $tarifBungaHarianDisplay = $tarifBungaPerPeriodePersen !== null
+            ? '-'
+            : number_format($tarifBungaPersen, 2, ',', '.') . '%';
+        $totalTagihanDasar = $perhitungan['total_tagihan'] - $perhitungan['biaya_lain'];
     @endphp
 
     <div class="space-y-8">
@@ -66,8 +72,14 @@
                         </div>
                         <div class="flex items-start justify-between gap-4">
                             <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('Tarif Bunga Harian') }}</dt>
-                            <dd class="text-right text-neutral-900 dark:text-white">{{ number_format($tarifBungaPersen, 2, ',', '.') }}%</dd>
+                            <dd class="text-right text-neutral-900 dark:text-white">{{ $tarifBungaHarianDisplay }}</dd>
                         </div>
+                        @if ($tarifBungaPerPeriodePersen !== null)
+                            <div class="flex items-start justify-between gap-4">
+                                <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('Tarif Bunga per Periode') }}</dt>
+                                <dd class="text-right text-neutral-900 dark:text-white">{{ number_format($tarifBungaPerPeriodePersen, 2, ',', '.') }}%</dd>
+                            </div>
+                        @endif
                         <div class="flex items-start justify-between gap-4">
                             <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('Hari Pemakaian Aktual') }}</dt>
                             <dd class="text-right text-neutral-900 dark:text-white">{{ $perhitungan['actual_days'] }} {{ __('hari') }}</dd>
@@ -266,19 +278,41 @@
                             <dt>{{ __('Sewa Modal Terutang') }}</dt>
                             <dd class="font-semibold">Rp {{ number_format($perhitungan['sewa_modal'], 0, ',', '.') }}</dd>
                         </div>
-                        @if ($perhitungan['biaya_lain'] > 0)
-                            <div class="flex items-center justify-between gap-4">
-                                <dt>{{ __('Biaya Lain-Lain Pelunasan') }}</dt>
-                                <dd class="font-semibold">Rp {{ number_format($perhitungan['biaya_lain'], 0, ',', '.') }}</dd>
-                            </div>
-                        @endif
+                        <div
+                            class="flex items-center justify-between gap-4 {{ $perhitungan['biaya_lain'] > 0 ? '' : 'hidden' }}"
+                            data-perhitungan-biaya-lain-row
+                        >
+                            <dt>{{ __('Biaya Lain-Lain Pelunasan') }}</dt>
+                            <dd
+                                class="font-semibold"
+                                data-perhitungan-biaya-lain
+                                data-amount="{{ number_format($perhitungan['biaya_lain'], 2, '.', '') }}"
+                            >
+                                Rp {{ number_format($perhitungan['biaya_lain'], 0, ',', '.') }}
+                            </dd>
+                        </div>
                         <div class="flex items-center justify-between gap-4 border-t border-emerald-200 pt-3 dark:border-emerald-500/40">
                             <dt>{{ __('Total Tagihan Pelunasan') }}</dt>
-                            <dd class="text-base font-bold">Rp {{ number_format($perhitungan['total_tagihan'], 0, ',', '.') }}</dd>
+                            <dd
+                                class="text-base font-bold"
+                                data-perhitungan-total-tagihan
+                                data-base-total="{{ number_format($totalTagihanDasar, 2, '.', '') }}"
+                            >
+                                Rp {{ number_format($perhitungan['total_tagihan'], 0, ',', '.') }}
+                            </dd>
                         </div>
                     </dl>
                     <p class="mt-4 text-xs text-emerald-700 dark:text-emerald-200/80">
-                        {{ __('Nilai di atas dihitung berdasarkan tarif bunga harian 0,15% dan jumlah hari aktual sejak tanggal gadai.') }}
+                        @php
+                            $actualDays = $perhitungan['actual_days'];
+                            $billableDays = $perhitungan['billable_days'];
+                            $dailyRatePercent = number_format($perhitungan['tarif_bunga'] * 100, 2, ',', '.');
+                        @endphp
+                        {{ __('Nilai di atas dihitung dengan tarif bunga harian :rate% selama :billable hari tagih (:actual hari berjalan).', [
+                            'rate' => $dailyRatePercent,
+                            'billable' => $billableDays,
+                            'actual' => $actualDays,
+                        ]) }}
                     </p>
                 </div>
             </aside>
