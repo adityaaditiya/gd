@@ -7,6 +7,8 @@
         $barangJaminan = $transaksi->barangJaminan ?? collect();
         $perhitungan = $perhitunganPelunasan;
         $tarifBungaPersen = $perhitungan['tarif_bunga'] * 100;
+        $tarifBungaPerPeriode = $perhitungan['tarif_bunga_per_periode'] ?? null;
+        $tarifBungaPerPeriodePersen = $tarifBungaPerPeriode !== null ? $tarifBungaPerPeriode * 100 : null;
     @endphp
 
     <div class="space-y-8">
@@ -68,6 +70,12 @@
                             <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('Tarif Bunga Harian') }}</dt>
                             <dd class="text-right text-neutral-900 dark:text-white">{{ number_format($tarifBungaPersen, 2, ',', '.') }}%</dd>
                         </div>
+                        @if ($tarifBungaPerPeriodePersen !== null)
+                            <div class="flex items-start justify-between gap-4">
+                                <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('Tarif Bunga per Periode') }}</dt>
+                                <dd class="text-right text-neutral-900 dark:text-white">{{ number_format($tarifBungaPerPeriodePersen, 2, ',', '.') }}%</dd>
+                            </div>
+                        @endif
                         <div class="flex items-start justify-between gap-4">
                             <dt class="font-medium text-neutral-600 dark:text-neutral-300">{{ __('Hari Pemakaian Aktual') }}</dt>
                             <dd class="text-right text-neutral-900 dark:text-white">{{ $perhitungan['actual_days'] }} {{ __('hari') }}</dd>
@@ -278,7 +286,16 @@
                         </div>
                     </dl>
                     <p class="mt-4 text-xs text-emerald-700 dark:text-emerald-200/80">
-                        {{ __('Nilai di atas dihitung berdasarkan tarif bunga harian 0,15% dan jumlah hari aktual sejak tanggal gadai.') }}
+                        @php
+                            $actualDays = $perhitungan['actual_days'];
+                            $billableDays = $perhitungan['billable_days'];
+                            $dailyRatePercent = number_format($perhitungan['tarif_bunga'] * 100, 2, ',', '.');
+                        @endphp
+                        {{ __('Nilai di atas dihitung dengan tarif bunga harian :rate% selama :billable hari tagih (:actual hari berjalan).', [
+                            'rate' => $dailyRatePercent,
+                            'billable' => $billableDays,
+                            'actual' => $actualDays,
+                        ]) }}
                     </p>
                 </div>
             </aside>
