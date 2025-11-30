@@ -94,6 +94,8 @@ class PenyelesaianHasilLelangController extends Controller
 
             if ($resultType === 'surplus') {
                 $this->syncSurplusCashflow($jadwalLelang, $statusPembayaran);
+            } else {
+                $this->syncDeficitCashflow($jadwalLelang, $statusPembayaran);
             }
         });
 
@@ -111,6 +113,36 @@ class PenyelesaianHasilLelangController extends Controller
         }
 
         return null;
+    }
+
+    private function syncDeficitCashflow(JadwalLelang $jadwalLelang, string $statusPembayaran): void
+    {
+        $amount = (float) $jadwalLelang->piutang_sisa;
+
+        if ($amount <= 0) {
+            return;
+        }
+
+        $jadwalLelang
+            ->mutasiKas()
+            ->where('sumber', 'pelunasan defisit lelang')
+            ->delete();
+
+        if ($statusPembayaran !== 'Sudah Lunas') {
+            return;
+        }
+
+        $referensi = 'Lelang #' . $jadwalLelang->id;
+        $tanggalMutasi = Carbon::now()->toDateString();
+
+        $jadwalLelang->mutasiKas()->create([
+            'tanggal' => $tanggalMutasi,
+            'referensi' => $referensi,
+            'tipe' => 'masuk',
+            'jumlah' => $this->formatDecimal($amount),
+            'sumber' => 'pelunasan defisit lelang',
+            'keterangan' => __('Pelunasan kekurangan hasil lelang oleh nasabah'),
+        ]);
     }
 
     private function syncSurplusCashflow(JadwalLelang $jadwalLelang, string $statusPembayaran): void

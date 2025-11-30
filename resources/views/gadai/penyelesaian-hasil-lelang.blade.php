@@ -6,7 +6,10 @@
                 {{ __('Kelola sisa hasil lelang yang menjadi hak nasabah atau sisa piutang yang harus ditagih.') }}
             </p>
             <div class="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
-                {{ __('Kas keluar untuk SURPLUS hanya dicatat ketika status pembayaran nasabah diubah menjadi “Sudah Diambil” atau “Dialihkan ke Dana Sosial”.') }}
+                <ul class="list-inside list-disc space-y-1">
+                    <li>{{ __('Kas keluar untuk SURPLUS hanya dicatat ketika status pembayaran nasabah diubah menjadi “Sudah Diambil” atau “Dialihkan ke Dana Sosial”.') }}</li>
+                    <li>{{ __('Kas masuk untuk DEFISIT dicatat ketika status pembayaran nasabah diubah menjadi “Sudah Lunas”.') }}</li>
+                </ul>
             </div>
         </div>
 
