@@ -79,12 +79,6 @@ class PenyelesaianHasilLelangController extends Controller
             ]);
         }
 
-        if (filled($jadwalLelang->status_pembayaran_nasabah)) {
-            return back()->withErrors([
-                'status_pembayaran_nasabah' => __('Status sudah dikunci. Gunakan Batalkan Simpan untuk mengubahnya.'),
-            ]);
-        }
-
         $allowedStatuses = $resultType === 'surplus' ? self::SURPLUS_STATUSES : self::DEFISIT_STATUSES;
 
         $data = $request->validate([
@@ -119,27 +113,6 @@ class PenyelesaianHasilLelangController extends Controller
         }
 
         return null;
-    }
-
-    public function reset(JadwalLelang $jadwalLelang): RedirectResponse
-    {
-        $resultType = $this->determineResultType($jadwalLelang);
-
-        if ($resultType === null) {
-            return back()->withErrors([
-                'status_pembayaran_nasabah' => __('Status hasil lelang belum ditentukan untuk jadwal ini.'),
-            ]);
-        }
-
-        DB::transaction(function () use ($jadwalLelang, $resultType) {
-            $this->clearCashflow($jadwalLelang, $resultType);
-
-            $jadwalLelang->forceFill([
-                'status_pembayaran_nasabah' => null,
-            ])->save();
-        });
-
-        return back()->with('status', __('Status pembayaran dibatalkan. Anda dapat memilih status kembali.'));
     }
 
     private function syncDeficitCashflow(JadwalLelang $jadwalLelang, string $statusPembayaran): void
@@ -204,23 +177,6 @@ class PenyelesaianHasilLelangController extends Controller
             'sumber' => $sumber,
             'keterangan' => $keterangan,
         ]);
-    }
-
-    private function clearCashflow(JadwalLelang $jadwalLelang, string $resultType): void
-    {
-        if ($resultType === 'surplus') {
-            $jadwalLelang
-                ->mutasiKas()
-                ->whereIn('sumber', ['pengembalian nasabah', 'dana sosial lelang'])
-                ->delete();
-
-            return;
-        }
-
-        $jadwalLelang
-            ->mutasiKas()
-            ->where('sumber', 'pelunasan defisit lelang')
-            ->delete();
     }
 
     private function formatDecimal($value): ?string
