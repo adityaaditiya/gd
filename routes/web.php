@@ -88,6 +88,9 @@ Route::middleware(['auth'])->group(function () {
             Route::patch('penyelesaian-hasil-lelang/{jadwalLelang}', [PenyelesaianHasilLelangController::class, 'update'])
                 ->whereNumber('jadwalLelang')
                 ->name('penyelesaian-hasil-lelang.update');
+            Route::delete('penyelesaian-hasil-lelang/{jadwalLelang}', [PenyelesaianHasilLelangController::class, 'reset'])
+                ->whereNumber('jadwalLelang')
+                ->name('penyelesaian-hasil-lelang.reset');
         });
 
     Route::prefix('laporan')
