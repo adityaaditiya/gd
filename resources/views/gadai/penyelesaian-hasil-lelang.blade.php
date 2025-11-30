@@ -109,12 +109,12 @@
                                 <div class="text-neutral-600 dark:text-neutral-400">{{ $barang?->merek }}</div>
                                 <div class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">{{ __('Petugas') }}: {{ $jadwal->petugas ?? __('Belum ditetapkan') }}</div>
                             </td>
-                            <td class="mt-1 text-xs text-neutral-800 dark:text-neutral-100">
-                                <div class="inline-flex items-center gap-2 rounded-full px-2 py-1 text-center text-xs font-semibold {{ $resultType === 'surplus' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-200' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/60 dark:text-rose-200' }}">
-                                    {{ $resultType === 'surplus' ? __('(Kelebihan Uang) SURPLUS') : __('DEFISIT (Kekurangan Bayar)') }}
+                            <td class="mt-2 text-xs text-neutral-800 dark:text-neutral-100">
+                                <div class="inline-flex items-center gap-2 rounded-full mt-4 px-1 py-1 text-center text-xs font-semibold {{ $resultType === 'surplus' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-200' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/60 dark:text-rose-200' }}">
+                                    {{ $resultType === 'surplus' ? __('(Kelebihan Uang) SURPLUS') : __('(Kekurangan Bayar) DEFISIT') }}
                                 </div>
                                 <div class="mt-2 items-center text-sm text-center font-semibold">
-                                    Rp {{ number_format((float) $hasilBersih, 0, ',', '.') }}
+                                    Rp. {{ number_format((float) $hasilBersih, 0, ',', '.') }}
                                 </div>
                                 <!-- <div class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
                                     {{ $resultType === 'surplus'

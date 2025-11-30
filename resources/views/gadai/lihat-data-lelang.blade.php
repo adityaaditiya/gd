@@ -93,7 +93,7 @@
                                     {{ __('Barang') }}: {{ $barang?->jenis_barang }} {{ $barang?->merek ? '— ' . $barang->merek : '' }}
                                 </div>
                                 <div class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-                                    {{ __('Status Kontrak') }}: <span class="font-medium text-indigo-600 dark:text-indigo-300">{{ __($transaksi?->status_transaksi ?? 'Aktif') }}</span>
+                                    {{ __('Status Gadai') }}: <span class="font-medium text-indigo-600 dark:text-indigo-300">{{ __($transaksi?->status_transaksi ?? 'Aktif') }}</span>
                                 </div>
                             </td>
                             <td class="px-4 py-3 text-sm text-neutral-800 dark:text-neutral-100">
@@ -105,17 +105,23 @@
                                 </div>
                             </td>
                             <td class="px-4 py-3 text-sm text-neutral-800 dark:text-neutral-100">
-                                <div>{{ __('Limit Harga') }}: <span class="font-semibold">{{ $jadwal->harga_limit !== null ? 'Rp ' . number_format((float) $jadwal->harga_limit, 0, ',', '.') : __('-') }}</span></div>
-                                <div>{{ __('Estimasi Biaya') }}: <span class="font-semibold">{{ $jadwal->estimasi_biaya !== null ? 'Rp ' . number_format((float) $jadwal->estimasi_biaya, 0, ',', '.') : __('-') }}</span></div>
+                                <div>{{ __('Limit Harga') }}:</div>
+                                <span class="font-semibold">{{ $jadwal->harga_limit !== null ? 'Rp. ' . number_format((float) $jadwal->harga_limit, 0, ',', '.') : __('-') }}</span>
+                                <div>{{ __('Estimasi Biaya') }}:</div>
+                                <span class="font-semibold">{{ $jadwal->estimasi_biaya !== null ? 'Rp. ' . number_format((float) $jadwal->estimasi_biaya, 0, ',', '.') : __('-') }}</span>
                                 <div class="mt-2 text-xs text-neutral-500 dark:text-neutral-400">{{ $jadwal->catatan ?: __('Catatan belum tersedia.') }}</div>
                             </td>
                             <td class="px-4 py-3 text-sm text-neutral-800 dark:text-neutral-100">
                                 @if ($jadwal->hasil_status === 'laku')
-                                    <div>{{ __('Harga Laku') }}: <span class="font-semibold">Rp {{ number_format((float) $jadwal->harga_laku, 0, ',', '.') }}</span></div>
-                                    <div>{{ __('Biaya Lelang') }}: <span class="font-semibold">Rp {{ number_format((float) $jadwal->biaya_lelang, 0, ',', '.') }}</span></div>
-                                    <div>{{ __('Ke Perusahaan') }}: <span class="font-semibold">Rp {{ number_format((float) $jadwal->distribusi_perusahaan, 0, ',', '.') }}</span></div>
-                                    <div>{{ __('Ke Nasabah') }}: <span class="font-semibold">Rp {{ number_format((float) $jadwal->distribusi_nasabah, 0, ',', '.') }}</span></div>
-                                    <div>{{ __('Piutang Sisa') }}: <span class="font-semibold">Rp {{ number_format((float) $jadwal->piutang_sisa, 0, ',', '.') }}</span></div>
+                                    <div>{{ __('Hasil Lelang') }}:</div>
+                                    <span class="font-semibold">Rp. {{ number_format((float) $jadwal->harga_laku, 0, ',', '.') }}</span>
+                                    <div>{{ __('Biaya Lelang') }}:</div>
+                                    <span class="font-semibold">Rp. {{ number_format((float) $jadwal->biaya_lelang, 0, ',', '.') }}</span>
+                                    <!-- <div>{{ __('Ke Perusahaan') }}: <span class="font-semibold">Rp {{ number_format((float) $jadwal->distribusi_perusahaan, 0, ',', '.') }}</span></div> -->
+                                    <div>{{ __('Ke Nasabah') }}:</div>
+                                    <span class="font-semibold">Rp. {{ number_format((float) $jadwal->distribusi_nasabah, 0, ',', '.') }}</span>
+                                    <div>{{ __('Piutang Sisa') }}:</div>
+                                    <span class="font-semibold">Rp. {{ number_format((float) $jadwal->piutang_sisa, 0, ',', '.') }}</span>
                                 @elseif ($jadwal->hasil_status === 'tidak_laku')
                                     <div class="font-medium text-rose-600 dark:text-rose-300">{{ __('Belum laku') }}</div>
                                     <div class="text-xs text-neutral-500 dark:text-neutral-400">{{ __('Jadwalkan ulang untuk kesempatan berikutnya.') }}</div>

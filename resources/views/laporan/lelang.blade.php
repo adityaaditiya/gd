@@ -58,7 +58,7 @@
                         <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-600 dark:text-neutral-300">{{ __('Barang') }}</th>
                         <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-600 dark:text-neutral-300">{{ __('Status') }}</th>
                         <th scope="col" class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-neutral-600 dark:text-neutral-300">{{ __('Harga Laku') }}</th>
-                        <th scope="col" class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-neutral-600 dark:text-neutral-300">{{ __('Distribusi Perusahaan') }}</th>
+                        <th scope="col" class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-neutral-600 dark:text-neutral-300">{{ __('Saldo Kas Masuk') }}</th>
                         <th scope="col" class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-neutral-600 dark:text-neutral-300">{{ __('Distribusi Nasabah') }}</th>
                         <th scope="col" class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-neutral-600 dark:text-neutral-300">{{ __('Piutang Sisa') }}</th>
                     </tr>
@@ -108,7 +108,7 @@
         
         <div class="grid gap-3 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-700 dark:bg-neutral-900 md:grid-cols-4">
             <div class="flex flex-col gap-1">
-                <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Total Harga Laku') }}</span>
+                <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Total Hasil Lelang') }}</span>
                 <span class="text-xl font-semibold text-neutral-900 dark:text-white">Rp {{ number_format((float) $summary['total_harga_laku'], 0, ',', '.') }}</span>
             </div>
             <div class="flex flex-col gap-1">
@@ -116,7 +116,7 @@
                 <span class="text-xl font-semibold text-neutral-900 dark:text-white">Rp {{ number_format((float) $summary['total_biaya_lelang'], 0, ',', '.') }}</span>
             </div>
             <div class="flex flex-col gap-1">
-                <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Distribusi ke Perusahaan') }}</span>
+                <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Saldo Kas Masuk') }}</span>
                 <span class="text-xl font-semibold text-neutral-900 dark:text-white">Rp {{ number_format((float) $summary['total_distribusi_perusahaan'], 0, ',', '.') }}</span>
             </div>
             <div class="flex flex-col gap-1">
