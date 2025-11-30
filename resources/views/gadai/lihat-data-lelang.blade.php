@@ -80,6 +80,14 @@
                                     {{ $nasabah?->nama ?? __('Nasabah tidak ditemukan') }}
                                 </div>
                                 <div class="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
+                                    {{ __('Tanggal Gadai') }}:
+                                    <span class="font-medium text-neutral-700 dark:text-neutral-200">{{ optional($transaksi?->tanggal_gadai)->translatedFormat('d F Y') ?? __('Tidak tersedia') }}</span>
+                                </div>
+                                <div class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                                    {{ __('Jatuh Tempo') }}:
+                                    <span class="font-medium text-neutral-700 dark:text-neutral-200">{{ optional($transaksi?->jatuh_tempo_awal)->translatedFormat('d F Y') ?? __('Tidak tersedia') }}</span>
+                                </div>
+                                <div class="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
                                     {{ __('Barang') }}: {{ $barang?->jenis_barang }} {{ $barang?->merek ? '— ' . $barang->merek : '' }}
                                 </div>
                                 <div class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">

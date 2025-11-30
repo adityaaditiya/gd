@@ -19,6 +19,7 @@ use App\Http\Controllers\LaporanSaldoKasController;
 use App\Http\Controllers\LaporanPerpanjanganGadaiController;
 use App\Http\Controllers\LaporanCicilEmasController;
 use App\Http\Controllers\LelangController;
+use App\Http\Controllers\PenyelesaianHasilLelangController;
 use App\Http\Controllers\NasabahController;
 use App\Http\Controllers\TransaksiGadaiController;
 use Illuminate\Support\Facades\Auth;
@@ -82,6 +83,14 @@ Route::middleware(['auth'])->group(function () {
             Route::post('jadwal-lelang/{jadwalLelang}/finalisasi', [LelangController::class, 'finalize'])
                 ->whereNumber('jadwalLelang')
                 ->name('jadwal-lelang.finalize');
+            Route::get('penyelesaian-hasil-lelang', [PenyelesaianHasilLelangController::class, 'index'])
+                ->name('penyelesaian-hasil-lelang');
+            Route::patch('penyelesaian-hasil-lelang/{jadwalLelang}', [PenyelesaianHasilLelangController::class, 'update'])
+                ->whereNumber('jadwalLelang')
+                ->name('penyelesaian-hasil-lelang.update');
+            Route::delete('penyelesaian-hasil-lelang/{jadwalLelang}', [PenyelesaianHasilLelangController::class, 'reset'])
+                ->whereNumber('jadwalLelang')
+                ->name('penyelesaian-hasil-lelang.reset');
         });
 
     Route::prefix('laporan')
