@@ -429,6 +429,7 @@ class TransaksiGadaiController extends Controller
             ],
             'perhitunganPelunasan' => [
                 'tarif_bunga' => $tarifBungaHarian,
+                'tarif_bunga_per_periode' => $masterFormula?->tarif_bunga_per_periode,
                 'actual_days' => $actualDays,
                 'billable_days' => $billableDays,
                 'pokok' => $pokokPinjaman,
