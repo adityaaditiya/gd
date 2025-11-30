@@ -10975,3 +10975,13 @@ into your web browser: <span class="break-all" style="box-sizing: border-box; fo
 #60 /var/www/gd/public/index.php(20): Illuminate\\Foundation\\Application->handleRequest()
 #61 {main}
 "} 
+[2025-11-30 22:35:06] local.ERROR: There are no commands defined in the "clear" namespace. {"exception":"[object] (Symfony\\Component\\Console\\Exception\\NamespaceNotFoundException(code: 0): There are no commands defined in the \"clear\" namespace. at E:\\New folder\\laravel 12 php 8\\gd\\vendor\\symfony\\console\\Application.php:674)
+[stacktrace]
+#0 E:\\New folder\\laravel 12 php 8\\gd\\vendor\\symfony\\console\\Application.php(723): Symfony\\Component\\Console\\Application->findNamespace('clear')
+#1 E:\\New folder\\laravel 12 php 8\\gd\\vendor\\symfony\\console\\Application.php(298): Symfony\\Component\\Console\\Application->find('clear:cache')
+#2 E:\\New folder\\laravel 12 php 8\\gd\\vendor\\symfony\\console\\Application.php(195): Symfony\\Component\\Console\\Application->doRun(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#3 E:\\New folder\\laravel 12 php 8\\gd\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\Kernel.php(197): Symfony\\Component\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#4 E:\\New folder\\laravel 12 php 8\\gd\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(1235): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#5 E:\\New folder\\laravel 12 php 8\\gd\\artisan(16): Illuminate\\Foundation\\Application->handleCommand(Object(Symfony\\Component\\Console\\Input\\ArgvInput))
+#6 {main}
+"} 

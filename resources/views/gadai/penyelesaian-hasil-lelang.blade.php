@@ -5,12 +5,12 @@
             <p class="text-neutral-600 dark:text-neutral-300">
                 {{ __('Kelola sisa hasil lelang yang menjadi hak nasabah atau sisa piutang yang harus ditagih.') }}
             </p>
-            <div class="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
+            <!-- <div class="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
                 <ul class="list-inside list-disc space-y-1">
                     <li>{{ __('Kas keluar untuk SURPLUS hanya dicatat ketika status pembayaran nasabah diubah menjadi “Sudah Diambil” atau “Dialihkan ke Dana Sosial”.') }}</li>
                     <li>{{ __('Kas masuk untuk DEFISIT dicatat ketika status pembayaran nasabah diubah menjadi “Sudah Lunas”.') }}</li>
                 </ul>
-            </div>
+            </div> -->
         </div>
 
         @if (session('status'))
@@ -76,9 +76,9 @@
                         <th scope="col" class="px-4 py-3 text-left text-sm font-semibold text-neutral-700 dark:text-neutral-200">{{ __('Kontrak & Nasabah') }}</th>
                         <th scope="col" class="px-4 py-3 text-left text-sm font-semibold text-neutral-700 dark:text-neutral-200">{{ __('Barang') }}</th>
                         <th scope="col" class="px-4 py-3 text-left text-sm font-semibold text-neutral-700 dark:text-neutral-200">{{ __('Status Hasil') }}</th>
-                        <th scope="col" class="px-4 py-3 text-left text-sm font-semibold text-neutral-700 dark:text-neutral-200">{{ __('Status Pembayaran Nasabah') }}</th>
                         <th scope="col" class="px-4 py-3 text-left text-sm font-semibold text-neutral-700 dark:text-neutral-200">{{ __('Tanggal Ambil') }}</th>
                         <th scope="col" class="px-4 py-3 text-left text-sm font-semibold text-neutral-700 dark:text-neutral-200">{{ __('Tanggal Pembayaran') }}</th>
+                        <th scope="col" class="px-4 py-3 text-left text-sm font-semibold text-neutral-700 dark:text-neutral-200">{{ __('Status Pembayaran Nasabah') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-neutral-200 dark:divide-neutral-700">
@@ -109,35 +109,18 @@
                                 <div class="text-neutral-600 dark:text-neutral-400">{{ $barang?->merek }}</div>
                                 <div class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">{{ __('Petugas') }}: {{ $jadwal->petugas ?? __('Belum ditetapkan') }}</div>
                             </td>
-                            <td class="px-4 py-3 text-sm text-neutral-800 dark:text-neutral-100">
-                                <div class="inline-flex items-center gap-2 rounded-full px-2 py-1 text-xs font-semibold {{ $resultType === 'surplus' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-200' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/60 dark:text-rose-200' }}">
-                                    {{ $resultType === 'surplus' ? __('SURPLUS (Kelebihan Uang)') : __('DEFISIT (Kekurangan Bayar)') }}
+                            <td class="mt-1 text-xs text-neutral-800 dark:text-neutral-100">
+                                <div class="inline-flex items-center gap-2 rounded-full px-2 py-1 text-center text-xs font-semibold {{ $resultType === 'surplus' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-200' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/60 dark:text-rose-200' }}">
+                                    {{ $resultType === 'surplus' ? __('(Kelebihan Uang) SURPLUS') : __('DEFISIT (Kekurangan Bayar)') }}
                                 </div>
-                                <div class="mt-2 text-sm font-semibold">
+                                <div class="mt-2 items-center text-sm text-center font-semibold">
                                     Rp {{ number_format((float) $hasilBersih, 0, ',', '.') }}
                                 </div>
-                                <div class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                                <!-- <div class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
                                     {{ $resultType === 'surplus'
                                         ? __('Saldo kas belum keluar sampai status pembayaran berubah menjadi Sudah Diambil atau Dialihkan ke Dana Sosial.')
                                         : __('Gunakan status pembayaran untuk memantau piutang yang masih harus dilunasi nasabah.') }}
-                                </div>
-                            </td>
-                            <td class="px-4 py-3 text-sm text-neutral-800 dark:text-neutral-100">
-                                <form method="POST" action="{{ route('gadai.penyelesaian-hasil-lelang.update', $jadwal) }}" class="space-y-2">
-                                    @csrf
-                                    @method('PATCH')
-                                    <label class="flex flex-col gap-1 text-xs font-medium">
-                                        <span>{{ __('Status Pembayaran Nasabah') }}</span>
-                                        <select name="status_pembayaran_nasabah" class="form-select w-full rounded-md border-neutral-300 text-sm dark:border-neutral-600 dark:bg-neutral-900 dark:text-white">
-                                            @foreach ($statusOptions as $option)
-                                                <option value="{{ $option }}" @selected($jadwal->status_pembayaran_nasabah === $option)>{{ __($option) }}</option>
-                                            @endforeach
-                                        </select>
-                                    </label>
-                                    <button type="submit" class="w-full rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                                        {{ __('Simpan Status') }}
-                                    </button>
-                                </form>
+                                </div> -->
                             </td>
                             <td class="px-4 py-3 text-sm text-neutral-800 dark:text-neutral-100">
                                 @if ($shouldShowTanggalAmbil)
@@ -152,6 +135,23 @@
                                 @else
                                     —
                                 @endif
+                            </td>
+                            <td class="px-4 py-3 text-sm text-neutral-800 dark:text-neutral-100">
+                                <form method="POST" action="{{ route('gadai.penyelesaian-hasil-lelang.update', $jadwal) }}" class="space-y-2">
+                                    @csrf
+                                    @method('PATCH')
+                                    <label class="flex flex-col gap-1 text-xs font-medium">
+                                        <!-- <span>{{ __('Status Pembayaran Nasabah') }}</span> -->
+                                        <select name="status_pembayaran_nasabah" class="form-select w-full rounded-md border-neutral-300 text-sm dark:border-neutral-600 dark:bg-neutral-900 dark:text-white">
+                                            @foreach ($statusOptions as $option)
+                                                <option value="{{ $option }}" @selected($jadwal->status_pembayaran_nasabah === $option)>{{ __($option) }}</option>
+                                            @endforeach
+                                        </select>
+                                    </label>
+                                    <button type="submit" class="w-full rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                        {{ __('Simpan Status') }}
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                     @empty
