@@ -87,7 +87,6 @@
                             $resultType = (float) $jadwal->distribusi_nasabah > 0 ? 'surplus' : 'defisit';
                             $statusOptions = $resultType === 'surplus' ? $surplusStatuses : $defisitStatuses;
                             $hasilBersih = $resultType === 'surplus' ? $jadwal->distribusi_nasabah : $jadwal->piutang_sisa;
-                            $statusLocked = filled($jadwal->status_pembayaran_nasabah);
                         @endphp
                         <tr class="align-top">
                             <td class="px-4 py-3 text-sm text-neutral-800 dark:text-neutral-100">
@@ -122,36 +121,16 @@
                                     @method('PATCH')
                                     <label class="flex flex-col gap-1 text-xs font-medium">
                                         <span>{{ __('Status Pembayaran Nasabah') }}</span>
-                                        <select
-                                            name="status_pembayaran_nasabah"
-                                            class="form-select w-full rounded-md border-neutral-300 text-sm dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
-                                            @disabled($statusLocked)
-                                        >
-                                            <option value="" disabled @selected(!$statusLocked && empty($jadwal->status_pembayaran_nasabah))>
-                                                {{ __('Pilih status...') }}
-                                            </option>
+                                        <select name="status_pembayaran_nasabah" class="form-select w-full rounded-md border-neutral-300 text-sm dark:border-neutral-600 dark:bg-neutral-900 dark:text-white">
                                             @foreach ($statusOptions as $option)
                                                 <option value="{{ $option }}" @selected($jadwal->status_pembayaran_nasabah === $option)>{{ __($option) }}</option>
                                             @endforeach
                                         </select>
                                     </label>
-                                    <button
-                                        type="submit"
-                                        class="w-full rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
-                                        @disabled($statusLocked)
-                                    >
+                                    <button type="submit" class="w-full rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                         {{ __('Simpan Status') }}
                                     </button>
                                 </form>
-                                @if ($statusLocked)
-                                    <form method="POST" action="{{ route('gadai.penyelesaian-hasil-lelang.reset', $jadwal) }}" class="mt-2">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-800">
-                                            {{ __('Batalkan Simpan') }}
-                                        </button>
-                                    </form>
-                                @endif
                             </td>
                         </tr>
                     @empty
