@@ -1,76 +1,3 @@
-const formatCurrency = (value) => {
-    const trimmed = (value ?? '').toString().trim();
-
-    if (!trimmed) {
-        return '';
-    }
-
-    let sanitized = trimmed.replace(/[^0-9,.-]/g, '');
-
-    if (!sanitized) {
-        return '';
-    }
-
-    const lastComma = sanitized.lastIndexOf(',');
-    const lastDot = sanitized.lastIndexOf('.');
-
-    if (lastComma !== -1 && lastDot !== -1) {
-        if (lastComma > lastDot) {
-            sanitized = sanitized.replace(/\./g, '').replace(',', '.');
-        } else {
-            sanitized = sanitized.replace(/,/g, '');
-        }
-    } else if (lastComma !== -1) {
-        sanitized = sanitized.replace(/\./g, '').replace(',', '.');
-    } else if (lastDot !== -1) {
-        const decimals = sanitized.length - lastDot - 1;
-
-        if (decimals > 0 && decimals <= 2) {
-            sanitized = sanitized.replace(/,/g, '');
-        } else {
-            sanitized = sanitized.replace(/\./g, '');
-        }
-    } else {
-        sanitized = sanitized.replace(/,/g, '');
-    }
-
-    if (!sanitized || sanitized === '-' || sanitized === '.') {
-        return '';
-    }
-
-    const number = Number.parseFloat(sanitized);
-
-    if (Number.isNaN(number)) {
-        return '';
-    }
-
-    const isNegative = number < 0;
-    const absolute = Math.abs(number);
-    const decimalSegment = sanitized.split('.')[1] ?? '';
-    const precision = decimalSegment.length;
-    const fixed = absolute.toFixed(precision);
-    const [integerPartRaw, fractionPartRaw = ''] = fixed.split('.');
-    const formattedInteger = integerPartRaw.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    const signedInteger = isNegative && formattedInteger ? `-${formattedInteger}` : formattedInteger;
-
-    return fractionPartRaw ? `${signedInteger},${fractionPartRaw}` : signedInteger;
-};
-
-const normalizeCurrencyValue = (value) => {
-    if (!value) {
-        return '';
-    }
-
-    return value.replace(/\./g, '').replace(',', '.');
-};
-
-const parseCurrencyToNumber = (value) => {
-    const normalized = normalizeCurrencyValue(value);
-    const number = Number.parseFloat(normalized);
-
-    return Number.isFinite(number) ? number : 0;
-};
-
 const initTransaksiGadaiTableDropdown = () => {
     const table = document.querySelector('[data-transaksi-gadai-table]');
 
@@ -151,6 +78,64 @@ const initCurrencyInputs = () => {
         return;
     }
 
+    const formatCurrency = (value) => {
+        const trimmed = (value ?? '').toString().trim();
+
+        if (!trimmed) {
+            return '';
+        }
+
+        let sanitized = trimmed.replace(/[^0-9,.-]/g, '');
+
+        if (!sanitized) {
+            return '';
+        }
+
+        const lastComma = sanitized.lastIndexOf(',');
+        const lastDot = sanitized.lastIndexOf('.');
+
+        if (lastComma !== -1 && lastDot !== -1) {
+            if (lastComma > lastDot) {
+                sanitized = sanitized.replace(/\./g, '').replace(',', '.');
+            } else {
+                sanitized = sanitized.replace(/,/g, '');
+            }
+        } else if (lastComma !== -1) {
+            sanitized = sanitized.replace(/\./g, '').replace(',', '.');
+        } else if (lastDot !== -1) {
+            const decimals = sanitized.length - lastDot - 1;
+
+            if (decimals > 0 && decimals <= 2) {
+                sanitized = sanitized.replace(/,/g, '');
+            } else {
+                sanitized = sanitized.replace(/\./g, '');
+            }
+        } else {
+            sanitized = sanitized.replace(/,/g, '');
+        }
+
+        if (!sanitized || sanitized === '-' || sanitized === '.') {
+            return '';
+        }
+
+        const number = Number.parseFloat(sanitized);
+
+        if (Number.isNaN(number)) {
+            return '';
+        }
+
+        const isNegative = number < 0;
+        const absolute = Math.abs(number);
+        const decimalSegment = sanitized.split('.')[1] ?? '';
+        const precision = decimalSegment.length;
+        const fixed = absolute.toFixed(precision);
+        const [integerPartRaw, fractionPartRaw = ''] = fixed.split('.');
+        const formattedInteger = integerPartRaw.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        const signedInteger = isNegative && formattedInteger ? `-${formattedInteger}` : formattedInteger;
+
+        return fractionPartRaw ? `${signedInteger},${fractionPartRaw}` : signedInteger;
+    };
+
     const countDigitsBefore = (value, cursorPosition) => {
         return value.slice(0, cursorPosition).replace(/\D/g, '').length;
     };
@@ -169,6 +154,14 @@ const initCurrencyInputs = () => {
         }
 
         input.setSelectionRange(position, position);
+    };
+
+    const normalizeForSubmission = (value) => {
+        if (!value) {
+            return '';
+        }
+
+        return value.replace(/\./g, '').replace(',', '.');
     };
 
     const allowedNavigationKeys = new Set([
@@ -230,41 +223,13 @@ const initCurrencyInputs = () => {
     forms.forEach((form) => {
         form.addEventListener('submit', () => {
             form.querySelectorAll('[data-currency-input]').forEach((field) => {
-                field.value = normalizeCurrencyValue(field.value);
+                field.value = normalizeForSubmission(field.value);
             });
         });
     });
 };
 
-const initTotalPelunasanCalculator = () => {
-    const pokokInput = document.querySelector('input[name="pokok_dibayar"]');
-    const bungaInput = document.querySelector('input[name="bunga_dibayar"]');
-    const biayaLainInput = document.querySelector('input[name="biaya_lain_dibayar"]');
-    const totalInput = document.querySelector('input[name="total_pelunasan"]');
-
-    if (!pokokInput || !bungaInput || !biayaLainInput || !totalInput) {
-        return;
-    }
-
-    const updateTotal = () => {
-        const sum =
-            parseCurrencyToNumber(pokokInput.value) +
-            parseCurrencyToNumber(bungaInput.value) +
-            parseCurrencyToNumber(biayaLainInput.value);
-
-        totalInput.value = formatCurrency(sum);
-    };
-
-    [pokokInput, bungaInput, biayaLainInput].forEach((input) => {
-        input.addEventListener('input', updateTotal);
-        input.addEventListener('blur', updateTotal);
-    });
-
-    updateTotal();
-};
-
 document.addEventListener('DOMContentLoaded', () => {
     initTransaksiGadaiTableDropdown();
     initCurrencyInputs();
-    initTotalPelunasanCalculator();
 });
