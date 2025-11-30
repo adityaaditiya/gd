@@ -53,7 +53,6 @@
                 <thead class="bg-neutral-50 text-xs uppercase tracking-wide text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
                     <tr>
                         <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-600 dark:text-neutral-300">{{ __('Tanggal Rencana') }}</th>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-600 dark:text-neutral-300">{{ __('Nomor Lelang') }}</th>
                         <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-600 dark:text-neutral-300">{{ __('Kontrak / Nasabah') }}</th>
                         <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-600 dark:text-neutral-300">{{ __('Barang') }}</th>
                         <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-600 dark:text-neutral-300">{{ __('Status') }}</th>
@@ -67,7 +66,6 @@
                     @forelse ($jadwalLelang as $jadwal)
                         <tr class="text-sm text-neutral-800 dark:text-neutral-100">
                             <td class="px-4 py-3">{{ optional($jadwal->tanggal_rencana)->translatedFormat('d F Y') ?? __('Belum dijadwalkan') }}</td>
-                            <td class="px-4 py-3">{{ $jadwal->nomor_lelang ?? '—' }}</td>
                             <td class="px-4 py-3">
                                 <div class="font-medium">{{ $jadwal->transaksi?->no_sbg ?? '—' }}</div>
                                 <div class="text-xs text-neutral-500 dark:text-neutral-400">{{ $jadwal->transaksi?->nasabah?->nama ?? __('Nasabah tidak ditemukan') }}</div>
@@ -91,7 +89,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-400">{{ __('Belum ada data lelang yang sesuai filter.') }}</td>
+                            <td colspan="8" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-400">{{ __('Belum ada data lelang yang sesuai filter.') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

@@ -59,7 +59,6 @@
             <table class="min-w-full divide-y divide-neutral-200 dark:divide-neutral-700">
                 <thead class="bg-neutral-50 text-xs uppercase tracking-wide text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
                     <tr>
-                        <th scope="col" class="px-4 py-3 text-left text-sm font-semibold text-neutral-700 dark:text-neutral-200">{{ __('Nomor Lelang') }}</th>
                         <th scope="col" class="px-4 py-3 text-left text-sm font-semibold text-neutral-700 dark:text-neutral-200">{{ __('Kontrak & Barang') }}</th>
                         <th scope="col" class="px-4 py-3 text-left text-sm font-semibold text-neutral-700 dark:text-neutral-200">{{ __('Jadwal & Penanggung Jawab') }}</th>
                         <th scope="col" class="px-4 py-3 text-left text-sm font-semibold text-neutral-700 dark:text-neutral-200">{{ __('Limit & Biaya') }}</th>
@@ -75,7 +74,6 @@
                             $nasabah = $transaksi?->nasabah;
                         @endphp
                         <tr class="align-top">
-                            <td class="px-4 py-3 text-sm font-semibold text-neutral-800 dark:text-neutral-100">{{ $jadwal->nomor_lelang ?? '—' }}</td>
                             <td class="px-4 py-3 text-sm text-neutral-800 dark:text-neutral-100">
                                 <div class="font-semibold">{{ $transaksi?->no_sbg ?? __('Tanpa Nomor SBG') }}</div>
                                 <div class="text-neutral-600 dark:text-neutral-400">
@@ -200,7 +198,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-400">{{ __('Belum ada data lelang yang dapat ditampilkan.') }}</td>
+                            <td colspan="5" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-400">{{ __('Belum ada data lelang yang dapat ditampilkan.') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

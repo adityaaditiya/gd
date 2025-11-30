@@ -48,8 +48,7 @@ class PenyelesaianHasilLelangController extends Controller
                     })
                     ->orWhereHas('barang', function ($barangQuery) use ($search) {
                         $barangQuery->where('jenis_barang', 'like', "%{$search}%");
-                    })
-                    ->orWhere('nomor_lelang', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -138,7 +137,7 @@ class PenyelesaianHasilLelangController extends Controller
             return;
         }
 
-        $referensi = $jadwalLelang->nomor_lelang ?? 'Lelang #' . $jadwalLelang->id;
+        $referensi = 'Lelang #' . $jadwalLelang->id;
         $tanggalMutasi = Carbon::now()->toDateString();
 
         $jadwalLelang->mutasiKas()->create([
@@ -168,7 +167,7 @@ class PenyelesaianHasilLelangController extends Controller
             return;
         }
 
-        $referensi = $jadwalLelang->nomor_lelang ?? 'Lelang #' . $jadwalLelang->id;
+        $referensi = 'Lelang #' . $jadwalLelang->id;
         $tanggalMutasi = Carbon::now()->toDateString();
         $sumber = $statusPembayaran === 'Dialihkan ke Dana Sosial' ? 'dana sosial lelang' : 'pengembalian nasabah';
         $keterangan = $statusPembayaran === 'Dialihkan ke Dana Sosial'

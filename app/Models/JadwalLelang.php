@@ -17,7 +17,6 @@ class JadwalLelang extends Model
     protected $fillable = [
         'barang_id',
         'transaksi_id',
-        'nomor_lelang',
         'tanggal_rencana',
         'lokasi',
         'petugas',
@@ -51,15 +50,6 @@ class JadwalLelang extends Model
         'piutang_sisa' => 'decimal:2',
     ];
 
-    protected static function booted(): void
-    {
-        static::creating(function (self $jadwalLelang) {
-            if (empty($jadwalLelang->nomor_lelang)) {
-                $jadwalLelang->nomor_lelang = self::generateNomorLelang();
-            }
-        });
-    }
-
     public function barang(): BelongsTo
     {
         return $this->belongsTo(BarangJaminan::class, 'barang_id', 'barang_id');
@@ -73,26 +63,6 @@ class JadwalLelang extends Model
     public function mutasiKas(): HasMany
     {
         return $this->hasMany(MutasiKas::class, 'jadwal_lelang_id');
-    }
-
-    public static function generateNomorLelang(?Carbon $date = null): string
-    {
-        $date = $date ?? Carbon::now();
-
-        $prefix = 'LE01';
-        $datePart = $date->format('ymd');
-        $baseNomor = $prefix . $datePart;
-
-        $latestNomor = self::query()
-            ->whereDate('created_at', $date->toDateString())
-            ->whereNotNull('nomor_lelang')
-            ->where('nomor_lelang', 'like', $baseNomor . '%')
-            ->orderByDesc('nomor_lelang')
-            ->value('nomor_lelang');
-
-        $nextSequence = $latestNomor ? ((int) substr($latestNomor, -3)) + 1 : 1;
-
-        return $baseNomor . str_pad((string) $nextSequence, 3, '0', STR_PAD_LEFT);
     }
 
     public function markAsCompleted(Carbon $completedAt, array $distribution): void

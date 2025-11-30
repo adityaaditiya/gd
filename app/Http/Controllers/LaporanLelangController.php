@@ -46,8 +46,7 @@ class LaporanLelangController extends Controller
                         ->orWhereHas('barang', function ($barangQuery) use ($search) {
                             $barangQuery->where('jenis_barang', 'like', "%{$search}%")
                                 ->orWhere('merek', 'like', "%{$search}%");
-                        })
-                        ->orWhere('nomor_lelang', 'like', "%{$search}%");
+                        });
                 });
             })
             ->orderBy('tanggal_rencana')
