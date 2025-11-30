@@ -17,6 +17,7 @@ class JadwalLelang extends Model
     protected $fillable = [
         'barang_id',
         'transaksi_id',
+        'nomor_lelang',
         'tanggal_rencana',
         'lokasi',
         'petugas',
@@ -31,12 +32,16 @@ class JadwalLelang extends Model
         'distribusi_nasabah',
         'piutang_sisa',
         'status_pembayaran_nasabah',
+        'tanggal_ambil',
+        'tanggal_pembayaran',
         'tanggal_selesai',
     ];
 
     protected $casts = [
         'tanggal_rencana' => 'date',
         'tanggal_selesai' => 'datetime',
+        'tanggal_ambil' => 'date',
+        'tanggal_pembayaran' => 'date',
         'harga_limit' => 'decimal:2',
         'estimasi_biaya' => 'decimal:2',
         'harga_laku' => 'decimal:2',
@@ -45,6 +50,15 @@ class JadwalLelang extends Model
         'distribusi_nasabah' => 'decimal:2',
         'piutang_sisa' => 'decimal:2',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $jadwalLelang) {
+            if (empty($jadwalLelang->nomor_lelang)) {
+                $jadwalLelang->nomor_lelang = self::generateNomorLelang();
+            }
+        });
+    }
 
     public function barang(): BelongsTo
     {
@@ -59,6 +73,26 @@ class JadwalLelang extends Model
     public function mutasiKas(): HasMany
     {
         return $this->hasMany(MutasiKas::class, 'jadwal_lelang_id');
+    }
+
+    public static function generateNomorLelang(?Carbon $date = null): string
+    {
+        $date = $date ?? Carbon::now();
+
+        $prefix = 'LE01';
+        $datePart = $date->format('ymd');
+        $baseNomor = $prefix . $datePart;
+
+        $latestNomor = self::query()
+            ->whereDate('created_at', $date->toDateString())
+            ->whereNotNull('nomor_lelang')
+            ->where('nomor_lelang', 'like', $baseNomor . '%')
+            ->orderByDesc('nomor_lelang')
+            ->value('nomor_lelang');
+
+        $nextSequence = $latestNomor ? ((int) substr($latestNomor, -3)) + 1 : 1;
+
+        return $baseNomor . str_pad((string) $nextSequence, 3, '0', STR_PAD_LEFT);
     }
 
     public function markAsCompleted(Carbon $completedAt, array $distribution): void

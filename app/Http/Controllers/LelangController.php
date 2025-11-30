@@ -44,7 +44,8 @@ class LelangController extends Controller
                         ->orWhereHas('barang', function ($barangQuery) use ($search) {
                             $barangQuery->where('jenis_barang', 'like', "%{$search}%")
                                 ->orWhere('merek', 'like', "%{$search}%");
-                        });
+                        })
+                        ->orWhere('nomor_lelang', 'like', "%{$search}%");
                 });
             })
             ->orderByRaw('ISNULL(tanggal_rencana)')
@@ -174,7 +175,7 @@ class LelangController extends Controller
             ])->saveQuietly();
 
             $deskripsiBarang = $jadwalLelang->barang?->jenis_barang;
-            $referensi = 'Lelang #' . $jadwalLelang->id;
+            $referensi = $jadwalLelang->nomor_lelang ?? 'Lelang #' . $jadwalLelang->id;
             $tanggalMutasi = $now->toDateString();
 
             $jadwalLelang->mutasiKas()->create([

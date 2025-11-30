@@ -72,10 +72,13 @@
             <table class="min-w-full divide-y divide-neutral-200 dark:divide-neutral-700">
                 <thead class="bg-neutral-50 text-xs uppercase tracking-wide text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
                     <tr>
+                        <th scope="col" class="px-4 py-3 text-left text-sm font-semibold text-neutral-700 dark:text-neutral-200">{{ __('Nomor Lelang') }}</th>
                         <th scope="col" class="px-4 py-3 text-left text-sm font-semibold text-neutral-700 dark:text-neutral-200">{{ __('Kontrak & Nasabah') }}</th>
                         <th scope="col" class="px-4 py-3 text-left text-sm font-semibold text-neutral-700 dark:text-neutral-200">{{ __('Barang') }}</th>
                         <th scope="col" class="px-4 py-3 text-left text-sm font-semibold text-neutral-700 dark:text-neutral-200">{{ __('Status Hasil') }}</th>
                         <th scope="col" class="px-4 py-3 text-left text-sm font-semibold text-neutral-700 dark:text-neutral-200">{{ __('Status Pembayaran Nasabah') }}</th>
+                        <th scope="col" class="px-4 py-3 text-left text-sm font-semibold text-neutral-700 dark:text-neutral-200">{{ __('Tanggal Ambil') }}</th>
+                        <th scope="col" class="px-4 py-3 text-left text-sm font-semibold text-neutral-700 dark:text-neutral-200">{{ __('Tanggal Pembayaran') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-neutral-200 dark:divide-neutral-700">
@@ -87,8 +90,12 @@
                             $resultType = (float) $jadwal->distribusi_nasabah > 0 ? 'surplus' : 'defisit';
                             $statusOptions = $resultType === 'surplus' ? $surplusStatuses : $defisitStatuses;
                             $hasilBersih = $resultType === 'surplus' ? $jadwal->distribusi_nasabah : $jadwal->piutang_sisa;
+                            $ambilStatuses = ['Sudah Diambil', 'Dialihkan ke Dana Sosial'];
+                            $shouldShowTanggalAmbil = $resultType === 'surplus' && in_array($jadwal->status_pembayaran_nasabah, $ambilStatuses, true);
+                            $shouldShowTanggalPembayaran = $resultType === 'defisit' && $jadwal->status_pembayaran_nasabah === 'Sudah Lunas';
                         @endphp
                         <tr class="align-top">
+                            <td class="px-4 py-3 text-sm font-semibold text-neutral-800 dark:text-neutral-100">{{ $jadwal->nomor_lelang ?? '—' }}</td>
                             <td class="px-4 py-3 text-sm text-neutral-800 dark:text-neutral-100">
                                 <div class="font-semibold">{{ $transaksi?->no_sbg ?? __('Tanpa Nomor SBG') }}</div>
                                 <div class="text-neutral-600 dark:text-neutral-400">{{ $nasabah?->nama ?? __('Nasabah tidak ditemukan') }}</div>
@@ -132,10 +139,24 @@
                                     </button>
                                 </form>
                             </td>
+                            <td class="px-4 py-3 text-sm text-neutral-800 dark:text-neutral-100">
+                                @if ($shouldShowTanggalAmbil)
+                                    {{ optional($jadwal->tanggal_ambil)->translatedFormat('d F Y') ?? '—' }}
+                                @else
+                                    —
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 text-sm text-neutral-800 dark:text-neutral-100">
+                                @if ($shouldShowTanggalPembayaran)
+                                    {{ optional($jadwal->tanggal_pembayaran)->translatedFormat('d F Y') ?? '—' }}
+                                @else
+                                    —
+                                @endif
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-400">{{ __('Tidak ada data surplus atau defisit hasil lelang yang perlu ditindaklanjuti.') }}</td>
+                            <td colspan="7" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-400">{{ __('Tidak ada data surplus atau defisit hasil lelang yang perlu ditindaklanjuti.') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

@@ -48,7 +48,8 @@ class PenyelesaianHasilLelangController extends Controller
                     })
                     ->orWhereHas('barang', function ($barangQuery) use ($search) {
                         $barangQuery->where('jenis_barang', 'like', "%{$search}%");
-                    });
+                    })
+                    ->orWhere('nomor_lelang', 'like', "%{$search}%");
             });
         }
 
@@ -86,11 +87,16 @@ class PenyelesaianHasilLelangController extends Controller
         ]);
 
         $statusPembayaran = $data['status_pembayaran_nasabah'];
+        $updates = ['status_pembayaran_nasabah' => $statusPembayaran];
 
-        DB::transaction(function () use ($jadwalLelang, $statusPembayaran, $resultType) {
-            $jadwalLelang->forceFill([
-                'status_pembayaran_nasabah' => $statusPembayaran,
-            ])->save();
+        if ($resultType === 'surplus') {
+            $updates['tanggal_ambil'] = $this->determineTanggalAmbil($statusPembayaran);
+        } else {
+            $updates['tanggal_pembayaran'] = $this->determineTanggalPembayaran($statusPembayaran);
+        }
+
+        DB::transaction(function () use ($jadwalLelang, $statusPembayaran, $resultType, $updates) {
+            $jadwalLelang->forceFill($updates)->save();
 
             if ($resultType === 'surplus') {
                 $this->syncSurplusCashflow($jadwalLelang, $statusPembayaran);
@@ -132,7 +138,7 @@ class PenyelesaianHasilLelangController extends Controller
             return;
         }
 
-        $referensi = 'Lelang #' . $jadwalLelang->id;
+        $referensi = $jadwalLelang->nomor_lelang ?? 'Lelang #' . $jadwalLelang->id;
         $tanggalMutasi = Carbon::now()->toDateString();
 
         $jadwalLelang->mutasiKas()->create([
@@ -162,7 +168,7 @@ class PenyelesaianHasilLelangController extends Controller
             return;
         }
 
-        $referensi = 'Lelang #' . $jadwalLelang->id;
+        $referensi = $jadwalLelang->nomor_lelang ?? 'Lelang #' . $jadwalLelang->id;
         $tanggalMutasi = Carbon::now()->toDateString();
         $sumber = $statusPembayaran === 'Dialihkan ke Dana Sosial' ? 'dana sosial lelang' : 'pengembalian nasabah';
         $keterangan = $statusPembayaran === 'Dialihkan ke Dana Sosial'
@@ -177,6 +183,24 @@ class PenyelesaianHasilLelangController extends Controller
             'sumber' => $sumber,
             'keterangan' => $keterangan,
         ]);
+    }
+
+    private function determineTanggalAmbil(string $statusPembayaran): ?string
+    {
+        if (in_array($statusPembayaran, ['Sudah Diambil', 'Dialihkan ke Dana Sosial'], true)) {
+            return Carbon::now()->toDateString();
+        }
+
+        return null;
+    }
+
+    private function determineTanggalPembayaran(string $statusPembayaran): ?string
+    {
+        if ($statusPembayaran === 'Sudah Lunas') {
+            return Carbon::now()->toDateString();
+        }
+
+        return null;
     }
 
     private function formatDecimal($value): ?string
