@@ -30,6 +30,7 @@ class JadwalLelang extends Model
         'distribusi_perusahaan',
         'distribusi_nasabah',
         'piutang_sisa',
+        'status_pembayaran_nasabah',
         'tanggal_selesai',
     ];
 

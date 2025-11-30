@@ -143,11 +143,14 @@ class LelangController extends Controller
             $distribusiPerusahaan = min($hargaLaku, round($principal + $interest, 2));
             $distribusiNasabah = 0.0;
             $piutangSisa = 0.0;
+            $statusPembayaranNasabah = null;
 
             if ($hargaLaku >= $totalKewajiban) {
                 $distribusiNasabah = round($hargaLaku - $totalKewajiban, 2);
+                $statusPembayaranNasabah = 'Belum Diambil';
             } else {
                 $piutangSisa = round($totalKewajiban - $hargaLaku, 2);
+                $statusPembayaranNasabah = 'Belum Lunas';
             }
 
             $jadwalLelang->mutasiKas()->delete();
@@ -160,6 +163,7 @@ class LelangController extends Controller
                 'distribusi_perusahaan' => $this->formatDecimal($distribusiPerusahaan),
                 'distribusi_nasabah' => $this->formatDecimal($distribusiNasabah),
                 'piutang_sisa' => $this->formatDecimal($piutangSisa),
+                'status_pembayaran_nasabah' => $statusPembayaranNasabah,
                 'catatan' => $catatan,
                 'tanggal_selesai' => $now,
             ])->save();
@@ -192,17 +196,6 @@ class LelangController extends Controller
                     'jumlah' => $this->formatDecimal($biayaLelang),
                     'sumber' => 'biaya lelang',
                     'keterangan' => __('Pembayaran biaya lelang'),
-                ]);
-            }
-
-            if ($distribusiNasabah > 0) {
-                $jadwalLelang->mutasiKas()->create([
-                    'tanggal' => $tanggalMutasi,
-                    'referensi' => $referensi,
-                    'tipe' => 'keluar',
-                    'jumlah' => $this->formatDecimal($distribusiNasabah),
-                    'sumber' => 'pengembalian nasabah',
-                    'keterangan' => __('Pengembalian sisa hasil lelang kepada nasabah'),
                 ]);
             }
         });
