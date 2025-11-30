@@ -557,6 +557,8 @@ class TransaksiGadaiController extends Controller
 
         $transaksi->loadMissing(['nasabah', 'kasir', 'barangJaminan', 'perpanjangan.petugas', 'perpanjangan.pembatal']);
 
+        $masterFormula = $this->findMasterFormulaForTransaction($transaksi);
+
         $today = Carbon::today()->startOfDay();
         $defaultMulai = $today->toDateString();
         $defaultTenor = max(1, (int) ($transaksi->tenor_hari ?? 30));
@@ -570,6 +572,9 @@ class TransaksiGadaiController extends Controller
         }
 
         $transaksi->refreshBungaTerutangRiil($referenceDate);
+
+        $transaksi->setAttribute('tarif_bunga_per_periode', $masterFormula?->tarif_bunga_per_periode);
+        $transaksi->setAttribute('periode_hari', $masterFormula?->periode_hari);
 
         $bungaBerjalan = (float) ($transaksi->bunga_terutang_riil ?? 0);
         $hasElapsed = $bungaBerjalan > 0.00001;
