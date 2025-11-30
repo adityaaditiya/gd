@@ -12,6 +12,7 @@
         $tarifBungaHarianDisplay = $tarifBungaPerPeriodePersen !== null
             ? '-'
             : number_format($tarifBungaPersen, 2, ',', '.') . '%';
+        $totalTagihanDasar = $perhitungan['total_tagihan'] - $perhitungan['biaya_lain'];
     @endphp
 
     <div class="space-y-8">
@@ -277,15 +278,28 @@
                             <dt>{{ __('Sewa Modal Terutang') }}</dt>
                             <dd class="font-semibold">Rp {{ number_format($perhitungan['sewa_modal'], 0, ',', '.') }}</dd>
                         </div>
-                        @if ($perhitungan['biaya_lain'] > 0)
-                            <div class="flex items-center justify-between gap-4">
-                                <dt>{{ __('Biaya Lain-Lain Pelunasan') }}</dt>
-                                <dd class="font-semibold">Rp {{ number_format($perhitungan['biaya_lain'], 0, ',', '.') }}</dd>
-                            </div>
-                        @endif
+                        <div
+                            class="flex items-center justify-between gap-4 {{ $perhitungan['biaya_lain'] > 0 ? '' : 'hidden' }}"
+                            data-perhitungan-biaya-lain-row
+                        >
+                            <dt>{{ __('Biaya Lain-Lain Pelunasan') }}</dt>
+                            <dd
+                                class="font-semibold"
+                                data-perhitungan-biaya-lain
+                                data-amount="{{ number_format($perhitungan['biaya_lain'], 2, '.', '') }}"
+                            >
+                                Rp {{ number_format($perhitungan['biaya_lain'], 0, ',', '.') }}
+                            </dd>
+                        </div>
                         <div class="flex items-center justify-between gap-4 border-t border-emerald-200 pt-3 dark:border-emerald-500/40">
                             <dt>{{ __('Total Tagihan Pelunasan') }}</dt>
-                            <dd class="text-base font-bold">Rp {{ number_format($perhitungan['total_tagihan'], 0, ',', '.') }}</dd>
+                            <dd
+                                class="text-base font-bold"
+                                data-perhitungan-total-tagihan
+                                data-base-total="{{ number_format($totalTagihanDasar, 2, '.', '') }}"
+                            >
+                                Rp {{ number_format($perhitungan['total_tagihan'], 0, ',', '.') }}
+                            </dd>
                         </div>
                     </dl>
                     <p class="mt-4 text-xs text-emerald-700 dark:text-emerald-200/80">
