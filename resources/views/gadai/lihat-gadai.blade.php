@@ -415,7 +415,7 @@
                     @empty
                         <tr>
                             <td colspan="12" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-300">
-                                {{ __('Belum ada transaksi gadai yang tersimpan.') }}
+                                {{ __('Belum ada transaksi gadai yang tersimpan / gunakan filter tanggal untuk melihat data.') }}
                             </td>
                         </tr>
                     @endforelse

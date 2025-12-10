@@ -440,7 +440,7 @@
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <tr>
                             <td colspan="12" class="px-4 py-6 text-center text-sm text-neutral-500 dark:text-neutral-300">
-                                <?php echo e(__('Belum ada transaksi gadai yang tersimpan.')); ?>
+                                <?php echo e(__('Belum ada transaksi gadai yang tersimpan / gunakan filter tanggal untuk melihat data.')); ?>
 
                             </td>
                         </tr>
@@ -520,7 +520,7 @@
         </div>
     </div>
 
-    <?php if (! $__env->hasRenderedOnce('f84c25da-2c4a-47b7-83ac-d5b55ed3f490')): $__env->markAsRenderedOnce('f84c25da-2c4a-47b7-83ac-d5b55ed3f490'); ?>
+    <?php if (! $__env->hasRenderedOnce('fe78ac1a-48b1-4f05-993d-503c668faaf3')): $__env->markAsRenderedOnce('fe78ac1a-48b1-4f05-993d-503c668faaf3'); ?>
 <script data-navigate-once>
   window.KRESNO = window.KRESNO || {};
   if (!window.KRESNO.lihatGadaiBound) {
